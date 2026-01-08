@@ -298,28 +298,12 @@ def safe_remove(self, var, value):
 
 
 @Configure.conf
-def remove_flags(self, var, flags):
-    """Remove `flags` from `env[var]`."""
-    if not isinstance(self.env[var], list):
-        return
-    regexps = [re.compile(re.escape(flag) + ".*") for flag in flags]
-    # TODO itertools.chain?
-    flatten = lambda l: [item for sublist in l for item in sublist]
-    fl = []
-    for regexp in regexps:
-        fl.extend(flatten(filter(None, map(regexp.findall, self.env[var]))))
-    self.env[var] = list(set([i for i in self.env[var] if i not in fl]))
-
-
-@Configure.conf
-def remove_optflags(self, var):
+def remove_flags(self, var, expr):
     """Remove optimisation flags from a variable."""
+    regexp = re.compile(expr)
     self.env[var] = Utils.to_list(self.env[var])
-    # self.env[var] = self.remove_duplicates(Utils.to_list(self.env[var]))
-    removed = [i for i in self.env[var] if i.startswith("-O")]
-    if removed:
-        print(f"RM: {var}: {removed}")
-    # self.env[var] = [i for i in self.env[var] if not i.startswith("-O")]
+    self.env[var] = self.remove_duplicates(self.env[var])
+    removed = [i for i in self.env[var] if regexp.search(i)]
     self.env[var] = [i for i in self.env[var] if i not in removed]
 
 
@@ -330,6 +314,14 @@ def remove_duplicates(self, list_in):
     dset = set()
     # relies on the fact that dset.add() always returns None.
     return [path for path in list_in if path not in dset and not dset.add(path)]
+
+
+@Configure.conf
+def get_lto_options(self):
+    """Return the LTO options to be used."""
+    if self.options.lto:
+        return ["-flto=auto", "-ffat-lto-objects"]
+    return ["-fno-lto"]
 
 
 ###############################################################################

@@ -153,8 +153,8 @@ def check_mfront(self):
         uselib_store="MFRONT",
         mandatory=True,
     )
-    self.remove_optflags("CFLAGS_MFRONT")
-    self.remove_optflags("CXXFLAGS_MFRONT")
+    self.remove_flags("CFLAGS_MFRONT", "^-O[0-9]")
+    self.remove_flags("CXXFLAGS_MFRONT", "^-O[0-9]")
     if self.get_define("ASTER_HAVE_64_BITS"):
         arch = "ASTER_ARCH=64"
     else:

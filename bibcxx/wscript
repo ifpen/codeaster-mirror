@@ -100,7 +100,7 @@ def check_cxx_compiler_flags(self):
     """check C++ compiler flags"""
     # compiler independent (icpc/icpx & g++)
     self.check_cxx_compiler_options("-fPIC")
-    # self.check_cxx_compiler_options("-fno-lto")
+    self.check_cxx_compiler_options(self.get_lto_options())
     try:
         self.check_cxx_compiler_options("-std=c++20", optional=False)
     except Errors.ConfigurationError:
@@ -136,7 +136,7 @@ def check_cxx_compiler_options(self, options, optional=True):
 
 @Configure.conf
 def check_optimization_cxxflags(self):
-    self.remove_optflags("CXXFLAGS")
+    self.remove_flags("CXXFLAGS", "^-O[0-9]")
     self.setenv("debug")
     self.start_msg("Setting C++ debug flags")
     self.define("ASTER_DEBUG_CXX", 1)
