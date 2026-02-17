@@ -178,6 +178,8 @@ def crea_resu_local(dime, NOM_CHAM, m, resin, mail, nomgrma):
     if type_cut == "SEGMENT" and repere_cut == "LOCAL":
         if dime == 3 and not m["VECT_Y"]:
             UTMESS("F", "POST0_50")
+        elif dime == 2 and m["VECT_Y"]:
+            UTMESS("A", "POST0_58")
 
         # --- determination des angles nautiques
         cx1 = m["COOR_EXTR"][0] - m["COOR_ORIG"][0]
