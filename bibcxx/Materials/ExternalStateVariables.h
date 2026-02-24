@@ -103,6 +103,7 @@ enum class externVarEnumInt : int {
     ConcreteDrying,
     TotalFluidPressure,
     VolumetricStrain,
+    SteelTemperPhases,
     NumberOfExternVarTypes
 };
 
@@ -139,6 +140,8 @@ class ExternalVariableTraits {
             return std::string( "PTOT" );
         } else if ( e == externVarEnumInt::VolumetricStrain ) {
             return std::string( "DIVU" );
+        } else if ( e == externVarEnumInt::SteelTemperPhases ) {
+            return std::string( "M_REVENU" );
         } else {
             AS_ABORT( "Unknown external state variables" );
         }
@@ -181,6 +184,8 @@ class ExternalVariableTraits {
             return externVarEnumInt::TotalFluidPressure;
         } else if ( e == "DIVU" ) {
             return externVarEnumInt::VolumetricStrain;
+        } else if ( e == "M_REVENU" ) {
+            return externVarEnumInt::SteelTemperPhases;
         } else {
             return externVarEnumInt::Unknown;
         }
@@ -214,6 +219,8 @@ class ExternalVariableTraits {
             return true;
         } else if ( e == externVarEnumInt::VolumetricStrain ) {
             return false;
+        } else if ( e == externVarEnumInt::SteelTemperPhases ) {
+            return true;
         } else {
             return false;
         }
@@ -233,6 +240,8 @@ class ExternalVariableTraits {
             return std::string( "CHAR_MECA_SECH_R" );
         } else if ( e == externVarEnumInt::TotalFluidPressure ) {
             return std::string( "CHAR_MECA_PTOT_R" );
+        } else if ( e == externVarEnumInt::SteelTemperPhases ) {
+            return std::string( "CHAR_MECA_META_Z" );
         } else {
             AS_ABORT( "No strain option for this external state variable." );
         }

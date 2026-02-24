@@ -134,13 +134,10 @@
 !   Parameters to solve behaviour equations
 !
 ! --------------------------------------------------------------------------------------------------
-!
 ! Size
-!
 #define CARCRI_SIZE 22
-!
+
 ! Slots
-!
 #define ITER_INTE_MAXI 1
 #define TYPE_MATR_T 2
 #define RESI_INTE 3
@@ -151,24 +148,16 @@
 #define RESI_DEBORST_MAX 8
 #define ITER_DEBORST_MAX 9
 #define RESI_RADI_RELA 10
+#define IVARIEXT1 11
+#define PARM_THETA_THM 12
 #define IPOSTITER 13
 #define CARCRI_MATRSYME 17
-!
-! Slots: for external state variables
-!
-#define IVARIEXT1 11
-#define IVARIEXT2 22
-!
-! Slots: for THM parameters
-!
 #define PARM_ALPHA_THM 18
-#define PARM_THETA_THM 12
-!
-! Slots: For external solvers (UMAT/MFRONT)
-!
-!       Pointer to MGISBehaviour (MFront) or function (UMAT)
+#define IVARIEXT2 22
+! Slots for external solvers (UMAT/MFRONT)
+! Pointer to MGISBehaviour (MFront) or function (UMAT)
 #define EXTE_PTR 16
-!       1 for MFRONT official, 2 for MFRONT proto, 4 for UMAT (default: 0 internal)
+! 1 for MFRONT official, 2 for MFRONT proto, 4 for UMAT (default: 0 internal)
 #define EXTE_TYPE 15
 #define SOLV_BEHAV_ASTER 0
 #define SOLV_BEHAV_MGIS_OFFI 1
@@ -216,18 +205,7 @@
 #define STRAIN_TYPE_GREEN 2
 #define STRAIN_TYPE_LOG 3
 
-! --------------------------------------------------------------------------------------------------
-
-!
-! --------------------------------------------------------------------------------------------------
-!
-! Slots: for generic parameters
-!
-#define ITER_INTE_MAXI 1
-#define RESI_INTE 3
-!
-!        type of external state variables
-!
+! Type of external state variables
 #define ELTSIZE1 1
 #define XXXXXXXX 2
 #define GRADVELO 3

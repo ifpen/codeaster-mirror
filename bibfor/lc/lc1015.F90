@@ -15,11 +15,11 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-! aslint: disable=W0104
+! aslint: disable=W0104,W1504
 !
 subroutine lc1015(fami, kpg, ksp, ndim, imate, &
                   compor, carcri, instam, instap, epsm, &
-                  deps, sigm, nvi, vim, option, &
+                  deps, nsig, sigm, nvi, vim, option, &
                   sigp, vip, typmod, &
                   dsidep, codret)
 !
@@ -36,16 +36,16 @@ subroutine lc1015(fami, kpg, ksp, ndim, imate, &
     integer(kind=8), intent(in) :: kpg
     integer(kind=8), intent(in) :: ksp
     integer(kind=8), intent(in) :: ndim
-    integer(kind=8), intent(in) :: imate, nvi
+    integer(kind=8), intent(in) :: imate, nvi, nsig
     character(len=16), intent(in) :: compor(COMPOR_SIZE)
     real(kind=8), intent(in) :: carcri(CARCRI_SIZE)
     real(kind=8), intent(in) :: instam, instap
     real(kind=8), intent(in) :: epsm(*)
     real(kind=8), intent(in) :: deps(*)
-    real(kind=8), intent(in) :: sigm(*)
+    real(kind=8), intent(in) :: sigm(nsig)
     real(kind=8), intent(in) :: vim(nvi)
     character(len=16), intent(in) :: option
-    real(kind=8), intent(out) :: sigp(*)
+    real(kind=8), intent(out) :: sigp(nsig)
     real(kind=8), intent(out) :: vip(nvi)
     character(len=8), intent(in) :: typmod(*)
     real(kind=8), intent(out) :: dsidep(*)
@@ -60,16 +60,27 @@ subroutine lc1015(fami, kpg, ksp, ndim, imate, &
 ! --------------------------------------------------------------------------------------------------
 !
 
-    if (compor(META_PHAS) .eq. 'ACIER_MECA') then
-        call lcgdpm(fami, kpg, ksp, ndim, imate, &
-                    compor, carcri, instam, instap, epsm, &
-                    deps, sigm, vim, option, sigp, &
-                    vip, dsidep, codret)
-    else if (compor(META_PHAS) .eq. 'ZIRC_MECA') then
-        call nzgdzi(fami, kpg, ksp, ndim, imate, &
-                    compor, carcri, instam, instap, epsm, &
-                    deps, sigm, vim, option, sigp, &
-                    vip, dsidep, codret)
+    if (compor(META_PHAS) .eq. 'ACIERMECA' .or. &
+        compor(META_PHAS) .eq. 'ACIER_REVENUMECA') then
+        call lcgdpm(option, &
+                    fami, kpg, ksp, ndim, imate, &
+                    compor, carcri, &
+                    instam, instap, &
+                    epsm, deps, &
+                    nsig, sigm, &
+                    nvi, vim, &
+                    sigp, vip, dsidep, &
+                    codret)
+    else if (compor(META_PHAS) .eq. 'ZIRCMECA') then
+        call nzgdzi(option, &
+                    fami, kpg, ksp, ndim, imate, &
+                    compor, carcri, &
+                    instam, instap, &
+                    epsm, deps, &
+                    nsig, sigm, &
+                    nvi, vim, &
+                    sigp, vip, dsidep, &
+                    codret)
     else
         ASSERT(ASTER_FALSE)
     end if

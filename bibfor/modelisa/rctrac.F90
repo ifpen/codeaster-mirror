@@ -182,6 +182,29 @@ subroutine rctrac(jmat, ktrac, nomcl, temp, jprol, &
 140         continue
         end if
 !
+        if (nomcl(1:7) .eq. 'SIGM_F5') then
+            do ik = 1, nbf
+                if ('SIGM_F5  ' .eq. zk16(ivalk+idf+ik-1)) then
+                    ipif = ipi+lmat-1+lfct*(ik-1)+lsup*(ik-1)
+                    goto 170
+                end if
+            end do
+            call utmess('F', 'MODELISA6_86')
+170         continue
+        end if
+!
+        if (nomcl(1:7) .eq. 'SIGM_F6') then
+            do ik = 1, nbf
+                if ('SIGM_F6  ' .eq. zk16(ivalk+idf+ik-1)) then
+                    ipif = ipi+lmat-1+lfct*(ik-1)+lsup*(ik-1)
+                    goto 171
+                end if
+            end do
+            call utmess('F', 'MODELISA6_86')
+171         continue
+        end if
+!
+
         if (nomcl(1:6) .eq. 'SIGM_C') then
             do ik = 1, nbf
                 if ('SIGM_C  ' .eq. zk16(ivalk+idf+ik-1)) then
@@ -192,6 +215,7 @@ subroutine rctrac(jmat, ktrac, nomcl, temp, jprol, &
             call utmess('F', 'MODELISA6_87')
 160         continue
         end if
+
     end if
 !
     ipifc = zi(ipif+6)

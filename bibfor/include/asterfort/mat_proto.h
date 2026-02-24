@@ -19,7 +19,7 @@
 interface
     subroutine mat_proto(BEHinteg, &
                          fami, kpg, ksp, poum, jvMaterCode, relaComp, &
-                         nprops, props)
+                         nbProp, propVale)
         use Behaviour_type
         type(Behaviour_Integ), intent(in) :: BEHinteg
         character(len=*), intent(in) :: fami
@@ -27,7 +27,7 @@ interface
         character(len=1), intent(in) :: poum
         integer(kind=8), intent(in) :: jvMaterCode
         character(len=*), intent(in) :: relaComp
-        integer(kind=8), intent(inout) :: nprops
-        real(kind=8), intent(out) :: props(*)
+        integer(kind=8), intent(inout) :: nbProp
+        real(kind=8), intent(out) :: propVale(MGIS_MAX_PROPS)
     end subroutine mat_proto
 end interface

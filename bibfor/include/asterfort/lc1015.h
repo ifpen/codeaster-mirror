@@ -20,14 +20,14 @@
 interface
     subroutine lc1015(fami, kpg, ksp, ndim, imate, &
                       compor, carcri, instam, instap, epsm, &
-                      deps, sigm, nvi, vim, option, &
+                      deps, nsig, sigm, nvi, vim, option, &
                       sigp, vip, typmod, &
                       dsidep, codret)
         character(len=*), intent(in) :: fami
         integer(kind=8), intent(in) :: kpg
         integer(kind=8), intent(in) :: ksp
         integer(kind=8), intent(in) :: ndim
-        integer(kind=8), intent(in) :: imate, nvi
+        integer(kind=8), intent(in) :: imate, nvi, nsig
         character(len=16), intent(in) :: compor(COMPOR_SIZE)
         real(kind=8), intent(in) :: carcri(CARCRI_SIZE)
         real(kind=8), intent(in) :: instam, instap

@@ -28,12 +28,12 @@ subroutine lc0015(BEHInteg, &
                   ndsde, dsidep, codret)
 !
     use Behaviour_type
+    use MetallurgyMeca_module, only: metaGetMechanism
     implicit none
 !
 #include "asterf_types.h"
 #include "asterfort/assert.h"
 #include "asterfort/Behaviour_type.h"
-#include "asterfort/metaGetMechanism.h"
 #include "asterfort/nzcifw.h"
 #include "asterfort/nzcizi.h"
 #include "asterfort/nzedga.h"
@@ -76,12 +76,10 @@ subroutine lc0015(BEHInteg, &
     metaPhas = compor(META_PHAS)
     metaRela = compor(META_RELA)
     metaGlob = compor(META_GLOB)
-    call metaGetMechanism(metaRela, metaGlob, l_hard_kine=l_hard_kine)
-
-    ! call onlyIsoPara(typmod)
+    call metaGetMechanism(metaRela, metaGlob, lHardKine_=l_hard_kine)
 
     if (l_hard_kine) then
-        if (metaPhas .eq. 'ACIER_MECA') then
+        if (metaPhas .eq. 'ACIERMECA' .or. metaPhas .eq. 'ACIER_REVENUMECA') then
             call nzcifw(option, &
                         fami, kpg, ksp, ndim, jvMaterCode, &
                         compor, carcri, &
@@ -91,16 +89,21 @@ subroutine lc0015(BEHInteg, &
                         nvi, vim, &
                         sigp, vip, ndsde, dsidep, &
                         codret)
-        elseif (metaPhas .eq. 'ZIRC_MECA') then
-            call nzcizi(fami, kpg, ksp, ndim, jvMaterCode, &
-                        compor, carcri, timePrev, timeCurr, epsm, &
-                        deps, sigm, vim, option, sigp, &
-                        vip, dsidep, codret)
+        elseif (metaPhas .eq. 'ZIRCMECA') then
+            call nzcizi(option, &
+                        fami, kpg, ksp, ndim, jvMaterCode, &
+                        compor, carcri, &
+                        timePrev, timeCurr, &
+                        neps, epsm, deps, &
+                        nsig, sigm, &
+                        nvi, vim, &
+                        sigp, vip, ndsde, dsidep, &
+                        codret)
         else
             ASSERT(ASTER_FALSE)
         end if
     else
-        if (metaPhas .eq. 'ACIER_MECA') then
+        if (metaPhas .eq. 'ACIERMECA' .or. metaPhas .eq. 'ACIER_REVENUMECA') then
             call nzisfw(option, &
                         fami, kpg, ksp, ndim, jvMaterCode, &
                         compor, carcri, &
@@ -110,11 +113,16 @@ subroutine lc0015(BEHInteg, &
                         nvi, vim, &
                         sigp, vip, ndsde, dsidep, &
                         codret)
-        elseif (metaPhas .eq. 'ZIRC_MECA') then
-            call nzedga(fami, kpg, ksp, ndim, jvMaterCode, &
-                        compor, carcri, timePrev, timeCurr, epsm, &
-                        deps, sigm, vim, option, sigp, &
-                        vip, dsidep, codret)
+        elseif (metaPhas .eq. 'ZIRCMECA') then
+            call nzedga(option, &
+                        fami, kpg, ksp, ndim, jvMaterCode, &
+                        compor, carcri, &
+                        timePrev, timeCurr, &
+                        neps, epsm, deps, &
+                        nsig, sigm, &
+                        nvi, vim, &
+                        sigp, vip, ndsde, dsidep, &
+                        codret)
         else
             ASSERT(ASTER_FALSE)
         end if

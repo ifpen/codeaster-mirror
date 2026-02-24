@@ -163,5 +163,6 @@ Enumeration for external variable.
         .value( "TotalFluidPressure", externVarEnumInt::TotalFluidPressure )
         .value( "VolumetricStrain", externVarEnumInt::VolumetricStrain )
         .value( "NumberOfExternVarTypes", externVarEnumInt::NumberOfExternVarTypes )
+        .value( "SteelTemperPhases", externVarEnumInt::SteelTemperPhases )
         .export_values();
 };

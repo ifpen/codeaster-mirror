@@ -20,6 +20,7 @@ subroutine verift(fami, kpg, ksp, poum, jvMaterCode, &
                   materi_, iret_, epsth_, epsth_anis_, epsth_meta_, &
                   temp_prev_, temp_curr_, temp_refe_)
 !
+    use MetallurgyMeca_module, only: metaGetType
     implicit none
 !
 #include "asterfort/assert.h"
@@ -27,7 +28,6 @@ subroutine verift(fami, kpg, ksp, poum, jvMaterCode, &
 #include "asterfort/get_elas_id.h"
 #include "asterfort/get_elasth_para.h"
 #include "asterfort/metaGetPhase.h"
-#include "asterfort/metaGetType.h"
 #include "asterfort/rcvarc.h"
 #include "asterfort/tecach.h"
 #include "asterfort/tecael.h"
@@ -77,10 +77,10 @@ subroutine verift(fami, kpg, ksp, poum, jvMaterCode, &
     real(kind=8) :: alpha_l_p, alpha_t_p, alpha_n_p
     real(kind=8) :: alpha_c(2)
     real(kind=8) :: alpha_l_c, alpha_t_c, alpha_n_c
-    real(kind=8) :: zColdPrev, zHotPrev, zColdCurr, zHotCurr, epsth_meta_h, epsth_meta_c
+    real(kind=8) :: zSumColdPrev, zHotPrev, zSumColdCurr, zHotCurr, epsth_meta_h, epsth_meta_c
     real(kind=8) :: z_h_r, deps_ch_tref
     integer(kind=8) :: iadzi, iazk24
-    integer(kind=8) :: elasID, iret_cmp, jvCompor, metaType, nbPhases
+    integer(kind=8) :: elasID, iret_cmp, jvCompor, metaType, nbPhase
     character(len=16) :: elasKeyword, relaComp
 !
 ! --------------------------------------------------------------------------------------------------
@@ -164,9 +164,9 @@ subroutine verift(fami, kpg, ksp, poum, jvMaterCode, &
 
 ! - Check metallurgical material
     if (elasKeyword .eq. 'ELAS_META') then
-        zColdPrev = 0.d0
+        zSumColdPrev = 0.d0
         zHotPrev = 0.d0
-        zColdCurr = 0.d0
+        zSumColdCurr = 0.d0
         zHotCurr = 0.d0
 
 ! ----- Check behavior name (used only in metallurgical case)
@@ -183,24 +183,24 @@ subroutine verift(fami, kpg, ksp, poum, jvMaterCode, &
             call utmess('F', 'COMPOR5_10', sk=elem_name)
         end if
 !
-        call metaGetType(metaType, nbPhases)
-        if (nbPhases .eq. 0) then
+        call metaGetType(metaType, nbPhase)
+        if (nbPhase .eq. 0) then
             ASSERT(relaComp .eq. 'META_LEMA_ANI')
         else
             if (poum .eq. 'T' .or. poum .eq. '-') then
                 if (iret_temp_prev .eq. 0) then
                     call metaGetPhase(fami, '-', kpg, ksp, &
-                                      metaType, nbPhases, &
-                                      zcold_=zColdPrev, &
-                                      zhot_=zHotPrev)
+                                      metaType, nbPhase, &
+                                      zSumCold_=zSumColdPrev, &
+                                      zHot_=zHotPrev)
                 end if
             end if
             if (poum .eq. 'T' .or. poum .eq. '+') then
                 if (iret_temp_prev .eq. 0) then
                     call metaGetPhase(fami, '+', kpg, ksp, &
-                                      metaType, nbPhases, &
-                                      zcold_=zColdCurr, &
-                                      zhot_=zHotCurr)
+                                      metaType, nbPhase, &
+                                      zSumCold_=zSumColdCurr, &
+                                      zHot_=zHotCurr)
                 end if
             end if
         end if
@@ -218,13 +218,13 @@ subroutine verift(fami, kpg, ksp, poum, jvMaterCode, &
                     else
                         epsth_meta_h = zHotCurr*alpha_c(1)*(temp_curr-temp_refe)- &
                                        zHotPrev*alpha_p(1)*(temp_prev-temp_refe)
-                        epsth_meta_c = zColdCurr*alpha_c(2)*(temp_curr-temp_refe)- &
-                                       zColdPrev*alpha_p(2)*(temp_prev-temp_refe)
+                        epsth_meta_c = zSumColdCurr*alpha_c(2)*(temp_curr-temp_refe)- &
+                                       zSumColdPrev*alpha_p(2)*(temp_prev-temp_refe)
                         call get_elasth_para(fami, jvMaterCode, '+', kpg, ksp, &
                                              elasID, elasKeyword, materi_=materi, &
                                              z_h_r_=z_h_r, deps_ch_tref_=deps_ch_tref)
                         epsth_meta_h = epsth_meta_h+(1-z_h_r)*deps_ch_tref*(zHotPrev-zHotCurr)
-                        epsth_meta_c = epsth_meta_c+z_h_r*deps_ch_tref*(zColdCurr-zColdPrev)
+                        epsth_meta_c = epsth_meta_c+z_h_r*deps_ch_tref*(zSumColdCurr-zSumColdPrev)
                         epsth_meta = epsth_meta_h+epsth_meta_c
                     end if
 
@@ -255,12 +255,12 @@ subroutine verift(fami, kpg, ksp, poum, jvMaterCode, &
                         epsth_meta = 0.d0
                     else
                         epsth_meta_h = zHotPrev*alpha_p(1)*(temp_prev-temp_refe)
-                        epsth_meta_c = zColdPrev*alpha_p(2)*(temp_prev-temp_refe)
+                        epsth_meta_c = zSumColdPrev*alpha_p(2)*(temp_prev-temp_refe)
                         call get_elasth_para(fami, jvMaterCode, '+', kpg, ksp, &
                                              elasID, elasKeyword, materi_=materi, &
                                              z_h_r_=z_h_r, deps_ch_tref_=deps_ch_tref)
                         epsth_meta_h = epsth_meta_h-zHotPrev*(1-z_h_r)*deps_ch_tref
-                        epsth_meta_c = epsth_meta_c+zColdPrev*z_h_r*deps_ch_tref
+                        epsth_meta_c = epsth_meta_c+zSumColdPrev*z_h_r*deps_ch_tref
                         epsth_meta = epsth_meta_h+epsth_meta_c
                     end if
                 else
@@ -290,12 +290,12 @@ subroutine verift(fami, kpg, ksp, poum, jvMaterCode, &
                         epsth_meta = 0.d0
                     else
                         epsth_meta_h = zHotCurr*alpha_c(1)*(temp_curr-temp_refe)
-                        epsth_meta_c = zColdCurr*alpha_c(2)*(temp_curr-temp_refe)
+                        epsth_meta_c = zSumColdCurr*alpha_c(2)*(temp_curr-temp_refe)
                         call get_elasth_para(fami, jvMaterCode, '+', kpg, ksp, &
                                              elasID, elasKeyword, materi_=materi, &
                                              z_h_r_=z_h_r, deps_ch_tref_=deps_ch_tref)
                         epsth_meta_h = epsth_meta_h-zHotCurr*(1-z_h_r)*deps_ch_tref
-                        epsth_meta_c = epsth_meta_c+zColdCurr*z_h_r*deps_ch_tref
+                        epsth_meta_c = epsth_meta_c+zSumColdCurr*z_h_r*deps_ch_tref
                         epsth_meta = epsth_meta_h+epsth_meta_c
                     end if
                 else

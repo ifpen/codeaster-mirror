@@ -42,10 +42,10 @@ subroutine nmvcpr(modelZ, caraElemZ, hvalIncr, &
 ! --------------------------------------------------------------------------------------------------
 !
 ! In  model            : name of model
+! In  caraElem         : name of elementary characteristics (field)
+! In  hvalIncr         : hat-variable for incremental values
 ! In  ds_material      : datastructure for material parameters
 ! In  ds_constitutive  : datastructure for constitutive laws management
-! In  cara_elem        : name of elementary characteristics (field)
-! In  hvalIncr         : hat-variable for incremental values
 !
 ! --------------------------------------------------------------------------------------------------
 !

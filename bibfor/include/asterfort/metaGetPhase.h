@@ -15,18 +15,19 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
+#include "asterfort/Metallurgy_type.h"
 !
 interface
-    subroutine metaGetPhase(fami, poum, kpg, ksp, metaType, &
-                            nbPhases, phase_, zcold_, zhot_, tole_bound_)
+    subroutine metaGetPhase(fami, poum, kpg, ksp, &
+                            metaType, nbPhase, &
+                            phase_, zSumCold_, zHot_, tolePhase_)
         character(len=*), intent(in) :: fami
         character(len=1), intent(in) :: poum
         integer(kind=8), intent(in) :: kpg, ksp
-        integer(kind=8), intent(in) :: metaType
-        integer(kind=8), intent(in) :: nbPhases
-        real(kind=8), optional, intent(out) :: phase_(*)
-        real(kind=8), optional, intent(out) :: zcold_
-        real(kind=8), optional, intent(out) :: zhot_
-        real(kind=8), optional, intent(in) :: tole_bound_
+        integer(kind=8), intent(in) :: metaType, nbPhase
+        real(kind=8), optional, intent(out) :: phase_(nbPhase)
+        real(kind=8), optional, intent(out) :: zSumCold_
+        real(kind=8), optional, intent(out) :: zHot_
+        real(kind=8), optional, intent(in) :: tolePhase_
     end subroutine metaGetPhase
 end interface

@@ -21,7 +21,7 @@
 from .cata_comportement import LoiComportement
 
 loi = LoiComportement(
-    nom="ZIRC_MECA",
+    nom="ZIRCMECA",
     lc_type=("PHASE",),
     doc="""Metallurgical phases for Zircaloy - Using in mechanical behaviour law""",
     num_lc=0,

@@ -21,12 +21,12 @@
 from .cata_comportement import LoiComportement
 
 loi = LoiComportement(
-    nom="ACIER_MECA",
+    nom="ACIER_REVENUMECA",
     lc_type=("PHASE",),
     doc="""Metallurgical phases for steel - Using in mechanical behaviour law""",
     num_lc=0,
-    nb_vari=5,
-    nom_vari=("FERRITE", "PERLITE", "BAINITE", "MARTENSITE", "AUSTENITE"),
+    nb_vari=7,
+    nom_vari=("FERRITE", "PERLITE", "BAINITB", "BAINITR", "MARTENB", "MARTENR", "AUSTENITE"),
     mc_mater=("META_ACIER",),
     modelisation=("3D", "AXIS", "D_PLAN"),
     deformation=("PETIT", "PETIT_REAC", "GROT_GDEP"),

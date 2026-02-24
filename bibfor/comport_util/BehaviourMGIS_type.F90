@@ -37,10 +37,10 @@ module BehaviourMGIS_type
                                               "HYDR                ", "ConcreteHydration   ", &
                                               "HYGR                ", "Hygrometry          ", &
                                               "PCAP                ", "CapillaryPressure   ", &
-                                              "PBAINITE            ", "BainitePhaseRatio   ", &
-                                              "PFERRITE            ", "FerritePhaseRatio   ", &
-                                              "PMARTENS            ", "MartensitePhaseRatio", &
-                                              "PPERLITE            ", "PerlitePhaseRatio   ", &
+                                              "BAINITE             ", "BainitePhaseRatio   ", &
+                                              "FERRITE             ", "FerritePhaseRatio   ", &
+                                              "MARTENS             ", "MartensitePhaseRatio", &
+                                              "PERLITE             ", "PerlitePhaseRatio   ", &
                                               "SECH                ", "ConcreteDrying      ", &
                                               "TEMP                ", "Temperature         ", &
                                               "TEMPREFE            ", "ReferenceTemperature", &

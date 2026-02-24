@@ -94,7 +94,7 @@ contains
         character(len=24) :: varcAllRefe, varcAllPrev, varcAllCurr
         character(len=24) :: timePrev, timeCurr
         aster_logical :: lXFEM, lCumul, lExistVarc
-        aster_logical :: lExistTemp, lExistMetaZirc, lExistMetaAcier, lCalcMeta
+        aster_logical :: lExistTemp, lExistMetaZirc, lExistMetaAcier, lCalcMeta, lExistMetaAcierR
         integer(kind=8) :: nbFieldIn, nbFieldOut, iret, iVarcStrain, iFieldCompor
 !   ------------------------------------------------------------------------------------------------
 !
@@ -143,7 +143,10 @@ contains
         call nmvcd2('TEMP', materFieldZ, lExistTemp)
         call nmvcd2('M_ZIRC', materFieldZ, lExistMetaZirc)
         call nmvcd2('M_ACIER', materFieldZ, lExistMetaAcier)
-        lCalcMeta = lExistTemp .and. (lExistMetaZirc .or. lExistMetaAcier) .and. poum .eq. "+"
+        call nmvcd2('M_REVENU', materFieldZ, lExistMetaAcierR)
+        lCalcMeta = lExistTemp .and. &
+                    (lExistMetaZirc .or. lExistMetaAcier .or. lExistMetaAcierR) .and. &
+                    poum .eq. "+"
 
 ! ----- Get external state variables
         call nmvcex('TOUT', varcRefe, varcAllRefe)

@@ -66,7 +66,7 @@ subroutine comp_meca_rkit(factorKeyword, iFactorKeyword, relaComp, kitComp)
         ASSERT(nbFactorKeyword .eq. 1)
 
 ! ----- Using list of phases for mechanical  behaviours
-        metaPhas = metaPhasUser(1:lxlgut(metaPhasUser))//"_MECA"
+        metaPhas = metaPhasUser(1:lxlgut(metaPhasUser))//"MECA"
 
 ! ----- Get behaviour
         call getvtx(factorKeyword, 'RELATION', iocc=iFactorKeyword, scal=relaCompMeta)

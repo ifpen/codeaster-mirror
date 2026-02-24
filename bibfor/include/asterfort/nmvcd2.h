@@ -15,15 +15,11 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-!
-!
 #include "asterf_types.h"
 !
 interface
-    subroutine nmvcd2(name_varcz, matez, exis_varc)
-        character(len=*), intent(in) :: name_varcz
-        character(len=*), intent(in) :: matez
+    subroutine nmvcd2(varcNameZ, materFieldZ, exis_varc)
+        character(len=*), intent(in) :: varcNameZ, materFieldZ
         aster_logical, intent(out) :: exis_varc
     end subroutine nmvcd2
 end interface

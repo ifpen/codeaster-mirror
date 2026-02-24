@@ -29,7 +29,7 @@ cata_msg = {
     4: _("""Dans le KIT_DDI, on ne peut pas coupler GLRC avec %(k1)s."""),
     6: _("""Dans le KIT_DDI, la loi de fluage %(k1)s n'est pas autorisée."""),
     8: _(
-        """Vous avez demandé à utiliser un comportement avec des phases métallurgiques de type %(k1)s, mais le matériau est défini avec des variables de commande de type %(k2)s."""
+        """Vous avez demandé à utiliser un comportement avec des phases métallurgiques de type %(k1)s, mais le matériau est défini avec des variables de commande de type %(k2)s."""
     ),
     9: _(
         """La valeur du séchage de référence doit être nulle pour la loi de comportement %(k1)s."""

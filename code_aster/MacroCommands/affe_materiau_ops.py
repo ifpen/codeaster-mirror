@@ -178,7 +178,7 @@ def createExternalStateVariable(fkw, nomVarc, mesh, kwTout, grp):
         def _name2field(name):
             if name == "HYDR":
                 return "HYDR_ELNO"
-            if name in ("M_ACIER", "M_ZIRC"):
+            if name in ("M_ACIER", "M_ZIRC", "M_REVENU"):
                 return "META_ELNO"
             if name.startswith("NEUT"):
                 return "NEUT"

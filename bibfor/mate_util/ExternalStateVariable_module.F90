@@ -202,12 +202,12 @@ contains
                 exteVariCata(iExteStatVari)%listCmp(7)%physQuantityCmp = "V7"
                 exteVariCata(iExteStatVari)%listCmp(8)%physQuantityCmp = "V8"
                 exteVariCata(iExteStatVari)%listCmp(9)%physQuantityCmp = "V9"
-                exteVariCata(iExteStatVari)%listCmp(1)%nameCmp = "PFERRITE"
-                exteVariCata(iExteStatVari)%listCmp(2)%nameCmp = "PPERLITE"
-                exteVariCata(iExteStatVari)%listCmp(3)%nameCmp = "PBAINITE"
-                exteVariCata(iExteStatVari)%listCmp(4)%nameCmp = "PMARTENS"
-                exteVariCata(iExteStatVari)%listCmp(5)%nameCmp = "PAUSTENI"
-                exteVariCata(iExteStatVari)%listCmp(6)%nameCmp = "PCOLDSUM"
+                exteVariCata(iExteStatVari)%listCmp(1)%nameCmp = "FERRITE"
+                exteVariCata(iExteStatVari)%listCmp(2)%nameCmp = "PERLITE"
+                exteVariCata(iExteStatVari)%listCmp(3)%nameCmp = "BAINITE"
+                exteVariCata(iExteStatVari)%listCmp(4)%nameCmp = "MARTENS"
+                exteVariCata(iExteStatVari)%listCmp(5)%nameCmp = "AUSTENI"
+                exteVariCata(iExteStatVari)%listCmp(6)%nameCmp = "COLDSUM"
                 exteVariCata(iExteStatVari)%listCmp(7)%nameCmp = "TAUSTE"
                 exteVariCata(iExteStatVari)%listCmp(8)%nameCmp = "TRANSF"
                 exteVariCata(iExteStatVari)%listCmp(9)%nameCmp = "TACIER"
@@ -227,6 +227,35 @@ contains
                 exteVariCata(iExteStatVari)%listCmp(5)%nameCmp = "TEMPS"
                 ASSERT(nbCmp .eq. 5)
                 exteVariCata(iExteStatVari)%fieldType = 'META_ELNO'
+
+            elseif (exteVariName .eq. 'M_REVENU') then
+                exteVariCata(iExteStatVari)%listCmp(1)%physQuantityCmp = "V1"
+                exteVariCata(iExteStatVari)%listCmp(2)%physQuantityCmp = "V2"
+                exteVariCata(iExteStatVari)%listCmp(3)%physQuantityCmp = "V3"
+                exteVariCata(iExteStatVari)%listCmp(4)%physQuantityCmp = "V4"
+                exteVariCata(iExteStatVari)%listCmp(5)%physQuantityCmp = "V5"
+                exteVariCata(iExteStatVari)%listCmp(6)%physQuantityCmp = "V6"
+                exteVariCata(iExteStatVari)%listCmp(7)%physQuantityCmp = "V7"
+                exteVariCata(iExteStatVari)%listCmp(8)%physQuantityCmp = "V8"
+                exteVariCata(iExteStatVari)%listCmp(9)%physQuantityCmp = "V9"
+                exteVariCata(iExteStatVari)%listCmp(10)%physQuantityCmp = "V10"
+                exteVariCata(iExteStatVari)%listCmp(11)%physQuantityCmp = "V11"
+                exteVariCata(iExteStatVari)%listCmp(12)%physQuantityCmp = "V12"
+                exteVariCata(iExteStatVari)%listCmp(1)%nameCmp = "FERRITE"
+                exteVariCata(iExteStatVari)%listCmp(2)%nameCmp = "PERLITE"
+                exteVariCata(iExteStatVari)%listCmp(3)%nameCmp = "BAINITB"
+                exteVariCata(iExteStatVari)%listCmp(4)%nameCmp = "BAINITR"
+                exteVariCata(iExteStatVari)%listCmp(5)%nameCmp = "MARTENB"
+                exteVariCata(iExteStatVari)%listCmp(6)%nameCmp = "MARTENR"
+                exteVariCata(iExteStatVari)%listCmp(7)%nameCmp = "AUSTENI"
+                exteVariCata(iExteStatVari)%listCmp(8)%nameCmp = "COLDSUM"
+                exteVariCata(iExteStatVari)%listCmp(9)%nameCmp = "TAUSTE"
+                exteVariCata(iExteStatVari)%listCmp(10)%nameCmp = "TRANSF"
+                exteVariCata(iExteStatVari)%listCmp(11)%nameCmp = "TACIER"
+                exteVariCata(iExteStatVari)%listCmp(12)%nameCmp = "CYCLTHER"
+                ASSERT(nbCmp .eq. NBVARISTEELR)
+                exteVariCata(iExteStatVari)%fieldType = 'META_ELNO'
+
             else
                 ASSERT(ASTER_FALSE)
             end if

@@ -16,8 +16,9 @@
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
 !
-subroutine mfront_get_mater_value(extern_addr, BEHInteg, relaComp, fami, kpg, &
-                                  ksp, jvMaterCode, props, nprops)
+subroutine mfront_get_mater_value(extern_addr, BEHInteg, relaComp, &
+                                  fami, kpg, ksp, jvMaterCode, &
+                                  propVale, nbProp)
 !
     use Behaviour_type
     implicit none
@@ -26,8 +27,10 @@ subroutine mfront_get_mater_value(extern_addr, BEHInteg, relaComp, fami, kpg, &
 #include "asterc/r8nnem.h"
 #include "asterfort/assert.h"
 #include "asterfort/Behaviour_type.h"
+#include "asterfort/BehaviourMGIS_type.h"
 #include "asterfort/mat_proto.h"
 #include "asterfort/metaGetPhase.h"
+#include "asterfort/Metallurgy_type.h"
 #include "asterfort/rcvalb.h"
 #include "asterfort/utmess.h"
 !
@@ -35,8 +38,8 @@ subroutine mfront_get_mater_value(extern_addr, BEHInteg, relaComp, fami, kpg, &
     type(Behaviour_Integ), intent(in) :: BEHInteg
     character(len=16), intent(in) :: relaComp
     character(len=*), intent(in) :: fami
-    integer(kind=8), intent(in) :: kpg, ksp, jvMaterCode, nprops
-    real(kind=8), intent(out) :: props(nprops)
+    integer(kind=8), intent(in) :: kpg, ksp, jvMaterCode, nbProp
+    real(kind=8), intent(out) :: propVale(nbProp)
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -48,72 +51,73 @@ subroutine mfront_get_mater_value(extern_addr, BEHInteg, relaComp, fami, kpg, &
 !
 ! In  extern_addr       : address of the MGISBehaviour object
 ! In  BEHInteg         : parameters for integration of behaviour
-! In  relaComp        : RELATION comportment
+! In  relaComp         : RELATION comportment
 ! In  fami             : Gauss family for integration point rule
-! In  jvMaterCode            : coded material address
+! In  jvMaterCode      : coded material address
 ! In  kpg              : current point gauss
 ! In  ksp              : current "sous-point" gauss
+! In  nbProp           : number of material properties
+! Out propVale         : values of material properties
 !
 ! --------------------------------------------------------------------------------------------------
 !
-    integer(kind=8), parameter :: npropmax = 197
-    integer(kind=8) :: codrel(npropmax), i
-    character(len=16) :: nomres(npropmax)
-    real(kind=8) :: zalpha
-    integer(kind=8)      :: nb_phasis, meta_type, nbcoef
-    integer(kind=8), parameter :: nb_para = 3
-    real(kind=8) :: para_vale(nb_para)
-    character(len=16), parameter :: para_name(nb_para) = (/'X', 'Y', 'Z'/)
+    integer(kind=8) :: propCode(MGIS_MAX_PROPS), iProp
+    character(len=16) :: propName(MGIS_MAX_PROPS)
+    real(kind=8) :: zSumCold
+    integer(kind=8) :: nbPhase, metaType, nbcoef
+    integer(kind=8), parameter :: nbPara = 3
+    real(kind=8) :: paraVale(nbPara)
+    character(len=16), parameter :: paraName(nbPara) = (/'X', 'Y', 'Z'/)
 !
 ! --------------------------------------------------------------------------------------------------
 !
+    ASSERT(nbProp <= MGIS_MAX_PROPS)
+
 ! - Coordinates of current Gauss point
-!
-    para_vale = BEHInteg%behavESVA%behavESVAGeom%coorElga(kpg, :)
-!
-    ASSERT(nprops <= npropmax)
-    call mgis_get_props(extern_addr, nomres)
+    paraVale = BEHInteg%behavESVA%behavESVAGeom%coorElga(kpg, :)
+
+! - Get name of properties from MGIS
+    call mgis_get_props(extern_addr, propName)
 
 ! - Get parameters
-!
     if (relaComp .eq. 'MFRONT' .or. relaComp .eq. 'CZM_MFRONT') then
-        nbcoef = nprops
+        nbcoef = nbProp
         call mat_proto(BEHInteg, &
                        fami, kpg, ksp, '+', jvMaterCode, 'MFRONT', &
-                       nbcoef, props)
-        ASSERT(nbcoef == nprops)
+                       nbcoef, propVale)
+        ASSERT(nbcoef == nbProp)
     else
 ! ----- Get the properties values (enter under 'relaComp' in DEFI_MATERIAU)
-        props(1:nprops) = r8nnem()
+        propVale(1:nbProp) = r8nnem()
         if (BEHInteg%behavESVA%tabcod(ZFERRITE) .eq. 1) then
-            meta_type = 1
-            nb_phasis = 5
-            call metaGetPhase(fami, '+', kpg, ksp, meta_type, &
-                              nb_phasis, zcold_=zalpha)
-            do i = 1, nprops
-                if (nomres(i) (1:4) .eq. 'meta') then
+            metaType = META_STEEL
+            nbPhase = PSTEEL_NB
+            call metaGetPhase(fami, '+', kpg, ksp, metaType, &
+                              nbPhase, zSumCold_=zSumCold)
+            do iProp = 1, nbProp
+                if (propName(iProp) (1:4) .eq. 'meta') then
                     call rcvalb(fami, 1, 1, '+', jvMaterCode, &
-                                ' ', relaComp, 1, 'META', [zalpha], &
-                                1, nomres(i), props(i), codrel(i), 2)
+                                ' ', relaComp, 1, 'META', [zSumCold], &
+                                1, propName(iProp), propVale(iProp), propCode(iProp), 2)
                 else
                     call rcvalb(fami, kpg, ksp, '+', jvMaterCode, &
                                 ' ', relaComp, 0, ' ', [0.d0], &
-                                1, nomres(i), props(i), codrel(i), 1)
+                                1, propName(iProp), propVale(iProp), propCode(iProp), 1)
                 end if
             end do
         elseif (BEHInteg%behavESVA%tabcod(ZALPHPUR) .eq. 1) then
-            meta_type = 2
-            nb_phasis = 3
+            metaType = META_ZIRC
+            nbPhase = PZIRC_NB
             call utmess('F', 'COMPOR4_24')
         else
             if (BEHInteg%behavESVA%lGeomInESVA) then
                 call rcvalb(fami, kpg, ksp, '+', jvMaterCode, &
                             ' ', relaComp, 0, ' ', [0.d0], &
-                            nprops, nomres, props, codrel, 1)
+                            nbProp, propName, propVale, propCode, 1)
             else
                 call rcvalb(fami, kpg, ksp, '+', jvMaterCode, &
-                            ' ', relaComp, nb_para, para_name, para_vale, &
-                            nprops, nomres, props, codrel, 1)
+                            ' ', relaComp, nbPara, paraName, paraVale, &
+                            nbProp, propName, propVale, propCode, 1)
             end if
         end if
     end if

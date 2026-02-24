@@ -20,7 +20,7 @@ subroutine te0551(option, nomte)
 !
     use Metallurgy_type
     use MetallurgySteel_Compute_module
-!
+    use MetallurgyMeca_module, only: metaGetType
     implicit none
 !
 #include "jeveux.h"
@@ -49,9 +49,8 @@ subroutine te0551(option, nomte)
 ! --------------------------------------------------------------------------------------------------
 !
     integer(kind=8) :: iPhase, jvDurt, jvPhaseIn, iret
-    integer(kind=8) :: nbNode, jvMater, iNode, nbVari, nbPhase
+    integer(kind=8) :: nbNode, jvMaterc, iNode, nbVari, nbPhase, metaType
     real(kind=8) :: phase(PRSTEEL_NB), durtno
-    character(len=16) :: metaType
     integer(kind=8) :: jtab(6)
     type(META_HardnessParameters) :: metaHardnessPara
 !
@@ -64,36 +63,22 @@ subroutine te0551(option, nomte)
     call tecach('OOO', 'PPHASIN', 'L', iret, nval=6, itab=jtab)
     nbVari = jtab(6)
     jvPhaseIn = jtab(1)
-    call jevech('PMATERC', 'L', jvMater)
+    call jevech('PMATERC', 'L', jvMaterc)
     call jevech('PDURT_R', 'E', jvDurt)
-
-    ! fami = 'FPG1'
-    ! kpg = 1
-    ! spt = 1
-    ! poum = '+'
 
 ! - Type of phases
     if (nbVari .eq. NBVARISTEEL) then
         nbPhase = PSTEEL_NB
-        metaType = "ACIER"
+        metaType = META_STEEL
     else if (nbVari .eq. NBVARISTEELR) then
         nbPhase = PRSTEEL_NB
-        metaType = "ACIER_REVENU"
+        metaType = META_STEEL_TEMPER
     else
         ASSERT(ASTER_FALSE)
     end if
-!
 
 ! - Get material properties
-    call metaHardnessGetParameters(zi(jvMater), metaType, metaHardnessPara)
-    ! nomres(1) = 'F1_DURT'
-    ! nomres(2) = 'F2_DURT'
-    ! nomres(3) = 'F3_DURT'
-    ! nomres(4) = 'F4_DURT'
-    ! nomres(5) = 'C_DURT'
-    ! call rcvalb(fami, kpg, spt, poum, zi(jvMater), &
-    !             ' ', 'DURT_META', 1, 'TEMP', [0.d0], &
-    !             5, nomres, valres, icodre, 2)
+    call metaHardnessGetParameters(zi(jvMaterc), metaType, nbPhase, metaHardnessPara)
 
 ! - Compute
     do iNode = 1, nbNode

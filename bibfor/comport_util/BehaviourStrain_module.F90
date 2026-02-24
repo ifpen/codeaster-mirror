@@ -27,6 +27,7 @@ module BehaviourStrain_module
     use BehaviourStrain_type
     use MaterialPara_module
     use MaterialPara_type
+    use MetallurgyMeca_module, only: metaGetType
     use calcul_module, only: ca_nbcvrc_
 ! ==================================================================================================
     implicit none
@@ -46,7 +47,6 @@ module BehaviourStrain_module
 #include "asterfort/get_elas_para.h"
 #include "asterfort/get_elasth_para.h"
 #include "asterfort/metaGetPhase.h"
-#include "asterfort/metaGetType.h"
 #include "asterfort/Metallurgy_type.h"
 #include "asterfort/rcvalb.h"
 #include "asterfort/rcvarc.h"
@@ -379,7 +379,7 @@ contains
                 call metaGetPhase(materPara%schemePara%fami, poum, &
                                   materPara%schemePara%kpg, materPara%schemePara%ksp, &
                                   metaType, nbPhase, &
-                                  zcold_=zSumCold, zhot_=zHot)
+                                  zSumCold_=zSumCold, zhot_=zHot)
             end if
         end if
 

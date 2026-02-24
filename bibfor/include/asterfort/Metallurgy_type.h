@@ -24,10 +24,7 @@
 #define META_NONE         0
 #define META_STEEL        1
 #define META_ZIRC         2
-
-! Number of phases for steel (total and cold)
-#define PSTEEL_NB         5
-#define PCSTEEL_NB        4
+#define META_STEEL_TEMPER 3
 
 ! Index of phases for steel
 #define PFERRITE          1
@@ -36,6 +33,9 @@
 #define PMARTENS          4
 #define PAUSTENITE        5
 #define PSUMCOLD          6
+
+! Number of phases for steel
+#define PSTEEL_NB         5
 
 ! Number of phases for steel with tempering
 #define PRSTEEL_NB        7
@@ -73,12 +73,13 @@
 #define ZNUMECOMP         4
 #define ZNBPHASE          5
 
-! Maximum number of phases from user
+! Maximum number of phases
 #define META_META_NBPHASE_MAXI 12
 
 ! ==================================================================================================
 ! Standard steel
 ! ==================================================================================================
+
 ! Total number of phases (4 cold, 1 hot + 1 sum of cold)
 #define NBPHASESTEEL      6
 
@@ -144,11 +145,16 @@
 !
 ! ==================================================================================================
 ! Maximum number of phases from user
-#define META_MECA_NBPHASE_MAXI 5
+#define META_MECA_NBPHASE_MAXI 7
 
-! - Index for internal state variables - Isotropic hardening: updated elasticity yield
-#define IDX_I_SIGY       6
-#define IDX_I_IPLAS      7
+! Index for internal state variables - Isotropic hardening: updated elasticity yield - STEEL
+#define IDX_I_SIGY      6
+#define IDX_I_IPLAS     7
 
-! - Index for internal state variables - Isotropic hardening: updated elasticity yield
-#define IDX_C_IPLAS      37
+! Index for internal state variables - Isotropic hardening: updated elasticity yield - STEEL_TEMPER
+#define IDX_I_SIGYR     8
+#define IDX_I_IPLASR    9
+
+! Index for internal state variables - Isotropic hardening: updated elasticity yield
+#define IDX_C_IPLAS     37
+#define IDX_C_IPLASR    49

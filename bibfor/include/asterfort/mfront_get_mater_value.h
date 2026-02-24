@@ -17,14 +17,15 @@
 ! --------------------------------------------------------------------
 !
 interface
-    subroutine mfront_get_mater_value(extern_addr, BEHinteg, rela_comp, fami, kpg,&
-                                      ksp, imate, props, nprops)
+    subroutine mfront_get_mater_value(extern_addr, BEHInteg, relaComp, &
+                                      fami, kpg, ksp, jvMaterCode, &
+                                      propVale, nbProp)
         use Behaviour_type
         character(len=16), intent(in) :: extern_addr
-        type(Behaviour_Integ), intent(in) :: BEHinteg
-        character(len=16), intent(in) :: rela_comp
+        type(Behaviour_Integ), intent(in) :: BEHInteg
+        character(len=16), intent(in) :: relaComp
         character(len=*), intent(in) :: fami
-        integer(kind=8), intent(in) :: kpg, ksp, imate, nprops
-        real(kind=8), intent(out) :: props(nprops)
+        integer(kind=8), intent(in) :: kpg, ksp, jvMaterCode, nbProp
+        real(kind=8), intent(out) :: propVale(nbProp)
     end subroutine mfront_get_mater_value
 end interface

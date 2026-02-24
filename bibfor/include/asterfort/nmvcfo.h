@@ -18,13 +18,13 @@
 !
 interface
     subroutine nmvcfo(poum, model, materField, materCode, caraElem, compor, &
-                      varcRefe, hval_incr, vectElem)
+                      varcRefe, hvalIncr, vectElem)
         character(len=1), intent(in) :: poum
         character(len=24), intent(in) :: model
         character(len=24), intent(in) :: materField, materCode, caraElem
         character(len=24), intent(in) :: varcRefe
         character(len=24), intent(in) :: compor
-        character(len=19), intent(in) :: hval_incr(*)
+        character(len=19), intent(in) :: hvalIncr(*)
         character(len=19), intent(in) :: vectElem
     end subroutine nmvcfo
 end interface
