@@ -186,18 +186,6 @@ Conseils :
           MODI_MODELE(reuse=MO, MODELE=MO, DISTRIBUTION=_F(METHODE='CENTRALISE'))
 """
     ),
-    57: _(
-        """
- Erreur d'utilisation (préparation des variables de commande) :
- Pour la variable de commande %(k1)s, il y a une incohérence du
- nombre de "sous-points" entre le CARA_ELEM %(k2)s (%(i1)d)
- et le CHAM_MATER %(k3)s (%(i2)d) pour la maille %(k4)s qui est de type %(k5)s.
-
- Conseil :
- N'avez-vous pas défini plusieurs CARA_ELEM conduisant à des nombres de
- "sous-points" différents (COQUE_NCOU, TUYAU_NCOU, ...) ?
-"""
-    ),
     62: _(
         """
 Erreur lors de l'interpolation de la fonction %(k1)s sur la maille %(k3)s, il manque le paramètre %(k2)s

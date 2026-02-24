@@ -70,12 +70,11 @@ subroutine vrcins(modelz, chmatz, carelz, inst, chvarc, &
     integer(kind=8) :: nbma, ima, nbpt, nbsp, ipt, isp, iad, iad1
     integer(kind=8) :: jce1d, jce1l, nncp, n1, k
     real(kind=8) :: valeur, rundef
-    character(len=19) :: chvars, ligrmo, chs
-    character(len=24) :: valk(5)
+    character(len=19) :: chvars, modelFED, chs
     character(len=16) :: nomte
     aster_logical :: avrc, dbg
     integer(kind=8) :: ibid, nbcvrc, nute, jmaille, vali(2)
-    character(len=8) :: modele, chmat, carele, varc1, varc2, nocmp1, nocmp2, noma, nomail
+    character(len=8) :: model, chmat, carele, exteVariName1, varc2, nocmp1, nocmp2, nomail
     character(len=8) :: nompar
     character(len=8), pointer :: cvrcvarc(:) => null()
     character(len=24), pointer :: liste_ch(:) => null()
@@ -108,14 +107,16 @@ subroutine vrcins(modelz, chmatz, carelz, inst, chvarc, &
 !
     chmat = chmatz
     carele = carelz
-    modele = modelz
+    model = modelz
+
     call detrsd('CHAM_ELEM', chvarc)
-!
 !
     call jeexin(chmat//'.CVRCVARC', iret)
 !     AVRC : .TRUE. SI AFFE_MATERIAU/AFFE_VARC EST UTILISE
     avrc = (iret .gt. 0)
     if (.not. avrc) goto 999
+    call dismoi('NOM_LIGREL', model, 'MODELE', repk=modelFED)
+    call jeveuo(modelFED//'.TYFE', 'L', jmaille)
 !
 !
 !   1. interpolation en temps :
@@ -123,7 +124,7 @@ subroutine vrcins(modelz, chmatz, carelz, inst, chvarc, &
 !      contenant les vrc a l'instant inst
 !      calcul de  chmat.liste_ch(:) et chmat.liste_sd(:)
 !   -----------------------------------------------------
-    call vrcin1(modele, chmat, carele, inst, codret, &
+    call vrcin1(model, chmat, carele, inst, codret, &
                 nompar)
 !
     call jeexin(chmat//'.LISTE_SD', iret)
@@ -136,7 +137,7 @@ subroutine vrcins(modelz, chmatz, carelz, inst, chvarc, &
 !   -------------------------------------------------------------
     chvars = chmat//'.CHVARS'
     call jeexin(chmat//'.CESVI', iret)
-    if (iret .eq. 0) call vrcin2(modele, chmat, carele, chvars, nompar)
+    if (iret .eq. 0) call vrcin2(model, chmat, carele, chvars, nompar)
 !
 !
 !   3. concatenation des champs de .liste_ch  dans chvars :
@@ -161,13 +162,11 @@ subroutine vrcins(modelz, chmatz, carelz, inst, chvarc, &
         zl(jce1l-1+k) = .true.
     end do
 !
-    call dismoi('NOM_LIGREL', modele, 'MODELE', repk=ligrmo)
-    call dismoi('NOM_MAILLA', modele, 'MODELE', repk=noma)
-    call jeveuo(ligrmo//'.TYFE', 'L', jmaille)
+
 !
     do ichs = 1, nbchs
         chs = liste_ch(ichs) (1:19)
-        varc1 = liste_sd(7*(ichs-1)+4) (1:8)
+        exteVariName1 = liste_sd(7*(ichs-1)+4) (1:8)
         call jeveuo(chs//'.CESD', 'L', jcesd)
         call jeveuo(chs//'.CESL', 'L', jcesl)
         call jeveuo(chs//'.CESV', 'L', vr=cesv)
@@ -181,7 +180,7 @@ subroutine vrcins(modelz, chmatz, carelz, inst, chvarc, &
             do kcvrc = 1, nbcvrc
                 varc2 = cvrcvarc(kcvrc)
                 nocmp2 = cvrccmp(kcvrc)
-                if ((varc1 .eq. varc2) .and. (nocmp1 .eq. nocmp2)) goto 4
+                if ((exteVariName1 .eq. varc2) .and. (nocmp1 .eq. nocmp2)) goto 4
             end do
             goto 2
 !
@@ -231,15 +230,9 @@ subroutine vrcins(modelz, chmatz, carelz, inst, chvarc, &
                     nomail = int_to_char8(ima)
                     nute = zi(jmaille-1+ima)
                     call jenuno(jexnum('&CATA.TE.NOMTE', nute), nomte)
-                    valk(1) = nocmp1
-                    valk(2) = carele
-                    valk(3) = chmat
-                    valk(4) = nomail
-                    valk(5) = nomte
                     vali(1) = zi(jce1d-1+5+4*(ima-1)+2)
                     vali(2) = nbsp
-                    call utmess('F', 'CALCULEL6_57', nk=5, valk=valk, ni=2, &
-                                vali=vali)
+                    call utmess('F', 'VARC1_9', sk=nocmp1, ni=2, vali=vali)
                 end if
 !
 !
@@ -269,7 +262,7 @@ subroutine vrcins(modelz, chmatz, carelz, inst, chvarc, &
 !
 !   4. recopie du champ simple dans le champ chvarc
 !   -----------------------------------------------------
-    call cescel(chvars, ligrmo, 'INIT_VARC', nompar, 'NAN', &
+    call cescel(chvars, modelFED, 'INIT_VARC', nompar, 'NAN', &
                 nncp, base, chvarc, 'F', ibid)
 !
     dbg = .false.

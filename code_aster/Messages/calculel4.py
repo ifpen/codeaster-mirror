@@ -145,19 +145,6 @@ Risques et conseils :
      que les 80 premières.
 """
     ),
-    25: _(
-        """
- Erreur utilisateur (variables de commandes) :
-   Le champ %(k1)s est associé à un LIGREL %(k2)s qui n'est pas celui du calcul %(k3)s
-"""
-    ),
-    26: _(
-        """
- Erreur utilisateur (variables de commandes) :
-   Le champ %(k1)s est associé à une OPTION %(k2)s qui n'est pas 'INIT_VARC'
-   Ce champ n'a sans doute pas été produit par PROJ_CHAMP / METHODE='SOUS_POINT'
-"""
-    ),
     27: _(
         """
 EXTR_TABLE ne peut être que des champs réels.

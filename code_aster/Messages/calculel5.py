@@ -120,11 +120,6 @@ PROJ_CHAMP (ou LIAISON_MAILLE) :
   il faut définir un champ de vitesse
 """
     ),
-    39: _(
-        """
- la grandeur pour la variable:  %(k1)s  doit être:  %(k2)s  mais elle est:  %(k3)s
-"""
-    ),
     40: _(
         """
 PROJ_CHAMP  :

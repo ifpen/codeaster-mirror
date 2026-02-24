@@ -33,7 +33,6 @@ module ExternalStateVariable_module
     public :: freeCata, fillJvObjects, fillMaps, shrinkMaps
     public :: getAccessToDescriptiveMap, getParametersOnCell
     public :: existInList, extendList
-    public :: convListSDToDesc
     private :: sameVariables
 ! ==================================================================================================
     private
@@ -479,7 +478,7 @@ contains
         real(kind=8), pointer :: map1Valv(:) => null()
         character(len=16), pointer :: map2Valv(:) => null()
         real(kind=8) :: valeRefe
-        character(len=8) :: funcResult, dsName
+        character(len=8) :: funcResult, dsUser
         character(len=19) :: ligrel
         character(len=16) :: fieldType, funcExtrLeft, funcExtrRight
         character(len=24), parameter :: listCell = '&&AFVARC.LIST_CELL'
@@ -496,7 +495,7 @@ contains
             valeRefe = exteVariAffe%exteVariList(iAffe)%valeRefe
             affeType = exteVariAffe%exteVariList(iAffe)%affeType
             fieldType = exteVariAffe%exteVariList(iAffe)%fieldType
-            dsName = exteVariAffe%exteVariList(iAffe)%dsName
+            dsUser = exteVariAffe%exteVariList(iAffe)%dsUser
             funcResult = exteVariAffe%exteVariList(iAffe)%funcResult
             funcExtrLeft = exteVariAffe%exteVariList(iAffe)%funcExtrLeft
             funcExtrRight = exteVariAffe%exteVariList(iAffe)%funcExtrRight
@@ -519,14 +518,14 @@ contains
             map2Valv(1) = exteVariName
             if (affeType .eq. "CHAMP") then
                 map2Valv(2) = "CHAMP"
-                map2Valv(3) = dsName
+                map2Valv(3) = dsUser
                 map2Valv(4) = " "
                 map2Valv(5) = " "
                 map2Valv(6) = " "
                 map2Valv(7) = " "
             else if (affeType .eq. "EVOL") then
                 map2Valv(2) = "EVOL"
-                map2Valv(3) = dsName
+                map2Valv(3) = dsUser
                 map2Valv(4) = fieldType
                 map2Valv(5) = funcExtrLeft
                 map2Valv(6) = funcExtrRight
@@ -555,7 +554,7 @@ contains
 ! --------- Some checks
                 if (exteVariName .eq. "TEMP") then
 ! ------------- For XFEM: change TEMP to TEMP_ELGA
-                    call xvarc_temp(affeType, dsName, funcExtrLeft, funcExtrRight, &
+                    call xvarc_temp(affeType, dsUser, funcExtrLeft, funcExtrRight, &
                                     funcResult, nbAffe, exteVariMap2)
 
 ! ------------- For THM: no temperature
@@ -566,7 +565,7 @@ contains
                             call dismoi('NOM_LIGREL', model, 'MODELE', repk=ligrel)
                             call jeveuo(ligrel//'.TYFE', 'L', vi=cellAffectedByModel)
                             if (onAllCells) then
-                                call utmess('F', 'MATERIAL2_51')
+                                call utmess('F', 'VARC1_1')
                             else
                                 if (nbCellAffe .ne. 0) then
                                     do iCellAffe = 1, nbCellAffe
@@ -575,7 +574,7 @@ contains
                                         call jenuno(jexnum('&CATA.TE.NOMTE', elemTypeNume), &
                                                     elemTypeName)
                                         if (lteatt('TYPMOD2', 'THM', typel=elemTypeName)) then
-                                            call utmess('F', 'MATERIAL2_51')
+                                            call utmess('F', 'VARC1_1')
                                         end if
                                     end do
                                 end if
@@ -612,7 +611,7 @@ contains
         integer(kind=8) :: nbAffe, nbCmp, nbCmpTotal, nbCmpToDelete, physNbCmpMaxi
         integer(kind=8) :: iCmpNew, iCmp
         integer(kind=8), pointer :: cmpToDelete(:) => null()
-        character(len=8) :: exteVariName, affeType, dsName, nameCmp
+        character(len=8) :: exteVariName, affeType, dsUser, nameCmp
         character(len=16) :: fieldType
         character(len=19) :: exteVariMap2
         character(len=16), pointer :: map2Vale(:) => null()
@@ -666,9 +665,9 @@ contains
                 exteVariName = map2Vale(physNbCmpMaxi*(iCmp-1)+1) (1:8)
                 ASSERT(exteVariName .eq. 'TEMP')
                 affeType = map2Vale(physNbCmpMaxi*(iCmp-1)+2) (1:8)
-                dsName = map2Vale(physNbCmpMaxi*(iCmp-1)+3) (1:8)
+                dsUser = map2Vale(physNbCmpMaxi*(iCmp-1)+3) (1:8)
                 fieldType = map2Vale(physNbCmpMaxi*(iCmp-1)+4)
-                call afva01(affeType, dsName, fieldType, l_other)
+                call afva01(affeType, dsUser, fieldType, l_other)
                 if (l_other) then
                     lCmpToDelete = ASTER_FALSE
                     exit
@@ -760,7 +759,7 @@ contains
             noValue = ASTER_FALSE
             exteVariDesc%exteVariName = exteVariName
             exteVariDesc%affeType = map2SCESV(jvAdrs-1+2) (1:8)
-            exteVariDesc%dsName = map2SCESV(jvAdrs-1+3) (1:8)
+            exteVariDesc%dsUser = map2SCESV(jvAdrs-1+3) (1:8)
             exteVariDesc%fieldType = map2SCESV(jvAdrs-1+4)
             exteVariDesc%funcExtrLeft = map2SCESV(jvAdrs-1+5) (1:8)
             exteVariDesc%funcExtrRight = map2SCESV(jvAdrs-1+6) (1:8)
@@ -793,7 +792,7 @@ contains
         if ((exteVariDesc1%exteVariName .ne. exteVariDesc2%exteVariName) .or. &
             (exteVariDesc1%affeType .ne. exteVariDesc2%affeType) .or. &
             (exteVariDesc1%fieldType .ne. exteVariDesc2%fieldType) .or. &
-            (exteVariDesc1%dsName .ne. exteVariDesc2%dsName) .or. &
+            (exteVariDesc1%dsUser .ne. exteVariDesc2%dsUser) .or. &
             (exteVariDesc1%funcExtrLeft .ne. exteVariDesc2%funcExtrLeft) .or. &
             (exteVariDesc1%funcExtrRight .ne. exteVariDesc2%funcExtrRight) .or. &
             (exteVariDesc1%funcResult .ne. exteVariDesc2%funcResult)) then
@@ -865,35 +864,6 @@ contains
         allocate (exteVariList(newListSize))
         exteVariList(:listSize) = exteVariCopy(:listSize)
         deallocate (exteVariCopy)
-!
-!   ------------------------------------------------------------------------------------------------
-    end subroutine
-! --------------------------------------------------------------------------------------------------
-!
-! convListSDToDesc
-!
-! Convert JEVEUX object to descriptor
-!
-! Ptr listSD           : pointer to LISTE_SD object
-! In  indxExteVari     : index of current external state variable
-! Out exteVariDesc     : descriptor of external state variable
-!
-! --------------------------------------------------------------------------------------------------
-    subroutine convListSDToDesc(listSD, indxExteVari, exteVariDesc)
-!   ------------------------------------------------------------------------------------------------
-! ----- Parameters
-        character(len=16), pointer :: listSD(:)
-        integer(kind=8), intent(in) :: indxExteVari
-        type(EXTE_VARI_DESC), intent(out) :: exteVariDesc
-!   ------------------------------------------------------------------------------------------------
-!
-        exteVariDesc%affeType = listSD(7*(indxExteVari-1)+1) (1:8)
-        exteVariDesc%dsName = listSD(7*(indxExteVari-1)+2) (1:8)
-        exteVariDesc%fieldType = listSD(7*(indxExteVari-1)+3)
-        exteVariDesc%exteVariName = listSD(7*(indxExteVari-1)+4) (1:8)
-        exteVariDesc%funcExtrLeft = listSD(7*(indxExteVari-1)+5)
-        exteVariDesc%funcExtrRight = listSD(7*(indxExteVari-1)+6)
-        exteVariDesc%funcResult = listSD(7*(indxExteVari-1)+7) (1:8)
 !
 !   ------------------------------------------------------------------------------------------------
     end subroutine

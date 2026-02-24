@@ -114,8 +114,8 @@ module ExternalStateVariable_type
         real(kind=8)  :: valeRefe = 0.d0
 ! ----- Type of field (DEPL, SECH, META_ELNO, ...)
         character(len=16) :: fieldType = " "
-! ----- Name of datastructure
-        character(len=8) :: dsName = " "
+! ----- Name of datastructure from user
+        character(len=8) :: dsUser = " "
 ! ----- PROL_GAUCHE when AFFE_TYPE='EVOL'
         character(len=16) :: funcExtrLeft = " "
 ! ----- PROL_DROITE when AFFE_TYPE='EVOL'

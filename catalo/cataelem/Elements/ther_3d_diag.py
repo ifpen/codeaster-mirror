@@ -265,6 +265,11 @@ class THER_HEXA8_D(Element):
             ),
             para_out=((OP.META_INIT_ELNO.PPHASOUT, LC.EPHASES),),
         ),
+        OP.META_TRAN_ELNO(
+            te=319,
+            para_in=((OP.META_TRAN_ELNO.PPHASIN, LC.EPHASES),),
+            para_out=((OP.META_TRAN_ELNO.PPHASOUT, LC.EPHASES),),
+        ),
         OP.RIGI_THER_TANG(
             te=243,
             para_in=(

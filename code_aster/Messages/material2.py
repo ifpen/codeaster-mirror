@@ -59,16 +59,6 @@ ELAS   - Caractéristique: %(k2)s utilisant la fonction %(k4)s.
 On ne peut vérifier que la cohérence que si les deux fonctions ont le même nom.
 """
     ),
-    13: _(
-        """
- Erreur d'utilisation (AFFE_MATERIAU/AFFE_VARC) :
-  Le maillage associé au calcul (%(k1)s) est différent de celui associé
-  aux champs (ou EVOL_XXXX) affectés dans AFFE_MATERIAU/AFFE_VARC (%(k2)s).
-
- Conseil :
-  Il faut corriger AFFE_MATERIAU.
-"""
-    ),
     14: _(
         """
 Les caractéristiques élastiques de MFront sont différentes de celles du mot-clef ELAS.
@@ -90,13 +80,6 @@ isoparamétrique (pas d'éléments de structure), vous avez probablement fait un
 
 Conseil :
     Vérifiez vos données matériau.
-"""
-    ),
-    50: _(
-        """
-Erreur utilisateur dans la commande AFFE_MATERIAU / AFFE_VARC
-  Pour la variable de commande %(k1)s
-  la grandeur associée du champ doit être:  %(k2)s  mais elle est:  %(k3)s
 """
     ),
     51: _(

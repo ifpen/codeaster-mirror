@@ -31,20 +31,26 @@ module ExternalStateVariableRead_module
     implicit none
 ! ==================================================================================================
     public :: readDataFromUser, freeDataFromUser
-    private :: getTotalNumberOfCmp, getIndxInCata, getRefeValue, getAffeType
+    private :: getTotalNumberOfCmp, getIndxInCata, getRefeValue, getAffeType, checkAffe
 ! ==================================================================================================
     private
-#include "jeveux.h"
-#include "asterf_types.h"
-#include "asterfort/assert.h"
 #include "asterc/getfac.h"
 #include "asterc/r8vide.h"
+#include "asterf_types.h"
+#include "asterfort/as_allocate.h"
+#include "asterfort/as_deallocate.h"
+#include "asterfort/assert.h"
+#include "asterfort/dismoi.h"
 #include "asterfort/ExternalStateVariable_type.h"
 #include "asterfort/getvid.h"
 #include "asterfort/getvr8.h"
 #include "asterfort/getvtx.h"
-#include "asterfort/dismoi.h"
+#include "asterfort/jeveuo.h"
+#include "asterfort/Metallurgy_type.h"
+#include "asterfort/rs_get_liststore.h"
+#include "asterfort/rsexch.h"
 #include "asterfort/utmess.h"
+#include "jeveux.h"
 ! ==================================================================================================
 contains
 ! ==================================================================================================
@@ -96,6 +102,9 @@ contains
 
 ! ------------- Get type of assignation
                 call getAffeType(factorKeyword, iFactorKeyword, exteVariCata, exteVariDesc)
+
+! ------------- Check consistency of input value
+                call checkAffe(exteVariCata, exteVariDesc)
 
 ! ------------- Assign
                 exteVariAffe%exteVariList(iFactorKeyword) = exteVariDesc
@@ -157,7 +166,7 @@ contains
 !
 ! Get index in catalog of external state variables
 !
-! Ptr exteVariCata     : cataolog of external state variables
+! Ptr exteVariCata     : catalog of external state variables
 ! In  exteVariName     : name of external state variable
 ! IO  exteVariDesc     : descriptor of external state variable
 !
@@ -238,31 +247,31 @@ contains
 ! ----- Locals
         integer(kind=8) :: n1, n2, cataIndx
         character(len=8) :: affeType, exteVariName
-        character(len=8) :: funcResult, resultName, fieldName, dsName
+        character(len=8) :: funcResult, resultUser, fieldUser, dsUser
         character(len=16) :: funcExtrLeft, funcExtrRight, fieldType
         character(len=8) :: physQuantity, physQuantityUser
 !   ------------------------------------------------------------------------------------------------
 !
         cataIndx = exteVariDesc%cataIndx
         ASSERT(cataIndx .gt. 0)
-        dsName = " "
-        resultName = " "
-        fieldName = " "
+        dsUser = " "
+        resultUser = " "
+        fieldUser = " "
         affeType = " "
-        call getvid(factorKeyword, 'CHAM_GD', iocc=iFactorKeyword, scal=fieldName, nbret=n1)
-        call getvid(factorKeyword, 'EVOL', iocc=iFactorKeyword, scal=resultName, nbret=n2)
+        call getvid(factorKeyword, 'CHAM_GD', iocc=iFactorKeyword, scal=fieldUser, nbret=n1)
+        call getvid(factorKeyword, 'EVOL', iocc=iFactorKeyword, scal=resultUser, nbret=n2)
         ASSERT(n1+n2 .le. 1)
         if (n1 .eq. 1) then
             affeType = 'CHAMP'
-            dsName = fieldName
+            dsUser = fieldUser
         else if (n2 .eq. 1) then
             affeType = 'EVOL'
-            dsName = resultName
+            dsUser = resultUser
         else
             ASSERT(ASTER_FALSE)
         end if
         exteVariDesc%affeType = affeType
-        exteVariDesc%dsName = dsName
+        exteVariDesc%dsUser = dsUser
 
 ! ----- Get parameters
         fieldType = " "
@@ -272,10 +281,10 @@ contains
         if (affeType .eq. 'CHAMP') then
             fieldType = exteVariCata(cataIndx)%fieldType
             physQuantity = exteVariCata(cataIndx)%physQuantity
-            call dismoi('NOM_GD', fieldName, 'CHAMP', repk=physQuantityUser)
+            call dismoi('NOM_GD', fieldUser, 'CHAMP', repk=physQuantityUser)
             if (physQuantity .ne. physQuantityUser) then
                 exteVariName = exteVariDesc%exteVariName
-                call utmess('F', 'MATERIAL2_50', &
+                call utmess('F', 'VARC1_6', &
                             nk=3, valk=[exteVariName, physQuantity, physQuantityUser])
             end if
         elseif (affeType .eq. 'EVOL') then
@@ -321,6 +330,98 @@ contains
 !
         if (exteVariAffe%nbAffe .ne. 0) then
             deallocate (exteVariAffe%exteVariList)
+        end if
+!
+!   ------------------------------------------------------------------------------------------------
+    end subroutine
+
+! --------------------------------------------------------------------------------------------------
+!
+! checkAffe
+!
+! Check affectation of external state variables
+!
+! Ptr exteVariCata     : catalog of external state variables
+! In  exteVariDesc     : descriptor of external state variable
+!
+! --------------------------------------------------------------------------------------------------
+    subroutine checkAffe(exteVariCata, exteVariDesc)
+!   ------------------------------------------------------------------------------------------------
+! ----- Parameters
+        type(EXTE_VARI_CATA), pointer :: exteVariCata(:)
+        type(EXTE_VARI_DESC), intent(in) :: exteVariDesc
+! ----- Locals
+        integer(kind=8) :: cataIndx, iStore, nbStore, storeNume, iret, nbVari
+        integer(kind=8), pointer :: listStore(:) => null()
+        integer(kind=8), pointer :: celd(:) => null()
+        character(len=8) :: affeType, exteVariName, fieldDisc
+        character(len=8) :: fieldUser, dsUser
+        character(len=24) :: field
+        character(len=16) :: fieldType
+        character(len=8) :: physQuantity, physQuantityUser
+!   ------------------------------------------------------------------------------------------------
+!
+        exteVariName = exteVariDesc%exteVariName
+        affeType = exteVariDesc%affeType
+        dsUser = exteVariDesc%dsUser
+        cataIndx = exteVariDesc%cataIndx
+        fieldType = exteVariDesc%fieldType
+        ASSERT(cataIndx .gt. 0)
+
+        if (affeType .eq. 'CHAMP') then
+            fieldUser = dsUser
+            physQuantity = exteVariCata(cataIndx)%physQuantity
+            call dismoi('TYPE_CHAMP', fieldUser, 'CHAMP', repk=fieldDisc)
+            call dismoi('NOM_GD', fieldUser, 'CHAMP', repk=physQuantityUser)
+            if (physQuantity .ne. physQuantityUser) then
+                call utmess('F', 'VARC1_6', &
+                            nk=3, valk=[exteVariName, physQuantity, physQuantityUser])
+            end if
+            if (exteVariName .eq. "M_ACIER") then
+                call dismoi('TYPE_CHAMP', fieldUser, 'CHAMP', repk=fieldDisc)
+                call dismoi('NOM_GD', fieldUser, 'CHAMP', repk=physQuantityUser)
+                nbVari = 0
+                if (fieldDisc .eq. "ELNO") then
+                    call jeveuo(field(1:19)//'.CELD', 'L', vi=celd)
+                    nbVari = CELD(4)
+                else
+                    call utmess('F', 'VARC1_7', nk=2, valk=[exteVariName, fieldDisc])
+                end if
+                if (nbVari .ne. NBVARISTEEL) then
+                    call utmess('F', 'VARC1_8', sk=exteVariName, &
+                                ni=2, vali=[nbVari, NBVARISTEEL])
+                end if
+            end if
+        elseif (affeType .eq. 'EVOL') then
+            if (exteVariName .eq. "M_ACIER") then
+                call rs_get_liststore(dsUser, nbStore)
+                if (nbStore .ne. 0) then
+                    AS_ALLOCATE(vi=listStore, size=nbStore)
+                    call rs_get_liststore(dsUser, nbStore, listStore)
+                    do iStore = 1, nbStore
+                        storeNume = listStore(iStore)
+                        call rsexch(' ', dsUser, fieldType, storeNume, field, iret)
+                        if (iret .eq. 0) then
+                            call dismoi('TYPE_CHAMP', field, 'CHAMP', repk=fieldDisc)
+                            call dismoi('NOM_GD', field, 'CHAMP', repk=physQuantityUser)
+                            nbVari = 0
+                            if (fieldDisc .eq. "ELNO") then
+                                call jeveuo(field(1:19)//'.CELD', 'L', vi=celd)
+                                nbVari = CELD(4)
+                            else
+                                call utmess('F', 'VARC1_7', nk=2, valk=[exteVariName, fieldDisc])
+                            end if
+                            if (nbVari .ne. NBVARISTEEL) then
+                                call utmess('F', 'VARC1_8', sk=exteVariName, &
+                                            ni=2, vali=[nbVari, NBVARISTEEL])
+                            end if
+                        end if
+                    end do
+                    AS_DEALLOCATE(vi=listStore)
+                end if
+            end if
+        else
+            ASSERT(ASTER_FALSE)
         end if
 !
 !   ------------------------------------------------------------------------------------------------
