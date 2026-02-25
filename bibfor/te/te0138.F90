@@ -47,13 +47,15 @@ subroutine te0138(option, nomte)
 !
 ! VARIABLES LOCALES
     character(len=8) :: coef, alias8
-    real(kind=8) :: poids, r, nx, ny, alpha, rbid, tpg, coorse(18)
+    real(kind=8) :: poids, r, nx, ny, alpha, alpha_b, rbid, tpg, tpg_b, coorse(18)
     real(kind=8) :: vectt(9)
     integer(kind=8) :: nno, nnos, jgano, ndim, kp, npg, ipoids, ivf, idfde, igeom, i, j
-    integer(kind=8) :: l, li, iflux, iveres, nse, c(6, 9), ise, nnop2, itempi
+    integer(kind=8) :: l, li, iflux, iveres, nse, c(6, 9), ise, nnop2, itempi, itemps, btempi
     integer(kind=8) :: ibid
     aster_logical :: laxi
     character(len=8) :: elrefe
+    real(kind=8) :: theta, delta_t
+    aster_logical :: l_stat
 !
 !====
 ! 1.1 PREALABLES: RECUPERATION ADRESSES FONCTIONS DE FORMES...
@@ -72,9 +74,21 @@ subroutine te0138(option, nomte)
     if (lteatt('AXIS', 'OUI')) laxi = .true.
 !
     call jevech('PGEOMER', 'L', igeom)
+    call jevech('PINSTR', 'L', itemps)
     call jevech('PTEMPEI', 'L', itempi)
+    call jevech('PTEMPER', 'L', btempi)
     call jevech('PFLUXNL', 'L', iflux)
     call jevech('PRESIDU', 'E', iveres)
+
+!   SET STEADY OR TRANSIENT COMPUTATION
+    l_stat = .false.
+    theta = zr(itemps+2)
+    delta_t = zr(itemps+1)
+    ! FIXME: find a better way to define l_stat. Ideally it should be theta = -1
+    ! See issue 34998
+    if ((theta .eq. 1.d0) .and. (delta_t .lt. 0.d0)) then
+        l_stat = .true.
+    end if
 !
 ! INITS.
     coef = zk8(iflux)
@@ -106,15 +120,22 @@ subroutine te0138(option, nomte)
             end if
 !
             tpg = 0.d0
+            tpg_b = 0.d0
             do i = 1, nno
                 l = (kp-1)*nno+i
                 tpg = tpg+zr(itempi-1+c(ise, i))*zr(ivf+l-1)
+                if (l_stat) tpg_b = tpg_b+zr(btempi-1+c(ise, i))*zr(ivf+l-1)
             end do
             call foderi(coef, tpg, alpha, rbid)
+            call foderi(coef, tpg_b, alpha_b, rbid)
 !
             do i = 1, nno
                 li = ivf+(kp-1)*nno+i-1
                 vectt(c(ise, i)) = vectt(c(ise, i))-poids*alpha*zr(li)
+                if (l_stat) then
+                    vectt(c(ise, i)) = vectt(c(ise, i)) &
+                                       +poids*alpha_b*zr(li)
+                end if
             end do
         end do
     end do

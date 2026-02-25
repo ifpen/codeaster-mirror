@@ -205,6 +205,7 @@ class THPLSE2(Element):
                 (SP.PFLUXNL, LC.CFLUXNF),
                 (SP.PGEOMER, LC.EGEOM2D),
                 (SP.PTEMPEI, DDL_THER),
+                (SP.PTEMPER, DDL_THER),
                 (SP.PINSTR, LC.CTIMETR),
             ),
             para_out=((SP.PRESIDU, MVECTTR),),

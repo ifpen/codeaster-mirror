@@ -27,7 +27,7 @@ import cataelem.Commons.attributes as AT
 
 
 RESI_THER_FLUXNL = Option(
-    para_in=(SP.PFLUXNL, SP.PGEOMER, SP.PTEMPEI, SP.PINSTR),
+    para_in=(SP.PFLUXNL, SP.PGEOMER, SP.PTEMPEI, SP.PTEMPER, SP.PINSTR),
     para_out=(SP.PRESIDU,),
     condition=(CondCalcul("+", ((AT.PHENO, "TH"), (AT.BORD, "-1"))),),
 )
