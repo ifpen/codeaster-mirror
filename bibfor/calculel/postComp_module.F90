@@ -1580,7 +1580,9 @@ contains
             lPipe = answer .eq. "OUI"
             call dismoi('EXI_COQUE', ligrelZ, 'LIGREL', repk=answer)
             lShell = answer .eq. "OUI"
-            call utmess('I', 'ELEMENTS3_13')
+            if (lPipe .or. lShell) then
+                call utmess('I', 'ELEMENTS3_13')
+            end if
         end if
         if (optionZ .eq. 'SIEQ_ELGA') then
             if (resultType .eq. 'FOURIER_ELAS') then

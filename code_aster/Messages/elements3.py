@@ -41,9 +41,9 @@ cata_msg = {
     ),
     13: _(
         """
-  Les composantes SIXZ et SIYZ du champs de contraintes sont nulles pour les
-  éléments de plaque, de coque et les tuyaux. Le calcul des composantes EPXZ et EPYZ du champs de déformation
-  anélastiques donnerait des valeurs fausses. Ces valeurs sont donc mises à zéro et ne doivent pas être prises en compte.
+Les composantes SIXZ et SIYZ du champ des contraintes sont nulles pour les éléments de plaque, de coque et les tuyaux.
+Le calcul des composantes EPXZ et EPYZ du champ des déformations anélastiques donnerait des valeurs fausses.
+Ces valeurs sont donc mises à zéro et ne doivent pas être prises en compte.
 """
     ),
     16: _(
