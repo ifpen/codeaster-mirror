@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -37,6 +37,7 @@ MVECTAR = ArrayOfComponents(phys=PHY.VDEP_R, locatedComponents=NACCELR)
 MVECTTR = ArrayOfComponents(phys=PHY.VTEM_R, locatedComponents=DDL_THER)
 
 MMATTTR = ArrayOfComponents(phys=PHY.MTEM_R, locatedComponents=DDL_THER)
+
 
 # --------------------------------------------------------------------------------------------------
 class THER_FACE3_D(Element):
@@ -245,6 +246,7 @@ class THER_FACE3_D(Element):
                 (SP.PFLUXNL, LC.CFLUXNF),
                 (SP.PGEOMER, LC.EGEOM3D),
                 (SP.PTEMPEI, DDL_THER),
+                (SP.PTEMPER, DDL_THER),
                 (SP.PINSTR, LC.CTIMETR),
             ),
             para_out=((SP.PRESIDU, MVECTTR),),

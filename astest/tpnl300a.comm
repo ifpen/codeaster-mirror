@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -514,7 +514,7 @@ TEST_RESU(
             CHAM_GD=TEMP,
             REFERENCE="SOURCE_EXTERNE",
             VALE_REFE=653.85,
-            VALE_CALC=654.0481064505533,
+            VALE_CALC=653.85588543448,
             PRECISION=3.50e-4,
         ),
         _F(
@@ -523,7 +523,7 @@ TEST_RESU(
             CHAM_GD=TEMP,
             REFERENCE="SOURCE_EXTERNE",
             VALE_REFE=653.85,
-            VALE_CALC=654.0481064505533,
+            VALE_CALC=653.85588543448,
             PRECISION=3.50e-4,
         ),
         _F(
@@ -532,7 +532,7 @@ TEST_RESU(
             CHAM_GD=TEMP,
             REFERENCE="SOURCE_EXTERNE",
             VALE_REFE=653.85,
-            VALE_CALC=654.0481064505533,
+            VALE_CALC=653.85588543448,
             PRECISION=3.50e-4,
         ),
         _F(
@@ -541,7 +541,7 @@ TEST_RESU(
             CHAM_GD=TEMP,
             REFERENCE="SOURCE_EXTERNE",
             VALE_REFE=653.85,
-            VALE_CALC=654.0481064505533,
+            VALE_CALC=653.85588543448,
             PRECISION=3.50e-4,
         ),
         _F(
@@ -550,7 +550,7 @@ TEST_RESU(
             CHAM_GD=TEMP,
             REFERENCE="SOURCE_EXTERNE",
             VALE_REFE=653.85,
-            VALE_CALC=654.0481064505533,
+            VALE_CALC=653.85588543448,
             PRECISION=3.50e-4,
         ),
     )

@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -32,11 +32,13 @@ subroutine te0129(option, nomte)
 !        DONNEES:      OPTION       -->  OPTION DE CALCUL
 !                      NOMTE        -->  NOM DU TYPE ELEMENT
     real(kind=8) :: nx, ny, nz, sx(9, 9), sy(9, 9), sz(9, 9), jac
-    real(kind=8) :: tpg, alpha, rbid
+    real(kind=8) :: tpg, tpg_b, alpha, alpha_b, rbid
     integer(kind=8) :: ndim, nno, npg1, ipoids, ivf, idfdx, idfdy
-    integer(kind=8) :: igeom, iflux, itempi, itemps, ino, jno, iveres
+    integer(kind=8) :: igeom, iflux, itempi, btempi, itemps, ino, jno, iveres
     integer(kind=8) :: nnos, jgano
     character(len=8) :: coef
+    real(kind=8) :: theta, delta_t
+    aster_logical :: l_stat
 !
 !-----------------------------------------------------------------------
     integer(kind=8) :: i, idec, j, jdec, kdec, kp, ldec
@@ -50,10 +52,21 @@ subroutine te0129(option, nomte)
     call jevech('PGEOMER', 'L', igeom)
     call jevech('PINSTR', 'L', itemps)
     call jevech('PTEMPEI', 'L', itempi)
+    call jevech('PTEMPER', 'L', btempi)
     call jevech('PFLUXNL', 'L', iflux)
     call jevech('PRESIDU', 'E', iveres)
     coef = zk8(iflux)
     if (coef(1:7) .eq. '&FOZERO') goto 999
+
+!   SET STEADY OR TRANSIENT COMPUTATION
+    l_stat = .false.
+    theta = zr(itemps+2)
+    delta_t = zr(itemps+1)
+    ! FIXME: find a better way to define l_stat. Ideally it should be theta = -1
+    ! See issue 34998
+    if ((theta .eq. 1.d0) .and. (delta_t .lt. 0.d0)) then
+        l_stat = .true.
+    end if
 !
 !    CALCUL DES PRODUITS VECTORIELS OMI   OMJ
 !
@@ -91,16 +104,23 @@ subroutine te0129(option, nomte)
         jac = sqrt(nx*nx+ny*ny+nz*nz)
 !
         tpg = 0.d0
+        tpg_b = 0.d0
         do i = 1, nno
             tpg = tpg+zr(itempi+i-1)*zr(ivf+ldec+i-1)
+            if (l_stat) tpg_b = tpg_b+zr(btempi+i-1)*zr(ivf+ldec+i-1)
         end do
         call foderi(coef, tpg, alpha, rbid)
+        call foderi(coef, tpg_b, alpha_b, rbid)
 !
 ! ----- ON RAJOUTE DANS LE RESIDU LE TERME (1-THETA)*ALPHAP QUI NE
 ! ----- FIGURE PAS DANS LE 2ND MEMBRE LINEAIRE
 !
         do i = 1, nno
             zr(iveres+i-1) = zr(iveres+i-1)-zr(ipoids+kp-1)*jac*alpha*zr(ivf+ldec+i-1)
+            if (l_stat) then
+                zr(iveres+i-1) = zr(iveres+i-1) &
+                                 +zr(ipoids+kp-1)*jac*alpha_b*zr(ivf+ldec+i-1)
+            end if
         end do
     end do
 999 continue
