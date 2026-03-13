@@ -514,7 +514,7 @@ TEST_RESU(
             CHAM_GD=TEMP,
             REFERENCE="SOURCE_EXTERNE",
             VALE_REFE=653.85,
-            VALE_CALC=654.0481064505533,
+            VALE_CALC=653.85588543448,
             PRECISION=3.50e-4,
         ),
         _F(
@@ -523,7 +523,7 @@ TEST_RESU(
             CHAM_GD=TEMP,
             REFERENCE="SOURCE_EXTERNE",
             VALE_REFE=653.85,
-            VALE_CALC=654.0481064505533,
+            VALE_CALC=653.85588543448,
             PRECISION=3.50e-4,
         ),
         _F(
@@ -532,7 +532,7 @@ TEST_RESU(
             CHAM_GD=TEMP,
             REFERENCE="SOURCE_EXTERNE",
             VALE_REFE=653.85,
-            VALE_CALC=654.0481064505533,
+            VALE_CALC=653.85588543448,
             PRECISION=3.50e-4,
         ),
         _F(
@@ -541,7 +541,7 @@ TEST_RESU(
             CHAM_GD=TEMP,
             REFERENCE="SOURCE_EXTERNE",
             VALE_REFE=653.85,
-            VALE_CALC=654.0481064505533,
+            VALE_CALC=653.85588543448,
             PRECISION=3.50e-4,
         ),
         _F(
@@ -550,7 +550,7 @@ TEST_RESU(
             CHAM_GD=TEMP,
             REFERENCE="SOURCE_EXTERNE",
             VALE_REFE=653.85,
-            VALE_CALC=654.0481064505533,
+            VALE_CALC=653.85588543448,
             PRECISION=3.50e-4,
         ),
     )
