@@ -198,7 +198,7 @@ IMPR_RESU = PROC(
     b_fmt_resultat=BLOC(
         condition="""equal_to("FORMAT", 'RESULTAT')""",
         RESU=FACT(
-            statut="f",
+            statut="o",
             max="**",
             regles=(
                 AU_MOINS_UN("CHAM_GD", "RESULTAT", "MAILLAGE"),
@@ -285,7 +285,7 @@ IMPR_RESU = PROC(
     b_fmt_gmsh=BLOC(
         condition="""equal_to("FORMAT", 'GMSH')""",
         RESU=FACT(
-            statut="f",
+            statut="o",
             max="**",
             regles=(AU_MOINS_UN("CHAM_GD", "RESULTAT", "MAILLAGE"), EXCLUS("CHAM_GD", "RESULTAT")),
             MAILLAGE=SIMP(statut="f", typ=(maillage_sdaster, squelette)),
@@ -376,7 +376,7 @@ IMPR_RESU = PROC(
     b_fmt_ideas=BLOC(
         condition="""equal_to("FORMAT", 'IDEAS')""",
         RESU=FACT(
-            statut="f",
+            statut="o",
             max="**",
             regles=(
                 AU_MOINS_UN("CHAM_GD", "RESULTAT", "MAILLAGE"),
@@ -452,7 +452,7 @@ IMPR_RESU = PROC(
     b_fmt_aster=BLOC(
         condition="""equal_to("FORMAT", 'ASTER')""",
         RESU=FACT(
-            statut="f",
+            statut="o",
             max="**",
             regles=(AU_MOINS_UN("CHAM_GD", "RESULTAT", "MAILLAGE"), EXCLUS("CHAM_GD", "RESULTAT")),
             MAILLAGE=SIMP(statut="f", typ=(maillage_sdaster, squelette)),
