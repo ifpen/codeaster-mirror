@@ -11,8 +11,8 @@
 
 - [src][1]: containing Python, C/C++,
   Fortran source files, its build scripts and most of the testcases,
-- *validation*: few testcase files with proprietary datas,
-- *data*: material datas that can not be freely distributed.
+- *validation*: few testcase files with proprietary data,
+- *data*: material data that can not be freely distributed.
 
 Other independent repositories exist:
 
