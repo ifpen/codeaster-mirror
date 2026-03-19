@@ -126,15 +126,6 @@ void call_matfpe( const int value ) {
     }
 }
 
-extern "C" void _reset_tpmax();
-
-void set_option( const std::string &option, ASTERDOUBLE value ) {
-    if ( option == "tpmax" ) {
-        // only reset the cached value for the moment
-        _reset_tpmax();
-    }
-}
-
 int asmpi_get() {
     const std::string action( "GET" );
     MPI_Fint comm;

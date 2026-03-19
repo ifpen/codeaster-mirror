@@ -56,8 +56,6 @@ std::string onFatalError( const std::string value = "" );
 
 void call_matfpe( const int value );
 
-void set_option( const std::string &option, ASTERDOUBLE value );
-
 int asmpi_get();
 
 void asmpi_set( const int comm );
@@ -67,5 +65,11 @@ void asmpi_free( const int comm );
 VectorInt asmpi_info( const int comm );
 
 int asmpi_split( const int parent, int color, std::string name );
+
+// from aster_core_module
+extern "C" {
+void reset_tpmax();
+extern PyObject *GetJdcAttr( _IN char * );
+}
 
 #endif

@@ -140,12 +140,8 @@ Arguments:
     )",
              py::arg( "value" ) );
 
-    mod.def( "set_option", &set_option, R"(
-Set an option value to be used from Fortran operators.
-
-Arguments:
-    option (str): Option name.
-    value (float): Option value.
+    mod.def( "reset_tpmax", &reset_tpmax, R"(
+Reset the cache value of tpmax (for internal use only).
         )" );
 
     mod.def( "asmpi_set", &asmpi_set, R"(
