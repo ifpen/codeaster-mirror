@@ -31,6 +31,7 @@
 
 #include "Meshes/ParallelMesh.h"
 #include "ParallelUtilities/AsterMPI.h"
+#include "PythonBindings/Fortran.h"
 #include "Supervis/Exceptions.h"
 #include "Utilities/Tools.h"
 
@@ -43,7 +44,9 @@ ParallelMesh::ParallelMesh( const std::string &name )
       _globalNodeIds( getName() + ".NUNOLG" ),
       _globalCellIds( getName() + ".NUMALG" ),
       _lastGhostsLayer( getName() + ".LASTGHOLAYER" ),
-      _joints( std::make_shared< Joints >( getName() + ".JOIN" ) ) {};
+      _joints( std::make_shared< Joints >( getName() + ".JOIN" ) ) {
+    set_option( "HPCMode", 1 );
+};
 
 void ParallelMesh::_buildGlobal2LocalNodeIdsMapPtr() {
     _global2localNodeIdsPtr = std::make_shared< MapLong >();

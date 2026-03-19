@@ -195,6 +195,8 @@ class ExecutionParameter(metaclass=Singleton):
                 os.environ["OMP_NUM_THREADS"] = str(value)
         elif value is not None:
             if value:
+                if option == "HPCMode" and not ExecutionParameter().option & Options.HPCMode:
+                    print("""<INFO> Activation du mode parallélisme distribué.""")
                 self.enable(Options.by_name(option))
             else:
                 self.disable(Options.by_name(option))

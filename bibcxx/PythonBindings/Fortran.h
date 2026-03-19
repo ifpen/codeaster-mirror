@@ -66,6 +66,8 @@ VectorInt asmpi_info( const int comm );
 
 int asmpi_split( const int parent, int color, std::string name );
 
+void set_option( const std::string &option, const ASTERINTEGER value );
+
 // from aster_core_module
 extern "C" {
 void reset_tpmax();

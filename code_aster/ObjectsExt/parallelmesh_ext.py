@@ -72,13 +72,6 @@ class ParallelMeshStateBuilder(InternalStateBuilder):
 class ExtendedParallelMesh:
     cata_sdj = "SD.sd_maillage.sd_maillage"
     internalStateBuilder = ParallelMeshStateBuilder
-    orig_init = ParallelMesh.__init__
-
-    def __init__(self, *args, **kwargs):
-        self.orig_init(*args, **kwargs)
-        if not ExecutionParameter().option & Options.HPCMode:
-            UTMESS("I", "SUPERVIS_1")
-            ExecutionParameter().enable(Options.HPCMode)
 
     def getCoordinatesAsSimpleFieldOnNodes(self):
         """Same as :py:meth:`getCoordinates` with a conversion into a *SimpleFieldOnNodes*.
