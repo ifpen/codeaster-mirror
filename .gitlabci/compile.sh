@@ -20,7 +20,7 @@ if [ "${BUILDTYPE}" = "nightly-sanitize" ]; then
     opts+=( "--enable-asan" )
 fi
 
-jobs=$(( ${NPROC_MAX:-8} / 2 ))
+jobs=$(( ${NPROC_MAX:-8} * 3 / 4 ))
 
 if [ "${OSNAME}" != "win" ]; then
     ./configure "${opts[@]}"

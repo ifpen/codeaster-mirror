@@ -13,7 +13,7 @@ export PYTHONPATH="${PYPATH_MPI4PY}:${PYTHONPATH}"
 PYDIR=$(. ${PREREQ_PATH}/*_mpi.sh ; echo $(dirname $(which python3)))
 export PATH="${PYDIR}:${PATH}"
 
-jobs=$(( ${NPROC_MAX:-8} / 4 ))
+jobs=$(( ${NPROC_MAX:-8} * 3 / 4 ))
 export ASTER_BUILD=debug
 
 # mpi build
