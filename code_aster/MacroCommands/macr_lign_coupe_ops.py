@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -176,8 +176,10 @@ def crea_resu_local(dime, NOM_CHAM, m, resin, mail, nomgrma):
     type_cut = m["TYPE"]
 
     if type_cut == "SEGMENT" and repere_cut == "LOCAL":
-        if not m["VECT_Y"]:
+        if dime == 3 and not m["VECT_Y"]:
             UTMESS("F", "POST0_50")
+        elif dime == 2 and m["VECT_Y"]:
+            UTMESS("A", "POST0_58")
 
         # --- determination des angles nautiques
         cx1 = m["COOR_EXTR"][0] - m["COOR_ORIG"][0]
@@ -191,29 +193,27 @@ def crea_resu_local(dime, NOM_CHAM, m, resin, mail, nomgrma):
         cx1 = cx1 / nvx
         cx2 = cx2 / nvx
         cx3 = cx3 / nvx
-        cy1 = m["VECT_Y"][0]
-        cy2 = m["VECT_Y"][1]
-        cy3 = 0.0
         if dime == 3:
+            cy1 = m["VECT_Y"][0]
+            cy2 = m["VECT_Y"][1]
             cy3 = m["VECT_Y"][2]
-        nvy = sqrt(cy1**2 + cy2**2 + cy3**2)
-        if abs(nvy) < epsi:
-            UTMESS("F", "POST0_2")
-        cy1 = cy1 / nvy
-        cy2 = cy2 / nvy
-        cy3 = cy3 / nvy
+            nvy = sqrt(cy1**2 + cy2**2 + cy3**2)
+            if abs(nvy) < epsi:
+                UTMESS("F", "POST0_2")
+            cy1 = cy1 / nvy
+            cy2 = cy2 / nvy
+            cy3 = cy3 / nvy
 
-        if (abs(cx1 - cy1) < epsi and abs(cx2 - cy2) < epsi and abs(cx3 - cy3) < epsi) or (
-            abs(cx1 + cy1) < epsi and abs(cx2 + cy2) < epsi and abs(cx3 + cy3) < epsi
-        ):
-            UTMESS("F", "POST0_3")
+            if (abs(cx1 - cy1) < epsi and abs(cx2 - cy2) < epsi and abs(cx3 - cy3) < epsi) or (
+                abs(cx1 + cy1) < epsi and abs(cx2 + cy2) < epsi and abs(cx3 + cy3) < epsi
+            ):
+                UTMESS("F", "POST0_3")
 
-        if dime == 2:
+            args_affe = [_F(VECT_X=(cx1, cx2, cx3), VECT_Y=(cy1, cy2, cy3), TOUT="OUI")]
+        else:
             # MODI_REPERE can't handle VECT_Y for 2d results -> convert to ANGL_NAUT
             alpha = atan2(cx2, cx1) * 180 / pi
             args_affe = [_F(ANGL_NAUT=[alpha], TOUT="OUI")]
-        else:
-            args_affe = [_F(VECT_X=(cx1, cx2, cx3), VECT_Y=(cy1, cy2, cy3), TOUT="OUI")]
 
         __remodr = MODI_REPERE(
             RESULTAT=resin, REPERE="UTILISATEUR", AFFE=args_affe, MODI_CHAM=modi_champ_args

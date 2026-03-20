@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2023 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -143,19 +143,6 @@ Risques et conseils :
      Le format MED n'accepte pas plus de 80 composantes pour un champ.
      Le champ %(k1)s ayant plus de 80 composantes, on n'imprime
      que les 80 premières.
-"""
-    ),
-    25: _(
-        """
- Erreur utilisateur (variables de commandes) :
-   Le champ %(k1)s est associé à un LIGREL %(k2)s qui n'est pas celui du calcul %(k3)s
-"""
-    ),
-    26: _(
-        """
- Erreur utilisateur (variables de commandes) :
-   Le champ %(k1)s est associé à une OPTION %(k2)s qui n'est pas 'INIT_VARC'
-   Ce champ n'a sans doute pas été produit par PROJ_CHAMP / METHODE='SOUS_POINT'
 """
     ),
     27: _(

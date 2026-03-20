@@ -27,6 +27,7 @@ module MetallurgyOperator_module
     public :: metaGetInitialState, metaPrepTRCWorkingField
     public :: metaCompInitialField, metaPrepInitialState, metaCompMetaElno
     public :: metaComp, metaTemper
+    private :: metaCompTransfField
 ! ==================================================================================================
     private
 #include "jeveux.h"
@@ -491,14 +492,25 @@ contains
         type(META_ParaOperator), intent(in) :: metaParaOperator
 ! ----- Local
         aster_logical, parameter :: forTemper = ASTER_TRUE
+        character(len=24), parameter :: metaOutInit = "&&SMEVOL.PHAS_META4"
         character(len=24) :: resultField
         integer(kind=8) :: iStore, jvPara, iret
         character(len=24) :: metaIn, metaOut, metaPrev
-        integer(kind=8) :: numeStore_1, numeStore_2
+        integer(kind=8) :: numeStore_1, numeStore_2, numeStoreInit
         character(len=24) :: temp_1, temp_2
-        real(kind=8) :: time_1, time_2
+        real(kind=8) :: time_1, time_2, timeInit
 !   ------------------------------------------------------------------------------------------------
 !
+
+! ----- Initializations on first field
+        numeStoreInit = metaParaOperator%listStore(1)
+        call copisd('CHAM_ELEM_S', 'V', metaParaOperator%comporMetaTemper, metaOutInit)
+        call rsexch('F', metaParaOperator%resultName, 'META_ELNO', numeStoreInit, metaIn, iret)
+        call rsadpa(metaParaOperator%resultName, 'L', 1, 'INST', numeStoreInit, 0, sjv=jvPara)
+        timeInit = zr(jvPara)
+        call metaCompTransfField(metaParaOperator, metaIn, metaOutInit)
+        call copisd('CHAMP_GD', 'G', metaOutInit, metaIn)
+        call utmess('I', 'ARCHIVAGE_6', sk='META_ELNO', si=numeStoreInit, sr=timeInit)
 
 ! ----- Main loop to compute
         do iStore = 1, metaParaOperator%nbStore-1
@@ -673,7 +685,6 @@ contains
                     repk=metaParaOperator%modelLigrel)
 
         if (metaParaOperator%hasMetaLaw) then
-
 ! --------- Get initial state
             call metaGetInitialState(metaParaOperator%resultName, metaInitUser, numeFieldInit)
 
@@ -764,6 +775,39 @@ contains
         call calcop(option, metaParaOperator%listOptionsJv, metaParaOperator%resultName, &
                     metaParaOperator%resultName, metaParaOperator%listStoreJv, &
                     metaParaOperator%nbStore, resultType, iret)
+!
+!   ------------------------------------------------------------------------------------------------
+    end subroutine
+! --------------------------------------------------------------------------------------------------
+!
+! metaCompTransfField
+!
+! Transfer field from standard to tempering phases
+!
+! In  metaParaOperator : datastructure for parameters of CALC_META operator
+! In  metaIn           : phases without tempering
+! In  metaOut          : phases with tempering
+!
+! --------------------------------------------------------------------------------------------------
+    subroutine metaCompTransfField(metaParaOperator, metaIn, metaOut)
+!   ------------------------------------------------------------------------------------------------
+! ----- Parameters
+        type(META_ParaOperator), intent(in) :: metaParaOperator
+        character(len=24), intent(in) :: metaIn, metaOut
+! ----- Local
+        integer(kind=8), parameter :: nbout = 1, nbInMax = 1
+        character(len=8) :: lpaout(nbout), lpain(nbInMax)
+        character(len=24) :: lchin(nbInMax)
+        character(len=1), parameter :: base = "V"
+        character(len=16), parameter :: option = "META_TRAN_ELNO"
+!   ------------------------------------------------------------------------------------------------
+!
+        lpain(1) = 'PPHASIN'
+        lchin(1) = metaIn
+        lpaout(1) = 'PPHASOUT'
+        call calcul('S', option, metaParaOperator%modelLigrel, nbInMax, lchin, &
+                    lpain, nbout, metaOut, lpaout, base, &
+                    'OUI')
 !
 !   ------------------------------------------------------------------------------------------------
     end subroutine

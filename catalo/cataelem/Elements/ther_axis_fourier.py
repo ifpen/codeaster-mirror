@@ -110,6 +110,11 @@ class THFOQU4(Element):
             ),
             para_out=((OP.META_INIT_ELNO.PPHASOUT, LC.EPHASES),),
         ),
+        OP.META_TRAN_ELNO(
+            te=319,
+            para_in=((OP.META_TRAN_ELNO.PPHASIN, LC.EPHASES),),
+            para_out=((OP.META_TRAN_ELNO.PPHASOUT, LC.EPHASES),),
+        ),
         OP.RIGI_THER(
             te=260,
             para_in=(

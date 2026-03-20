@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -118,11 +118,6 @@ PROJ_CHAMP (ou LIAISON_MAILLE) :
     38: _(
         """
   il faut définir un champ de vitesse
-"""
-    ),
-    39: _(
-        """
- la grandeur pour la variable:  %(k1)s  doit être:  %(k2)s  mais elle est:  %(k3)s
 """
     ),
     40: _(

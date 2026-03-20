@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -204,7 +204,6 @@ FLUX_L = MACR_LIGN_COUPE(
             NOM_CMP=("FLUX", "FLUY"),
             DISTANCE_MAX=1.0e-5,
             REPERE="LOCAL",
-            VECT_Y=(0.0, 1.0, 0.0),
             COOR_ORIG=(0.04, 0.07),
             COOR_EXTR=(0.07, 0.03),
         )

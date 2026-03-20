@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -271,7 +271,7 @@ Le maillage n'est peut être pas suffisamment fin pour décrire cette zone.
     50: _(
         """
 Erreur d'utilisation dans MACR_LIGN_COUPE :
-  Il faut renseigner le mot clé VECT_Y
+  Il faut renseigner le mot clé VECT_Y en 3D
 """
     ),
     51: _(
@@ -318,6 +318,12 @@ Actuellement, {_nota_lign_coupe_axis}.
     57: _(
         """
 La modification de REPERE pour une coupe de type GROUP_MA ou GROUP_NO n'est pas implémentée.
+"""
+    ),
+    58: _(
+        """
+Erreur d'utilisation dans MACR_LIGN_COUPE :
+  Le mot clé VECT_Y en 2D est inutile.
 """
     ),
 }

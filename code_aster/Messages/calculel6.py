@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2024 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -184,18 +184,6 @@ Conseils :
           détecté.
         - pour cela, juste avant l'appel à la commande problématique, il faut appeler la commande :
           MODI_MODELE(reuse=MO, MODELE=MO, DISTRIBUTION=_F(METHODE='CENTRALISE'))
-"""
-    ),
-    57: _(
-        """
- Erreur d'utilisation (préparation des variables de commande) :
- Pour la variable de commande %(k1)s, il y a une incohérence du
- nombre de "sous-points" entre le CARA_ELEM %(k2)s (%(i1)d)
- et le CHAM_MATER %(k3)s (%(i2)d) pour la maille %(k4)s qui est de type %(k5)s.
-
- Conseil :
- N'avez-vous pas défini plusieurs CARA_ELEM conduisant à des nombres de
- "sous-points" différents (COQUE_NCOU, TUYAU_NCOU, ...) ?
 """
     ),
     62: _(

@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -262,6 +262,11 @@ class THER_HEXA20(Element):
                 (SP.PTEMPER, DDL_THER),
             ),
             para_out=((OP.META_INIT_ELNO.PPHASOUT, LC.EPHASES),),
+        ),
+        OP.META_TRAN_ELNO(
+            te=319,
+            para_in=((OP.META_TRAN_ELNO.PPHASIN, LC.EPHASES),),
+            para_out=((OP.META_TRAN_ELNO.PPHASOUT, LC.EPHASES),),
         ),
         OP.RIGI_THER_TANG(
             te=243,

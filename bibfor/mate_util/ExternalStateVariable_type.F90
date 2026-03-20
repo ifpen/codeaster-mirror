@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,7 +15,6 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-! person_in_charge: mickael.abbas at edf.fr
 !
 ! ==================================================================================================
 !
@@ -114,8 +113,8 @@ module ExternalStateVariable_type
         real(kind=8)  :: valeRefe = 0.d0
 ! ----- Type of field (DEPL, SECH, META_ELNO, ...)
         character(len=16) :: fieldType = " "
-! ----- Name of datastructure
-        character(len=8) :: dsName = " "
+! ----- Name of datastructure from user
+        character(len=8) :: dsUser = " "
 ! ----- PROL_GAUCHE when AFFE_TYPE='EVOL'
         character(len=16) :: funcExtrLeft = " "
 ! ----- PROL_DROITE when AFFE_TYPE='EVOL'
