@@ -193,7 +193,7 @@ subroutine poslog(lCorr, lMatr, lSigm, lVari, tlogPrev, &
 !
 ! - On stocke TP comme variable interne
     if (lVari) then
-        vip(lgpg-1:lgpg) = 0.d0
+        !vip(lgpg-1:lgpg) = 0.d0
         b_n = to_blas_int(2*ndim)
         b_incx = to_blas_int(1)
         b_incy = to_blas_int(1)

@@ -75,10 +75,6 @@ subroutine comp_meca_code(rela_comp, defo_comp, type_cpla, kit_comp, &
     end if
     nb_comp_elem = nb_comp_elem+1
     comp_elem(nb_comp_elem) = regu_visc
-    nb_comp_elem = nb_comp_elem+1
-    comp_elem(nb_comp_elem) = defo_comp
-    nb_comp_elem = nb_comp_elem+1
-    comp_elem(nb_comp_elem) = type_cpla
     if (post_iter .ne. ' ') then
         nb_comp_elem = nb_comp_elem+1
         comp_elem(nb_comp_elem) = post_iter
@@ -87,6 +83,10 @@ subroutine comp_meca_code(rela_comp, defo_comp, type_cpla, kit_comp, &
         nb_comp_elem = nb_comp_elem+1
         comp_elem(nb_comp_elem) = post_incr
     end if
+    nb_comp_elem = nb_comp_elem+1
+    comp_elem(nb_comp_elem) = defo_comp
+    nb_comp_elem = nb_comp_elem+1
+    comp_elem(nb_comp_elem) = type_cpla
 
 ! - Coding composite comportment (Python)
     call lccree(nb_comp_elem, comp_elem, comp_code_py)
