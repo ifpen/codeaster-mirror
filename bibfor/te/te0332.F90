@@ -29,6 +29,7 @@ subroutine te0332(option, nomte)
 #include "asterfort/tecael.h"
 #include "asterfort/utmess.h"
 #include "asterfort/Behaviour_type.h"
+#include "asterc/r8prem.h"
 !
     character(len=*) :: option, nomte
 !     FONCTION REALISEE :
@@ -151,8 +152,12 @@ subroutine te0332(option, nomte)
                 sig(1)-sigm)*(sig(1)-sigm)+(sig(2)-sigm)*(sig(2)-sigm)+(sig(3)-sigm)*(sig(3)-si&
                 &gm)+2.d0*sig(4)*sig(4 &
                 )
-        sigeq = sqrt(1.5d0*sigeq)
-        triax = sigm/sigeq
+        if (sigeq .gt. r8prem()) then
+            sigeq = sqrt(1.5d0*sigeq)
+            triax = sigm/sigeq
+        else
+            triax = 0.d0
+        end if
         volu = volume
         depseq = varigp-varigm
         do kq = 1, npg
@@ -186,8 +191,12 @@ subroutine te0332(option, nomte)
                     cong(1)-sigm)*(cong(1)-sigm)+(cong(2)-sigm)*(cong(2)-sigm)+(cong(3)-sigm)*(c&
                     &ong(3)-sigm)+2.d0*cong(4)*cong(4 &
                     )
-            sigeq = sqrt(1.5d0*sigeq)
-            triax = sigm/sigeq
+            if (sigeq .gt. r8prem()) then
+                sigeq = sqrt(1.5d0*sigeq)
+                triax = sigm/sigeq
+            else
+                triax = 0.d0
+            end if
             volu = volume
             depseq = varigp-varigm
             sdrsrp = sdrsrm+0.283d0*sign(1.d0, triax)*exp(1.5d0*abs( &
@@ -240,8 +249,12 @@ subroutine te0332(option, nomte)
                 sig(1)-sigm)*(sig(1)-sigm)+(sig(2)-sigm)*(sig(2)-sigm)+(sig(3)-sigm)*(sig(3)-si&
                 &gm)+2.d0*sig(4)*sig(4 &
                 )
-        sigeq = sqrt(1.5d0*sigeq)
-        triax = sigm/sigeq
+        if (sigeq .gt. r8prem()) then
+            sigeq = sqrt(1.5d0*sigeq)
+            triax = sigm/sigeq
+        else
+            triax = 0.d0
+        end if
         volu = volume
         depseq = varigp-varigm
         sdrsrm = zr(isdrmr)
@@ -277,8 +290,12 @@ subroutine te0332(option, nomte)
                     cong(1)-sigm)*(cong(1)-sigm)+(cong(2)-sigm)*(cong(2)-sigm)+(cong(3)-sigm)*(c&
                     &ong(3)-sigm)+2.d0*cong(4)*cong(4 &
                     )
-            sigeq = sqrt(1.5d0*sigeq)
-            triax = triax+dvol*sigm/sigeq
+            if (sigeq .gt. r8prem()) then
+                sigeq = sqrt(1.5d0*sigeq)
+                triax = triax+dvol*sigm/sigeq
+            else
+                triax = 0.d0
+            end if
             depseq = depseq+(varigp-varigm)*dvol
 !
         end do

@@ -27,6 +27,7 @@ subroutine te0339(option, nomte)
 #include "asterfort/tecael.h"
 #include "asterfort/utmess.h"
 #include "asterfort/Behaviour_type.h"
+#include "asterc/r8prem.h"
 !
     character(len=*) :: option, nomte
 !     FONCTION REALISEE :
@@ -184,7 +185,11 @@ subroutine te0339(option, nomte)
 !
 !        2.1.4 CHAMPS OUT
 !        ----------------
-        triax = sigm/sigeq
+        if (sigeq .gt. r8prem()) then
+            triax = sigm/sigeq
+        else
+            triax = 0.d0
+        end if
         volu = vk
         depseq = varigp-varigm
         do i = 1, npg, 1
@@ -221,7 +226,9 @@ subroutine te0339(option, nomte)
                         poids)
             dvpg = poids
             vk = vk+dvpg
-            triax = triax+dvpg*(sigm/sigeq)
+            if (sigeq .gt. r8prem()) then
+                triax = triax+dvpg*(sigm/sigeq)
+            end if
             depseq = depseq+dvpg*(varigp-varigm)
         end do
 !
@@ -273,7 +280,11 @@ subroutine te0339(option, nomte)
 !
 !        2.3.4 INTEGRATION DE LA LOI RT
 !        ------------------------------
-        triax = sigm/sigeq
+        if (sigeq .gt. r8prem()) then
+            triax = sigm/sigeq
+        else
+            triax = 0.d0
+        end if
         volu = vk
         depseq = varigp-varigm
         lrsr0m = zr(isdrmr)
@@ -313,7 +324,11 @@ subroutine te0339(option, nomte)
                     &gm)*(cong(3)-sigm &
                     )
             sigeq = sqrt(1.5d0*sigeq)
-            triax = sigm/sigeq
+            if (sigeq .gt. r8prem()) then
+                triax = sigm/sigeq
+            else
+                triax = 0.d0
+            end if
 !
 !           2.4.3 INTEGRATION DE LA LOI RT AU PG COURRANT
 !           ---------------------------------------------

@@ -65,7 +65,7 @@ subroutine peritr(resu, modele, cara, nh, nbocc)
     integer(kind=8) :: ifm, nd, nr, niv, i, ni, np, nq, n1, n2, iret, jord, jins
     integer(kind=8) :: iord, iainst, lvale, nbin, iocc, nt, nm, nc
     integer(kind=8) :: ng, kk, nbgrma, jgr, ig, nbma, jad, nbmail, jma, im, nume, ier
-    integer(kind=8) :: numord, numomu, nbordr, nbMaiT
+    integer(kind=8) :: numord, nbordr, nbMaiT
     parameter(mxvale=5, nbparr=6, nbpard=4)
     real(kind=8) :: prec, inst, rsr0, volu, numema, triax, lnrsr0
     real(kind=8) :: vr(5), rtval(2), valer(3)
@@ -185,9 +185,8 @@ subroutine peritr(resu, modele, cara, nh, nbocc)
                         iret)
             call rsexch('F', resul, 'VARI_ELGA', numord, varipg, &
                         iret)
-            if (iord .ge. 2) then
-                numomu = zi(jord+iord-2)
-                call rsexch('F', resul, 'VARI_ELGA', numomu, varimg, &
+            if (numord .ge. 1) then
+                call rsexch('F', resul, 'VARI_ELGA', numord-1, varimg, &
                             iret)
             else
                 call copisd('CHAMP_GD', 'V', varipg, varnul)
@@ -212,7 +211,7 @@ subroutine peritr(resu, modele, cara, nh, nbocc)
         lpain(1) = 'PGEOMER'
         lchin(2) = contg
         lpain(2) = 'PCONTPR'
-        if (iord .ge. 2) then
+        if (numord .ge. 1) then
             lchin(3) = varimg
         else
             lchin(3) = varnul
