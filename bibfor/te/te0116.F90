@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -46,14 +46,14 @@ subroutine te0116(option, nomte)
     integer(kind=8) :: npg, nbVari, nbVariEcro
     integer(kind=8) :: jvMater, jvVariOut, jvVariIn, jvTimePrev, jvTimeCurr
     character(len=16), pointer :: compor(:) => null()
-    character(len=16) :: rela_comp, postIncr
+    character(len=16) :: rela_comp, postIncr, defoComp
     real(kind=8) :: timeCurr, timePrev
     real(kind=8) :: tauInf, x0, alpha, epsqMini, xcinMini
     real(kind=8) :: epsq, xcin
     real(kind=8) :: coefPrag, pragerTempEcroIni, prager
     real(kind=8) :: T1, T2, temp, k, dt
     real(kind=8) :: p_in, p_out, var_ecro_in, var_ecro_out, valExp
-    integer(kind=8) :: iret
+    integer(kind=8) :: iret, idxgdef
     integer(kind=8) :: variEcroIndx(nbVariMaxi), variSaveIndx(nbVariMaxi), indxEpseq
     aster_logical :: l_anneal, l_end_anneal, lTrigger
     aster_logical :: lHardIsot, lHardKine, lHardMixed
@@ -81,6 +81,7 @@ subroutine te0116(option, nomte)
 ! - Get parameters of behaviour
     call jevech('PCOMPOR', 'L', vk16=compor)
     rela_comp = compor(RELA_NAME)
+    defoComp = compor(DEFO)
     read (compor(NVAR), '(I16)') nbVari
     postIncr = compor(POSTINCR)
     ASSERT(nbVari .le. nbVariMaxi)
@@ -115,6 +116,7 @@ subroutine te0116(option, nomte)
                                     epsqMini, xcinMini)
 
 ! ----- Identify index of variables to anneal
+        idxgdef = merge(6, 0, defoComp == 'GDEF_LOG')
         nbVariEcro = 0
         variEcroIndx = 0
         variSaveIndx = 0
