@@ -5406,16 +5406,11 @@ def fe_invalid(value):
     """
 
 
-# built-in function set_option in libaster
+# built-in function reset_tpmax in libaster
 
 
-def set_option(arg0, arg1):
-    """Set an option value to be used from Fortran operators.
-
-    Arguments:
-        option (str): Option name.
-        value (float): Option value.
-    """
+def reset_tpmax():
+    """Reset the cache value of tpmax (for internal use only)."""
 
 
 # built-in function asmpi_set in libaster

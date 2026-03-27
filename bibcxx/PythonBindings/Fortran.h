@@ -6,7 +6,7 @@
  * @brief Definition of interface functions between C++ and Fortran
  * @author Mathieu Courtois
  * @section LICENCE
- *   Copyright (C) 1991 - 2025  EDF R&D                www.code-aster.org
+ *   Copyright (C) 1991 - 2026  EDF www.code-aster.org
  *
  *   This file is part of Code_Aster.
  *
@@ -23,8 +23,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Code_Aster.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* person_in_charge: mathieu.courtois@edf.fr */
 
 #include "astercxx.h"
 
@@ -56,8 +54,6 @@ std::string onFatalError( const std::string value = "" );
 
 void call_matfpe( const int value );
 
-void set_option( const std::string &option, ASTERDOUBLE value );
-
 int asmpi_get();
 
 void asmpi_set( const int comm );
@@ -67,5 +63,13 @@ void asmpi_free( const int comm );
 VectorInt asmpi_info( const int comm );
 
 int asmpi_split( const int parent, int color, std::string name );
+
+void set_option( const std::string &option, const ASTERINTEGER value );
+
+// from aster_core_module
+extern "C" {
+void reset_tpmax();
+extern PyObject *GetJdcAttr( _IN char * );
+}
 
 #endif

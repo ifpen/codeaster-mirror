@@ -1,5 +1,5 @@
 /* -------------------------------------------------------------------- */
-/* Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org             */
+/* Copyright (C) 1991 - 2026 - EDF - www.code-aster.org             */
 /* This file is part of code_aster.                                     */
 /*                                                                      */
 /* code_aster is free software: you can redistribute it and/or modify   */
@@ -15,8 +15,6 @@
 /* You should have received a copy of the GNU General Public License    */
 /* along with code_aster.  If not, see <http://www.gnu.org/licenses/>.  */
 /* -------------------------------------------------------------------- */
-
-/* person_in_charge: mathieu.courtois at edf.fr */
 
 /*
  * Module for the core functions of Code_Aster :
@@ -117,7 +115,7 @@ PyObject *GetJdcAttr( _IN char *attribut ) {
 
 static double _cache_tpmax = -1.;
 
-void _reset_tpmax() {
+void reset_tpmax() {
     /*
      * Reset le cache de tpmax.
      * La valeur est mise en cache pour éviter le passage au Python à chaque
@@ -151,7 +149,7 @@ void DEFP( RDTMAX, rdtmax, _IN ASTERDOUBLE *tsub ) {
     if ( res == NULL )
         MYABORT( "erreur dans RDTMAX" );
     // reset du cache
-    _reset_tpmax();
+    reset_tpmax();
     Py_DECREF( res );
     return;
 }
@@ -175,39 +173,6 @@ PyObject *asterc_getopt( _IN char *option ) {
         MYABORT( "erreur lors de l'appel a la methode CoreOptions.get_option" );
 
     return res;
-}
-
-static PyObject *asterc_setopt( PyObject *self, PyObject *args ) {
-    /*
-     * Interface Fortran/Python pour définir une option de la ligne de commande.
-     * Retourne :
-     *  iret = 0 : tout est ok
-     *  iret > 0   erreur
-     *      iret = 1 : longueur de valk insuffisante, valeur tronquée
-     *      iret = 4 : option inexistante, type incorrect.
-     */
-    PyObject *res, *option, *value, *set;
-    const char *sopt;
-
-    if ( !PyArg_ParseTuple( args, "OO:set_option", &option, &value ) )
-        return NULL;
-
-    set = PyUnicode_FromString( "set_option" );
-    res = PyObject_CallMethodObjArgs( get_sh_params(), set, option, value, NULL );
-    if ( !res )
-        MYABORT( "erreur lors de l'appel a la methode CoreOptions.set_option" );
-    sopt = PyUnicode_AsUTF8( option );
-    if ( !strcmp( sopt, "tpmax" ) ) {
-        _reset_tpmax();
-    }
-
-    Py_DECREF( option );
-    // Py_DECREF(value); Do not deallocate, stored in the 'info' dict.
-    Py_DECREF( res );
-    Py_DECREF( set );
-
-    Py_INCREF( Py_None );
-    return Py_None;
 }
 
 long asterc_getopt_long( _IN char *option, _OUT int *iret ) {
@@ -351,7 +316,8 @@ static PyObject *asterc_get_mem_stat( PyObject *self, PyObject *args ) {
     ASTERINTEGER nbpar, codret;
     char *nompar;
     ASTERDOUBLE *valres;
-    /* doit impérativement correspondre aux longueurs des chaines de caractères fortran */
+    /* doit impérativement correspondre aux longueurs des chaines de caractères
+     * fortran */
     STRING_SIZE long_nompar = 8;
     void *malloc( size_t size );
 
@@ -377,54 +343,6 @@ static PyObject *asterc_get_mem_stat( PyObject *self, PyObject *args ) {
     free( valres );
 
     return t_res;
-}
-
-static char set_mem_stat_doc[] =
-    "Interface d'appel a la routine fortran UTPTME.\n"
-    "   set_mem_stat(tuple_of_parameters, tuple_of_values)\n\n"
-    "   The number of values must be the same as the number of parameters.";
-
-static PyObject *asterc_set_mem_stat( PyObject *self, PyObject *args ) {
-    /*
-     *  Interface d'appel à la routine fortran UTPTME
-     */
-    PyObject *tup_par, *tup_val;
-    PyObject *res;
-    int inbpar, inbval;
-    ASTERINTEGER nbpar, codret;
-    char *nompar;
-    ASTERDOUBLE *values;
-    /* doit impérativement correspondre aux longueurs des chaines de caractères fortran */
-    STRING_SIZE long_nompar = 8;
-    void *malloc( size_t size );
-
-    if ( !PyArg_ParseTuple( args, "OO:set_mem_stat", &tup_par, &tup_val ) )
-        return NULL;
-
-    inbpar = (int)PyTuple_Size( tup_par );
-    inbval = (int)PyTuple_Size( tup_val );
-    if ( inbpar != inbval ) {
-        MYABORT( "sizes of the tuples of parameters & values mismatch\n" );
-    }
-
-    /* Conversion en tableaux de chaines */
-    nbpar = (ASTERINTEGER)inbpar;
-    nompar = MakeTabFStr( inbpar, long_nompar );
-    convertxt( inbpar, tup_par, nompar, long_nompar );
-
-    /* allocation des valeurs des variables */
-    values = (ASTERDOUBLE *)malloc( inbval * sizeof( ASTERDOUBLE ) );
-    convr8( inbval, tup_val, values );
-
-    CALL_UTPTME( nompar, values, &codret );
-
-    /* retour de la fonction */
-    res = PyLong_FromLong( (long)codret );
-
-    FreeStr( nompar );
-    free( values );
-
-    return res;
 }
 
 /*
@@ -502,11 +420,9 @@ void DEFPP( CHKMSG, chkmsg, _IN ASTERINTEGER *info_alarm, _OUT ASTERINTEGER *ire
      * Interface Fortran/Python pour la vérification que tout s'est bien
      * passé, destinée à etre appelée dans FIN ou au cours d'une commande.
      * Argument IN :
-     *    info_alarm = 1  on vérifie si les alarmes ignorées ont été émises ou non.
-     *               = 0  on ne fait pas cette vérif
-     * Retourne :
-     *    iret = 0 : tout est ok
-     *    iret > 0   erreur
+     *    info_alarm = 1  on vérifie si les alarmes ignorées ont été émises ou
+     * non. = 0  on ne fait pas cette vérif Retourne : iret = 0 : tout est ok iret
+     * > 0   erreur
      */
     PyObject *res;
 
@@ -666,15 +582,12 @@ static PyObject *aster_mpi_warn( PyObject *self, PyObject *args ) {
 /*
  * Methods of the aster_core module.
  */
-static PyMethodDef methods[] = {
-    { "register", register_jdc, METH_VARARGS, register_jdc_doc },
-    { "get_mem_stat", asterc_get_mem_stat, METH_VARARGS, get_mem_stat_doc },
-    { "set_mem_stat", asterc_set_mem_stat, METH_VARARGS, set_mem_stat_doc },
-    { "MPI_Warn", aster_mpi_warn, METH_VARARGS },
-    { "set_option", asterc_setopt, METH_VARARGS },
-    // { "get_option",  ... } : method added in register_jdc
-    { NULL, NULL, 0, NULL }
-};
+static PyMethodDef methods[] = { { "register", register_jdc, METH_VARARGS, register_jdc_doc },
+                                 { "get_mem_stat", asterc_get_mem_stat, METH_VARARGS,
+                                   get_mem_stat_doc },
+                                 { "MPI_Warn", aster_mpi_warn, METH_VARARGS },
+                                 // { "get_option",  ... } : method added in register_jdc
+                                 { NULL, NULL, 0, NULL } };
 
 static struct PyModuleDef aster_core_def = {
     PyModuleDef_HEAD_INIT, "aster_core", NULL, -1, methods, NULL, NULL, NULL, NULL

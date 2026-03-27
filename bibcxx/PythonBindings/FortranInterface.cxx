@@ -3,7 +3,7 @@
  * @brief Python bindings for Fortran interface.
  * @author Mathieu Courtois
  * @section LICENCE
- *   Copyright (C) 1991 - 2025  EDF R&D                www.code-aster.org
+ *   Copyright (C) 1991 - 2026  EDF www.code-aster.org
  *
  *   This file is part of Code_Aster.
  *
@@ -20,8 +20,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Code_Aster.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* person_in_charge: mathieu.courtois@edf.fr */
 
 #include "PythonBindings/FortranInterface.h"
 
@@ -140,12 +138,8 @@ Arguments:
     )",
              py::arg( "value" ) );
 
-    mod.def( "set_option", &set_option, R"(
-Set an option value to be used from Fortran operators.
-
-Arguments:
-    option (str): Option name.
-    value (float): Option value.
+    mod.def( "reset_tpmax", &reset_tpmax, R"(
+Reset the cache value of tpmax (for internal use only).
         )" );
 
     mod.def( "asmpi_set", &asmpi_set, R"(

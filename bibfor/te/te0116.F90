@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -41,19 +41,19 @@ subroutine te0116(option, nomte)
 ! --------------------------------------------------------------------------------------------------
 !
     character(len=4), parameter :: fami = "RIGI"
-    integer(kind=8), parameter :: kspg = 1, nbVariMaxi = 30
+    integer(kind=8), parameter :: kspg = 1, nbVariMaxi = 30, nbVariAnneal = 7
     integer(kind=8) :: kpg, iVari, iVariEcro
     integer(kind=8) :: npg, nbVari, nbVariEcro
     integer(kind=8) :: jvMater, jvVariOut, jvVariIn, jvTimePrev, jvTimeCurr
     character(len=16), pointer :: compor(:) => null()
-    character(len=16) :: rela_comp, postIncr
+    character(len=16) :: rela_comp, postIncr, defoComp
     real(kind=8) :: timeCurr, timePrev
     real(kind=8) :: tauInf, x0, alpha, epsqMini, xcinMini
     real(kind=8) :: epsq, xcin
     real(kind=8) :: coefPrag, pragerTempEcroIni, prager
     real(kind=8) :: T1, T2, temp, k, dt
     real(kind=8) :: p_in, p_out, var_ecro_in, var_ecro_out, valExp
-    integer(kind=8) :: iret
+    integer(kind=8) :: iret, idxgdef
     integer(kind=8) :: variEcroIndx(nbVariMaxi), variSaveIndx(nbVariMaxi), indxEpseq
     aster_logical :: l_anneal, l_end_anneal, lTrigger
     aster_logical :: lHardIsot, lHardKine, lHardMixed
@@ -81,6 +81,7 @@ subroutine te0116(option, nomte)
 ! - Get parameters of behaviour
     call jevech('PCOMPOR', 'L', vk16=compor)
     rela_comp = compor(RELA_NAME)
+    defoComp = compor(DEFO)
     read (compor(NVAR), '(I16)') nbVari
     postIncr = compor(POSTINCR)
     ASSERT(nbVari .le. nbVariMaxi)
@@ -115,6 +116,7 @@ subroutine te0116(option, nomte)
                                     epsqMini, xcinMini)
 
 ! ----- Identify index of variables to anneal
+        idxgdef = merge(6, 0, defoComp == 'GDEF_LOG')
         nbVariEcro = 0
         variEcroIndx = 0
         variSaveIndx = 0
@@ -123,34 +125,39 @@ subroutine te0116(option, nomte)
             rela_comp .eq. 'VMIS_ISOT_TRAC') then
             nbVariEcro = 1
             variEcroIndx(1) = 1
-            variSaveIndx(1) = 3
+            variSaveIndx(1) = nbVari-nbVariAnneal+1-idxgdef
+            indxEpseq = 1
+        elseif (rela_comp .eq. 'VMIS_ISOT_NL') then
+            nbVariEcro = 1
+            variEcroIndx(1) = 1
+            variSaveIndx(1) = nbVari-nbVariAnneal+1-idxgdef
             indxEpseq = 1
         elseif (rela_comp .eq. 'VMIS_CINE_LINE') then
             nbVariEcro = 6
             do iVariEcro = 1, nbVariEcro
                 variEcroIndx(iVariEcro) = iVariEcro
-                variSaveIndx(iVariEcro) = 7+iVariEcro
+                variSaveIndx(iVariEcro) = nbVari-nbVariAnneal+iVariEcro-idxgdef
             end do
             indxEpseq = -1
         elseif (rela_comp .eq. 'VMIS_ECMI_LINE') then
             nbVariEcro = 7
             variEcroIndx(1) = 1
-            variSaveIndx(1) = 9
+            variSaveIndx(1) = nbVari-nbVariAnneal+1-idxgdef
             ! décalage due a l'indicateur de plasticité placé en position 2
             do iVariEcro = 2, nbVariEcro
                 variEcroIndx(iVariEcro) = iVariEcro+1
-                variSaveIndx(iVariEcro) = iVariEcro+8
+                variSaveIndx(iVariEcro) = nbVari-nbVariAnneal+iVariEcro-idxgdef
             end do
             indxEpseq = 1
         elseif (rela_comp .eq. 'VMIS_CIN1_CHAB') then
             nbVariEcro = 1
             variEcroIndx(1) = 1
-            variSaveIndx(1) = 9
+            variSaveIndx(1) = nbVari-nbVariAnneal+1-idxgdef
             indxEpseq = 1
         elseif (rela_comp .eq. 'VMIS_CIN2_CHAB') then
             nbVariEcro = 1
             variEcroIndx(1) = 1
-            variSaveIndx(1) = 15
+            variSaveIndx(1) = nbVari-nbVariAnneal+1-idxgdef
             indxEpseq = 1
         else
             ASSERT(ASTER_FALSE)

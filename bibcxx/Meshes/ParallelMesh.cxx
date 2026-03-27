@@ -3,7 +3,7 @@
  * @brief Implementation de ParallelMesh
  * @author Nicolas Sellenet
  * @section LICENCE
- *   Copyright (C) 1991 - 2025  EDF R&D                www.code-aster.org
+ *   Copyright (C) 1991 - 2026  EDF www.code-aster.org
  *
  *   This file is part of Code_Aster.
  *
@@ -21,7 +21,6 @@
  *   along with Code_Aster.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* person_in_charge: nicolas.sellenet at edf.fr */
 #include "astercxx.h"
 
 #ifdef ASTER_HAVE_MPI
@@ -31,6 +30,7 @@
 
 #include "Meshes/ParallelMesh.h"
 #include "ParallelUtilities/AsterMPI.h"
+#include "PythonBindings/Fortran.h"
 #include "Supervis/Exceptions.h"
 #include "Utilities/Tools.h"
 
@@ -43,7 +43,9 @@ ParallelMesh::ParallelMesh( const std::string &name )
       _globalNodeIds( getName() + ".NUNOLG" ),
       _globalCellIds( getName() + ".NUMALG" ),
       _lastGhostsLayer( getName() + ".LASTGHOLAYER" ),
-      _joints( std::make_shared< Joints >( getName() + ".JOIN" ) ) {};
+      _joints( std::make_shared< Joints >( getName() + ".JOIN" ) ) {
+    set_option( "HPCMode", 1 );
+};
 
 void ParallelMesh::_buildGlobal2LocalNodeIdsMapPtr() {
     _global2localNodeIdsPtr = std::make_shared< MapLong >();

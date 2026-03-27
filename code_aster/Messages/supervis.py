@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -20,7 +20,6 @@
 from ..Utilities import _
 
 cata_msg = {
-    1: _("""<INFO> Activation du mode parallélisme distribué."""),
     2: _(
         """
 Les commandes DEBUT et POURSUITE doivent être appelées une fois et une seule.

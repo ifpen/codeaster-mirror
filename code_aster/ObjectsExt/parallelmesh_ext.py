@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
-# person_in_charge: nicolas.pignet@edf.fr
 """
 :py:class:`ParallelMesh` --- Assignment of parallel mesh
 ************************************************************************
@@ -72,13 +71,6 @@ class ParallelMeshStateBuilder(InternalStateBuilder):
 class ExtendedParallelMesh:
     cata_sdj = "SD.sd_maillage.sd_maillage"
     internalStateBuilder = ParallelMeshStateBuilder
-    orig_init = ParallelMesh.__init__
-
-    def __init__(self, *args, **kwargs):
-        self.orig_init(*args, **kwargs)
-        if not ExecutionParameter().option & Options.HPCMode:
-            UTMESS("I", "SUPERVIS_1")
-            ExecutionParameter().enable(Options.HPCMode)
 
     def getCoordinatesAsSimpleFieldOnNodes(self):
         """Same as :py:meth:`getCoordinates` with a conversion into a *SimpleFieldOnNodes*.

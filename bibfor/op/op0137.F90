@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -77,10 +77,10 @@ subroutine op0137()
     call getvtx(' ', 'IMPR_MACRO', scal=repons, nbret=l)
     if (repons .eq. 'OUI') then
         call utmess('I', 'SUPERVIS_44', sk='IMPR_MACRO')
-        call jdcset('impr_macro', 1)
+        call jdcset('ShowChildCmd', 1)
     else if (repons .eq. 'NON') then
         call utmess('I', 'SUPERVIS_43', sk='IMPR_MACRO')
-        call jdcset('impr_macro', 0)
+        call jdcset('ShowChildCmd', 0)
     end if
 !
 !
