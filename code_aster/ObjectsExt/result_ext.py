@@ -503,7 +503,7 @@ class ExtendedResult:
 
         self._setField(field, name, storageIndex)
 
-    def plot(self, command="gmsh", local=False, split=False):
+    def plot(self, command="gmsh", local=True, split=False):
         """Plot the result.
 
         Arguments:

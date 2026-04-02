@@ -87,7 +87,7 @@ class ExtendedFieldOnCellsReal:
 
         return self.toSimpleFieldOnCells().getValuesWithDescription(force_list(components), groups)
 
-    def plot(self, command="gmsh", local=False, split=False):
+    def plot(self, command="gmsh", local=True, split=False):
         """Plot the field.
 
         Arguments:
