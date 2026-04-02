@@ -21,14 +21,14 @@
 interface
     subroutine vpddl(raide, masse, neq, nblagr, nbcine,&
                      neqact, dlagr, dbloq, ier)
-        integer(kind=8) :: neq
-        character(len=19) :: raide
-        character(len=19) :: masse
-        integer(kind=8) :: nblagr
-        integer(kind=8) :: nbcine
-        integer(kind=8) :: neqact
-        integer(kind=8) :: dlagr(neq)
-        integer(kind=8) :: dbloq(neq)
-        integer(kind=8) :: ier
+        integer(kind=8), intent(in) :: neq
+        character(len=19), intent(in) :: raide
+        character(len=19), intent(in) :: masse
+        integer(kind=8), intent(out) :: nblagr
+        integer(kind=8), intent(out) :: nbcine
+        integer(kind=8), intent(out) :: neqact
+        integer(kind=8), intent(out) :: dlagr(neq)
+        integer(kind=8), intent(out) :: dbloq(neq)
+        integer(kind=8), intent(out) :: ier
     end subroutine vpddl
 end interface

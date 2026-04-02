@@ -21,6 +21,7 @@ subroutine vpddl(raide, masse, neq, nblagr, nbcine, &
 !
     implicit none
 #include "jeveux.h"
+#include "asterfort/assert.h"
 #include "asterfort/dismoi.h"
 #include "asterfort/infniv.h"
 #include "asterfort/jedema.h"
@@ -33,8 +34,9 @@ subroutine vpddl(raide, masse, neq, nblagr, nbcine, &
 #include "asterfort/typddl.h"
 #include "asterfort/utmess.h"
 !
-    character(len=19) :: masse, raide
-    integer(kind=8) :: neq, nblagr, nbcine, neqact, dlagr(neq), dbloq(neq), ier
+    character(len=19), intent(in) :: masse, raide
+    integer(kind=8), intent(in) :: neq
+    integer(kind=8), intent(out) :: nblagr, nbcine, neqact, dlagr(neq), dbloq(neq), ier
 !
 !     ------------------------------------------------------------------
 !     RENSEIGNEMENTS SUR LES DDL : LAGRANGE, BLOQUE, EXCLUS.
@@ -52,9 +54,11 @@ subroutine vpddl(raide, masse, neq, nblagr, nbcine, &
 !
 !
     integer(kind=8) :: iercon, nbprno, ieq, nba, nbb, nbl, nbliai, ifm, niv
+    integer(kind=8) :: typelagr
     integer(kind=8) :: vali(4)
     character(len=14) :: nume
     integer(kind=8), pointer :: ccid(:) => null()
+    character(len=24), pointer :: refn(:) => null()
 !
 !     ------------------------------------------------------------------
 !     ------------------------------------------------------------------
@@ -70,6 +74,12 @@ subroutine vpddl(raide, masse, neq, nblagr, nbcine, &
 !
 !       --- RECUPERATION DU NOM DE LA NUMEROTATION ASSOCIEE AUX MATRICES
     call dismoi('NOM_NUME_DDL', raide, 'MATR_ASSE', repk=nume)
+    call jeveuo(nume//'.NUME.REFN', 'L', vk24=refn)
+    if (refn(4) .eq. "SIMPLE_LAGRANGE") then
+        typelagr = 1
+    else
+        typelagr = 2
+    end if
 !
 !       --- RECUPERATION DES POSITIONS DES DDL LAGRANGE : DLAGR
     call pteddl('NUME_DDL', nume, 1, 'LAGR    ', neq, &
@@ -91,6 +101,13 @@ subroutine vpddl(raide, masse, neq, nblagr, nbcine, &
 !
     call typddl('ACLA', nume, neq, dbloq, nba, &
                 nbb, nbl, nbliai)
+!   blindage pour ELIM_LAGR (nba sort à 0 dans ce cas)
+    if (nblagr .eq. 0) then
+        neqact = neq
+!
+    else
+        neqact = neq-(typelagr+1)*nblagr/typelagr
+    end if
 !
 !       --- MISE A JOUR DE DBLOQ QUI VAUT 0 POUR TOUS LES DDL BLOQUES
     call jeexin(masse//'.CCID', iercon)
@@ -106,6 +123,11 @@ subroutine vpddl(raide, masse, neq, nblagr, nbcine, &
             nbcine = nbcine+ccid(ieq)
         end do
     end if
+    neqact = neqact-nbcine
+!   vérification sur le nombre de noeuds actifs
+    if (neqact .le. 0) then
+        call utmess('F', 'ALGELINE3_63')
+    end if
 !
 !     --- SI NUMEROTATION GENERALISEE : PAS DE DDLS BLOQUES ---
 !     ---------------------------------------------------------
@@ -114,12 +136,6 @@ subroutine vpddl(raide, masse, neq, nblagr, nbcine, &
         do ieq = 1, neq
             dbloq(ieq) = 1
         end do
-    end if
-!
-!     ----------------- CALCUL DU NOMBRE DE DDL ACTIFS -----------------
-    neqact = neq-3*(nblagr/2)-nbcine
-    if (neqact .le. 0) then
-        call utmess('F', 'ALGELINE3_63')
     end if
 !
 !    -----IMPRESSION DES DDL -----

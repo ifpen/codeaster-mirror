@@ -68,7 +68,7 @@ subroutine op0037()
 #include "asterfort/wkvect.h"
 #include "asterfort/wpnorm.h"
 !-----------------------------------------------------------------------
-    integer(kind=8) :: i, ib, ic, ideb, ie, ieq, ierd
+    integer(kind=8) :: i, ic, ideb, ie, ieq, ierd, ib1, ib2, ib3
     integer(kind=8) :: iex, ifin, ilgcon, im, ind, iprec, isign
     integer(kind=8) :: ival, l, ladpa, lcmp, lcoef, lg, lmod, lgr, ln
     integer(kind=8) :: lnorm, lnumor, lprod, lvali, lvalk, lvalr
@@ -659,8 +659,8 @@ subroutine op0037()
 !               CALCUL DES PARAMETRES GENERALISES
             call wkvect('&&OP0037.POSI.DDL', 'V V I', neq, lddl2)
             call wkvect('&&OP0037.DDL.BLOQ.CINE', 'V V I', neq, lprod)
-            call vpddl(raide(1:19), masse(1:19), neq, ib, ib, &
-                       ib, zi(lddl2), zi(lprod), ierd)
+            call vpddl(raide(1:19), masse(1:19), neq, ib1, ib2, &
+                       ib3, zi(lddl2), zi(lprod), ierd)
 
 !               CALCUL DES FACTEURS DE PARTICIPATIONS ET DES MASSES EFFECTIVES
             call vppfac(lmasse, zr(lvalr+3*nbmode), zr(lmod), neq, nbmode, &
@@ -687,8 +687,8 @@ subroutine op0037()
 !       CALCUL DES PARAMETRES GENERALISES
         call wkvect('&&OP0037.POSI.DDL', 'V V I', neq, lddl2)
         call wkvect('&&OP0037.DDL.BLOQ.CINE', 'V V I', neq, lprod)
-        call vpddl(raide(1:19), masse(1:19), neq, ib, ib, &
-                   ib, zi(lddl2), zi(lprod), ierd)
+        call vpddl(raide(1:19), masse(1:19), neq, ib1, ib2, &
+                   ib3, zi(lddl2), zi(lprod), ierd)
         call vppgen(lmasse, lamor, lraide, zr(lvalr+3*nbmode), zr(lvalr+5*nbmode), &
                     zr(lvalr+4*nbmode), zr(lmod), neq, nbmode, zi(lprod))
 !
