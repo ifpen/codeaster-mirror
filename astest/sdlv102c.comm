@@ -24,7 +24,7 @@ import numpy as np
 from code_aster.CA import MPI
 from code_aster.Commands import *
 from code_aster import CA
-from code_aster.Utilities import PETSc, SLEPc, get_shared_tmpdir
+from code_aster.Utilities import PETSc, SLEPc, SharedTmpdir
 from code_aster.Applications.dynamic_substructuring import macPlot
 
 CA.init("--test")
@@ -186,12 +186,10 @@ ref = modes_lgc.getAccessParameters()["FREQ"]
 for idx, v in enumerate(ref):
     test.assertAlmostEqual(v, eigs[idx], places=4)
 
-# TODO change it when issue34517 is fixed
-tmpdir = ""
-if rank == 0:
-    tmpdir = get_shared_tmpdir("foo", "/tmp")
-tmpdir = MPI.ASTER_COMM_WORLD.bcast(tmpdir)
-filename = osp.join(tmpdir, "modes_dist.resu.med")
+# Build the shared temporary directory (it is destroyed at the end of the test)
+tmpdir = SharedTmpdir("foo")
+filename = osp.join(tmpdir.path, "modes_dist.resu.med")
+
 # Print the distributed modes into a single file
 modes_dist.printMedFile(filename, local=False)
 
@@ -234,6 +232,8 @@ modes_dist_seq = LIRE_RESU(
 )
 DEFI_FICHIER(ACTION="LIBERER", UNITE=81)
 
+# Destroy the temporary directory
+del tmpdir
 
 # Project the distributed modes onto the original mesh with the original DOFNumbering
 # TODO suppress projection when issue34518 is fixed

@@ -114,8 +114,8 @@ subroutine vpsor1(ldynfa, nbeq, nbvect, nfreq, tolsor, &
 #include "asterf_types.h"
 #include "jeveux.h"
 #include "asterfort/assert.h"
-#include "asterfort/dnaups.h"
-#include "asterfort/dneupd.h"
+#include "asterfort/as_dnaups.h"
+#include "asterfort/as_dneupd.h"
 #include "asterfort/resoud.h"
 #include "asterfort/utmess.h"
 #include "asterfort/vpgskp.h"
@@ -201,11 +201,11 @@ subroutine vpsor1(ldynfa, nbeq, nbvect, nfreq, tolsor, &
 20  continue
 !
 ! CALCUL DES VALEURS PROPRES DE (OP)
-    call dnaups(ido, bmat, nbeq, which, nfreq, &
-                tolsor, resid, nbvect, vect, nbeq, &
-                iparam, ipntr, workd, workl, lonwl, &
-                info, neqact, alpha, nsta, ddlsta, &
-                vstab, csta, ldynfa, ddlexc, redem)
+    call as_dnaups(ido, bmat, nbeq, which, nfreq, &
+                   tolsor, resid, nbvect, vect, nbeq, &
+                   iparam, ipntr, workd, workl, lonwl, &
+                   info, neqact, alpha, nsta, ddlsta, &
+                   vstab, csta, ldynfa, ddlexc, redem)
 !
 ! NOMBRE DE MODES CONVERGES
     nconv = iparam(5)
@@ -330,11 +330,11 @@ subroutine vpsor1(ldynfa, nbeq, nbvect, nfreq, tolsor, &
 ! CALCUL DES MODES PROPRES APPROCHES DU PB INITIAL
 !
     info = 0
-    call dneupd(rvec, 'A', selec, dsor, dsor(1, 2), &
-                vect, nbeq, sigmar, sigmai, workv, &
-                bmat, nbeq, which, nfreq, tolsor, &
-                resid, nbvect, vect, nbeq, iparam, &
-                ipntr, workd, workl, lonwl, info)
+    call as_dneupd(rvec, 'A', selec, dsor, dsor(1, 2), &
+                   vect, nbeq, sigmar, sigmai, workv, &
+                   bmat, nbeq, which, nfreq, tolsor, &
+                   resid, nbvect, vect, nbeq, iparam, &
+                   ipntr, workd, workl, lonwl, info)
 !
 ! GESTION DES FLAGS D'ERREURS
     if (info .eq. 1) then

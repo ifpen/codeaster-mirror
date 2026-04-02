@@ -116,8 +116,8 @@ subroutine wpsorc(lmasse, lamor, lmatra, nbeq, nbvect, &
 #include "asterfort/vpordc.h"
 #include "asterfort/wkvect.h"
 #include "asterfort/wp2ayc.h"
-#include "asterfort/znaupd.h"
-#include "asterfort/zneupd.h"
+#include "asterfort/as_znaupd.h"
+#include "asterfort/as_zneupd.h"
     integer(kind=8) :: lmasse, lmatra, nbeq, nbvect, nfreq, lonwl, ddlexc(*), ddllag(*), neqact
     integer(kind=8) :: ifm, niv, priram(8), nconv, lamor, maxitr
     real(kind=8) :: tolsor, alpha, rwork(*)
@@ -192,10 +192,10 @@ subroutine wpsorc(lmasse, lamor, lmatra, nbeq, nbvect, &
 20  continue
 !
 ! CALCUL DES VALEURS PROPRES DE (OP)
-    call znaupd(ido, bmat, 2*nbeq, which, nfreq, &
-                tolsor, resid, nbvect, vauc, 2*nbeq, &
-                iparam, ipntr, workd, workl, lonwl, &
-                rwork, info, 2*neqact, alpha)
+    call as_znaupd(ido, bmat, 2*nbeq, which, nfreq, &
+                   tolsor, resid, nbvect, vauc, 2*nbeq, &
+                   iparam, ipntr, workd, workl, lonwl, &
+                   rwork, info, 2*neqact, alpha)
 !
 ! NOMBRE DE MODES CONVERGES
     nconv = iparam(5)
@@ -297,11 +297,11 @@ subroutine wpsorc(lmasse, lamor, lmatra, nbeq, nbvect, &
 !--------------------------------------------------------------------
 ! CALCUL DES MODES PROPRES APPROCHES DU PB INITIAL
     info = 0
-    call zneupd(rvec, 'A', selec, dsor, vauc, &
-                2*nbeq, sigma, workv, bmat, 2*nbeq, &
-                which, nfreq, tolsor, resid, nbvect, &
-                vauc, 2*nbeq, iparam, ipntr, workd, &
-                workl, lonwl, rwork, info, 2*neqact)
+    call as_zneupd(rvec, 'A', selec, dsor, vauc, &
+                   2*nbeq, sigma, workv, bmat, 2*nbeq, &
+                   which, nfreq, tolsor, resid, nbvect, &
+                   vauc, 2*nbeq, iparam, ipntr, workd, &
+                   workl, lonwl, rwork, info, 2*neqact)
 !
 !
 ! GESTION DES FLAGS D'ERREURS

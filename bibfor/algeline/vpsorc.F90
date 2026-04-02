@@ -107,8 +107,8 @@ subroutine vpsorc(lmasse, ldynfa, nbeq, nbvect, nfreq, &
 #include "asterfort/resoud.h"
 #include "asterfort/utmess.h"
 #include "asterfort/vpordc.h"
-#include "asterfort/znaupd.h"
-#include "asterfort/zneupd.h"
+#include "asterfort/as_znaupd.h"
+#include "asterfort/as_zneupd.h"
 !
     integer(kind=8) :: lmasse, ldynfa, nbeq, nbvect, nfreq, lonwl, ddlexc(nbeq), ddllag(nbeq)
     integer(kind=8) :: maxitr, ifm, niv, priram(8), nconv, neqact
@@ -177,10 +177,10 @@ subroutine vpsorc(lmasse, ldynfa, nbeq, nbvect, nfreq, &
 20  continue
 !
 ! CALCUL DES VALEURS PROPRES DE (OP)
-    call znaupd(ido, bmat, nbeq, which, nfreq, &
-                tolsor, resid, nbvect, vect, nbeq, &
-                iparam, ipntr, workd, workl, lonwl, &
-                rwork, info, neqact, alpha)
+    call as_znaupd(ido, bmat, nbeq, which, nfreq, &
+                   tolsor, resid, nbvect, vect, nbeq, &
+                   iparam, ipntr, workd, workl, lonwl, &
+                   rwork, info, neqact, alpha)
 !
 ! NOMBRE DE MODES CONVERGES
     nconv = iparam(5)
@@ -286,11 +286,11 @@ subroutine vpsorc(lmasse, ldynfa, nbeq, nbvect, nfreq, &
 ! CALCUL DES MODES PROPRES APPROCHES DU PB INITIAL
 !
     info = 0
-    call zneupd(rvec, 'A', selec, dsor, vect, &
-                nbeq, sigma, workv, bmat, nbeq, &
-                which, nfreq, tolsor, resid, nbvect, &
-                vect, nbeq, iparam, ipntr, workd, &
-                workl, lonwl, rwork, info, neqact)
+    call as_zneupd(rvec, 'A', selec, dsor, vect, &
+                   nbeq, sigma, workv, bmat, nbeq, &
+                   which, nfreq, tolsor, resid, nbvect, &
+                   vect, nbeq, iparam, ipntr, workd, &
+                   workl, lonwl, rwork, info, neqact)
 !
 ! GESTION DES FLAGS D'ERREURS
     if (info .eq. 1) then

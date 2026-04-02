@@ -105,8 +105,8 @@ subroutine wpsorn(appr, lmasse, lamor, lmatra, nbeq, &
 #include "asterf_types.h"
 #include "jeveux.h"
 #include "asterfort/assert.h"
-#include "asterfort/dnaupd.h"
-#include "asterfort/dneupd.h"
+#include "asterfort/as_dnaupd.h"
+#include "asterfort/as_dneupd.h"
 #include "asterfort/jedema.h"
 #include "asterfort/jedetr.h"
 #include "asterfort/jemarq.h"
@@ -192,10 +192,10 @@ subroutine wpsorn(appr, lmasse, lamor, lmatra, nbeq, &
 20  continue
 !
 ! CALCUL DES VALEURS PROPRES DE (OP)
-    call dnaupd(ido, bmat, 2*nbeq, which, nfreq, &
-                tolsor, resid, nbvect, vaur, 2*nbeq, &
-                iparam, ipntr, workd, workl, lonwl, &
-                info, 2*neqact, alpha)
+    call as_dnaupd(ido, bmat, 2*nbeq, which, nfreq, &
+                   tolsor, resid, nbvect, vaur, 2*nbeq, &
+                   iparam, ipntr, workd, workl, lonwl, &
+                   info, 2*neqact, alpha)
 !
 ! NOMBRE DE MODES CONVERGES
     nconv = iparam(5)
@@ -301,11 +301,11 @@ subroutine wpsorn(appr, lmasse, lamor, lmatra, nbeq, &
 ! CALCUL DES MODES PROPRES APPROCHES DU PB INITIAL
 !
     info = 0
-    call dneupd(rvec, 'A', selec, dsor, dsor(1, 2), &
-                vaur, 2*nbeq, sigmar, sigmai, workv, &
-                bmat, 2*nbeq, which, nfreq, tolsor, &
-                resid, nbvect, vaur, 2*nbeq, iparam, &
-                ipntr, workd, workl, lonwl, info)
+    call as_dneupd(rvec, 'A', selec, dsor, dsor(1, 2), &
+                   vaur, 2*nbeq, sigmar, sigmai, workv, &
+                   bmat, 2*nbeq, which, nfreq, tolsor, &
+                   resid, nbvect, vaur, 2*nbeq, iparam, &
+                   ipntr, workd, workl, lonwl, info)
 !
 ! GESTION DES FLAGS D'ERREURS
     if (info .eq. 1) then
