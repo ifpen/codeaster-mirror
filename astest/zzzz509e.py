@@ -74,13 +74,16 @@ DEFLIST = DEFI_LIST_INST(
     METHODE="AUTO",
     MODELE=MODE,
     DEFI_LIST=_F(LIST_INST=L_INST),
-    ADAPTATION=_F(
-        EVENEMENT="TOUT_INST",
-        MODE_CALCUL_TPLUS="DELTA_GRANDEUR",
-        NOM_CHAM="DEPL",
-        NOM_CMP="DY",
-        GROUP_NO="TOUT_2D",
-        VALE_REF=0.005e0,
+    ADAPTATION=(
+        _F(
+            EVENEMENT="TOUT_INST",
+            MODE_CALCUL_TPLUS="DELTA_GRANDEUR",
+            NOM_CHAM="DEPL",
+            NOM_CMP="DY",
+            GROUP_NO="TOUT_2D",
+            VALE_REF=0.005e0,
+        ),
+        _F(EVENEMENT="TOUT_INST", MODE_CALCUL_TPLUS="FIXE", PCENT_AUGM=300),
     ),
 )
 

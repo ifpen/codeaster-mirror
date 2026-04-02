@@ -257,7 +257,7 @@ def textbox(text, maxlen=90):
     maxlen = maxlen - 6
     upleft = chr(0x2554)
     upright = chr(0x2557)
-    horiz = chr(0x2550)
+    horiz = "="
     vert = chr(0x2551)
     botleft = chr(0x255A)
     botright = chr(0x255D)

@@ -538,17 +538,22 @@ class TimeStepper(Observer):
             if delta_t > 2.0e6:
                 logger.info(MessageLog.GetText("I", "ADAPTATION_1"))
             delta_t = min(delta_t, 1.1e6)
-            if act.event.is_raised(delta=delta):
+            enabled = act.event.is_raised(delta=delta)
+            if enabled:
                 try:
-                    dt_i = act.call(timeStepper=self, delta=delta)
-                    delta_t = min(delta_t, dt_i * currIncr)
-                    logger.info(
-                        MessageLog.GetText("I", "ADAPTATION_2", valk=act.name, valr=delta_t)
-                    )
+                    mult = act.call(timeStepper=self, delta=delta)
+                    dt_i = mult * currIncr
+                    if act.name == "DELTA_GRANDEUR":
+                        args = {"valk": [act._fieldName, act._cmp], "valr": dt_i}
+                        logger.info(MessageLog.GetText("I", "ADAPTATION_20", **args))
+                    else:
+                        logger.info(
+                            MessageLog.GetText("I", "ADAPTATION_2", valk=act.name, valr=dt_i)
+                        )
+                    delta_t = min(delta_t, dt_i)
                 except ValueError:
-                    logger.info(MessageLog.GetText("I", "ADAPTATION_3", valk=act.name))
-                    raise
-            else:
+                    enabled = False
+            if not enabled:
                 logger.info(MessageLog.GetText("I", "ADAPTATION_3", valk=act.name))
         if delta_t < 1.0e6:
             logger.info(MessageLog.GetText("I", "ADAPTATION_5", valr=delta_t))
@@ -947,6 +952,7 @@ class TimeStepper(Observer):
             factor (float): Multiplicative factor.
         """
 
+        name = "FIXE"
         _factor = None
         __setattr__ = no_new_attributes(object.__setattr__)
 
@@ -1035,6 +1041,8 @@ class TimeStepper(Observer):
                 raise ValueError
             array = numpy.array(field.getValuesWithDescription(self._cmp, self._group)[0])
             nonzero = array[numpy.flatnonzero(array)]
+            if nonzero.size == 0:
+                raise ValueError
             factor = numpy.min(self._value / numpy.abs(nonzero))
             factor = MPI.ASTER_COMM_WORLD.allreduce(factor, MPI.MIN)
             logger.debug("check delta of %s / %s: %s", self._cmp, self._value, factor)
