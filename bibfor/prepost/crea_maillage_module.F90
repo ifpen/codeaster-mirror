@@ -3751,8 +3751,10 @@ contains
 ! --- 1: On commence par compter ce que l'on doit recevoir
 !
             call jeveuo(mesh_out//".NOEX", 'L', vi=v_noex)
-            call jeveuo(mesh_out//".NUNOLG", 'L', vi=v_nunolg)
-
+            call jeveuo(mesh_out//".NUNOLG", 'E', vi=v_nunolg)
+            call jeveuo(mesh_out//".MAEX", 'L', vi=v_maex)
+            call jeveuo(mesh_out//".NUMALG", 'E', vi=v_numalg)
+!
             if (nbproc == 1) goto 100
 !
             allocate (v_rnode(nbproc))
@@ -3988,11 +3990,7 @@ contains
             deallocate (v_comm)
 !
 ! ---- Create a global mesh with shared cells
-!
-            call jeveuo(mesh_out//".MAEX", 'L', vi=v_maex)
-            call jeveuo(mesh_out//".NUMALG", 'L', vi=v_numalg)
-!
-! --- Prepare data to send (global_id, coor(1:3))
+! ---- Prepare data to send (global_id, coor(1:3))
             nb_ma_send = 0
             allocate (v_send(4*this%nb_cells))
             do i_cell = one_ip, this%nb_total_cells
