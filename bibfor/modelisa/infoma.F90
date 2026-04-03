@@ -154,6 +154,7 @@ subroutine infoma(nomu, niv_)
             end if
         end do
         call asmpi_comm_vect('MPI_SUM', 'I', 100, vi=dimmai)
+        call asmpi_comm_vect('MPI_SUM', 'I', sci=nbmailL)
     else
         do i = 1, nbmail
             ityp = typmail(i)
