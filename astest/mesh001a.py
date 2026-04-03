@@ -391,10 +391,24 @@ coord = mail.getCoordinates()
 test.assertSequenceEqual(coord[3], [1.0, 0.0, 0.0])
 values = coord.getValues()
 test.assertEqual(len(values), 22 * 3)
+test.assertSequenceEqual(
+    sorted(mail.getGroupsOfCells()), ["BAS", "DROITE", "GAUCHE", "HAUT", "PENT2"]
+)
+# restrict
+mailr = mail.restrict(["PENT2"])
+test.assertFalse(mailr.isParallel())
+test.assertEqual(mailr.getDimension(), 3)
+test.assertEqual(mailr.getNumberOfNodes(), 15)
+test.assertEqual(mailr.getNumberOfCells(), 1)
+test.assertSequenceEqual(sorted(mailr.getGroupsOfCells()), ["PENT2"])
+test.assertSequenceEqual(mailr.getRestrictedToOriginalNodesIds(), mail.getNodesFromCells(["PENT2"]))
+test.assertSequenceEqual(mailr.getRestrictedToOriginalCellsIds(), mail.getCells(["PENT2"]))
+
 
 # refine the mesh
 mail = mail.refine(2)
 test.assertEqual(mail.getNumberOfNodes(), 505)
+
 
 # from GMSH format
 gmsh = CA.Mesh()
