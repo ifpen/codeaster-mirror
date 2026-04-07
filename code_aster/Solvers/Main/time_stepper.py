@@ -543,13 +543,7 @@ class TimeStepper(Observer):
                 try:
                     mult = act.call(timeStepper=self, delta=delta)
                     dt_i = mult * currIncr
-                    if act.name == "DELTA_GRANDEUR":
-                        args = {"valk": [act._fieldName, act._cmp], "valr": dt_i}
-                        logger.info(MessageLog.GetText("I", "ADAPTATION_4", **args))
-                    else:
-                        logger.info(
-                            MessageLog.GetText("I", "ADAPTATION_2", valk=act.name, valr=dt_i)
-                        )
+                    act.show_status(delta_t=dt_i)
                     delta_t = min(delta_t, dt_i)
                 except ValueError:
                     enabled = False
@@ -745,6 +739,10 @@ class TimeStepper(Observer):
                 float: multiplicative factor.
             """
             raise NotImplementedError("must be subclassed!")
+
+        def show_status(self, delta_t):
+            """Print informations about the action."""
+            logger.info(MessageLog.GetText("I", "ADAPTATION_2", valk=self.name, valr=delta_t))
 
     class Interrupt(Action):
         """This action stops the calculation (keyword value: ARRET)."""
@@ -1047,6 +1045,11 @@ class TimeStepper(Observer):
             factor = MPI.ASTER_COMM_WORLD.allreduce(factor, MPI.MIN)
             logger.debug("check delta of %s / %s: %s", self._cmp, self._value, factor)
             return float(factor)
+
+        def show_status(self, delta_t):
+            """Print informations about the action."""
+            args = {"valk": [self._fieldName, self._cmp], "valr": delta_t}
+            logger.info(MessageLog.GetText("I", "ADAPTATION_20", **args))
 
     # ITER_SUPPL
     # AUTRE_PILOTAGE
