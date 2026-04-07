@@ -541,8 +541,7 @@ class TimeStepper(Observer):
             enabled = act.event.is_raised(delta=delta)
             if enabled:
                 try:
-                    mult = act.call(timeStepper=self, delta=delta)
-                    dt_i = mult * currIncr
+                    dt_i = act.call(timeStepper=self, delta=delta)
                     act.show_status(delta_t=dt_i)
                     delta_t = min(delta_t, dt_i)
                 except ValueError:
@@ -727,7 +726,7 @@ class TimeStepper(Observer):
             raise NotImplementedError("must be subclassed!")
 
     class AdaptAction(Action):
-        """Action that provides a multiplicative factor for the next timestep."""
+        """Action that provides the next timestep."""
 
         def call(self, **context):
             """Execute the action.
@@ -736,7 +735,7 @@ class TimeStepper(Observer):
                 context (dict): Context of the event.
 
             Returns:
-                float: multiplicative factor.
+                float: new delta t.
             """
             raise NotImplementedError("must be subclassed!")
 
@@ -968,7 +967,9 @@ class TimeStepper(Observer):
             Arguments:
                 context (dict): Context of the event.
             """
-            return self._factor
+            stp = context["timeStepper"]
+            currIncr = stp.getIncrement()
+            return self._factor * currIncr
 
     class AdaptFromNbIter(AdaptAction):
         """This action returns a multiplicative factor for the next timestep
@@ -997,8 +998,9 @@ class TimeStepper(Observer):
                 context (dict): Context of the event.
             """
             stp = context["timeStepper"]
+            currIncr = stp.getIncrement()
             nbIter = stp._state["converged"].get("ITER_GLOB_MAXI", self._nbRef - 1)
-            return sqrt(self._nbRef / (nbIter + 1))
+            return sqrt(self._nbRef / (nbIter + 1)) * currIncr
 
     class AdaptIncrement(AdaptAction):
         """This action returns a multiplicative factor for the next timestep
@@ -1031,6 +1033,8 @@ class TimeStepper(Observer):
             Arguments:
                 context (dict): Context of the event.
             """
+            stp = context["timeStepper"]
+            currIncr = stp.getIncrement()
             delta = context.get("delta")
             if not delta:
                 raise ValueError
@@ -1044,7 +1048,7 @@ class TimeStepper(Observer):
             factor = numpy.min(self._value / numpy.abs(nonzero))
             factor = MPI.ASTER_COMM_WORLD.allreduce(factor, MPI.MIN)
             logger.debug("check delta of %s / %s: %s", self._cmp, self._value, factor)
-            return float(factor)
+            return float(factor) * currIncr
 
         def show_status(self, delta_t):
             """Print informations about the action."""
