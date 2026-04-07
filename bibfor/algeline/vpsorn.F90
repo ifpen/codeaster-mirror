@@ -110,7 +110,8 @@ subroutine vpsorn(lmasse, ldynfa, nbeq, nbvect, nfreq, &
 #include "asterfort/vpgsmm.h"
 #include "asterfort/vpordo.h"
 !
-   integer(kind=8) :: lmasse, ldynfa, nbeq, nbvect, nfreq, lonwl, ddlexc(nbeq), ddllag(nbeq), neqact
+    integer(kind=8) :: lmasse, ldynfa, nbeq, nbvect, nfreq, lonwl
+    integer(kind=8) :: ddlexc(nbeq), ddllag(nbeq), neqact
     integer(kind=8) :: maxitr, ifm, niv, priram(8), nconv
     real(kind=8) :: tolsor, vect(nbeq, nbvect), resid(nbeq), workd(3*nbeq), workl(lonwl)
     real(kind=8) :: dsor(nfreq+1, 2), fshift, vaux(nbeq), workv(3*nbvect), alpha, omecor
@@ -134,7 +135,8 @@ subroutine vpsorn(lmasse, ldynfa, nbeq, nbvect, nfreq, &
     character(len=2) :: which
     character(len=19) :: k19bid, matass, chcine, criter
 !
-   integer(kind=8) :: logfil, ndigit, mgetv0, mnaupd, mnaup2, mnaitr, mneigh, mnapps, mngets, mneupd
+    integer(kind=8) :: logfil, ndigit, mgetv0, mnaupd, mnaup2, mnaitr
+    integer(kind=8) :: mneigh, mnapps, mngets, mneupd
     common/debug/&
      &  logfil, ndigit, mgetv0,&
      &  mnaupd, mnaup2, mnaitr, mneigh, mnapps, mngets, mneupd
