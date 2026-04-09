@@ -21,8 +21,6 @@
  *   along with Code_Aster.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-<<<<<<< HEAD:bibcxx/PythonBindings/MeshReaderInterface.cxx
-
 #include "PythonBindings/MeshReaderInterface.h"
 
 #include "aster_pybind.h"
