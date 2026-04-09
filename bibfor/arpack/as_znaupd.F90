@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -398,9 +398,9 @@
 !     APPLIED MATHEMATICS
 !     RICE UNIVERSITY
 subroutine as_znaupd(ido, bmat, n, which, nev, &
-                  tol, resid, ncv, v, ldv, &
-                  iparam, ipntr, workd, workl, lworkl, &
-                  rwork, info, neqact, alpha)
+                     tol, resid, ncv, v, ldv, &
+                     iparam, ipntr, workd, workl, lworkl, &
+                     rwork, info, neqact, alpha)
 !     HOUSTON, TEXAS
 !
 !\SCCS INFORMATION: @(#)
@@ -598,10 +598,10 @@ subroutine as_znaupd(ido, bmat, n, which, nev, &
 !     %-------------------------------------------------------%
 !
     call as_znaup2(ido, bmat, n, which, nev0, &
-                np, tol, resid, ishift, mxiter, &
-                v, ldv, workl(ih), ldh, workl(ritz), &
-                workl(bounds), workl(iq), ldq, workl(iw), ipntr, &
-                workd, rwork, info, neqact, alpha)
+                   np, tol, resid, ishift, mxiter, &
+                   v, ldv, workl(ih), ldh, workl(ritz), &
+                   workl(bounds), workl(iq), ldq, workl(iw), ipntr, &
+                   workd, rwork, info, neqact, alpha)
 !
 !     %--------------------------------------------------%
 !     | IDO .NE. 99 IMPLIES USE OF REVERSE COMMUNICATION |

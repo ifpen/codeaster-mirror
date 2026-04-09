@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -198,10 +198,10 @@
 !                DIMENSION AT LEAST DIMENSION NCV AND ALLOCATE AT LEAST
 !                NCV
 subroutine as_zneupd(rvec, howmny, select, d, z, &
-                  ldz, sigma, workev, bmat, n, &
-                  which, nev, tol, resid, ncv, &
-                  v, ldv, iparam, ipntr, workd, &
-                  workl, lworkl, rwork, info, neqact)
+                     ldz, sigma, workev, bmat, n, &
+                     which, nev, tol, resid, ncv, &
+                     v, ldv, iparam, ipntr, workd, &
+                     workl, lworkl, rwork, info, neqact)
 !                COLUMNS FOR Z. NOTE: NOT NECESSARY IF Z AND V SHARE
 !                THE SAME SPACE. PLEASE NOTIFY THE AUTHORS IF THIS ERROR
 !                OCCURS.
@@ -530,7 +530,7 @@ subroutine as_zneupd(rvec, howmny, select, d, z, &
     if (msglvl .gt. 2) then
         call as_zvout(logfil, ncv, workl(irz), ndigit, '_NEUPD: RITZ VALUES PASSED IN FROM _NAUPD.')
         call as_zvout(logfil, ncv, workl(ibd), ndigit, &
-                   '_NEUPD: RITZ ESTIMATES PASSED IN FROM _NAUPD.')
+                      '_NEUPD: RITZ ESTIMATES PASSED IN FROM _NAUPD.')
     end if
 !
     if (rvec) then
@@ -560,13 +560,13 @@ subroutine as_zneupd(rvec, howmny, select, d, z, &
         np = ncv-nev
         ishift = 0
         call as_zngets(ishift, which, nev, np, workl(irz), &
-                    workl(bounds))
+                       workl(bounds))
 !
         if (msglvl .gt. 2) then
             call as_zvout(logfil, ncv, workl(irz), ndigit, &
-                       '_NEUPD: RITZ VALUES AFTER CALLING _NGETS.')
+                          '_NEUPD: RITZ VALUES AFTER CALLING _NGETS.')
             call as_zvout(logfil, ncv, workl(bounds), ndigit, &
-                       '_NEUPD: RITZ VALUE INDICES AFTER CALLING _NGETS.')
+                          '_NEUPD: RITZ VALUE INDICES AFTER CALLING _NGETS.')
         end if
 !
 !        %-----------------------------------------------------%
@@ -643,10 +643,10 @@ subroutine as_zneupd(rvec, howmny, select, d, z, &
         if (msglvl .gt. 1) then
             call as_zvout(logfil, ncv, workl(iheig), ndigit, '_NEUPD: EIGENVALUES OF H')
             call as_zvout(logfil, ncv, workl(ihbds), ndigit, &
-                       '_NEUPD: LAST ROW OF THE SCHUR VECTOR MATRIX')
+                          '_NEUPD: LAST ROW OF THE SCHUR VECTOR MATRIX')
             if (msglvl .gt. 3) then
                 call as_zmout(logfil, ncv, ncv, workl(iuptri), ldh, &
-                           ndigit, '_NEUPD: THE UPPER TRIANGULAR MATRIX ')
+                              ndigit, '_NEUPD: THE UPPER TRIANGULAR MATRIX ')
             end if
         end if
 !
@@ -681,10 +681,10 @@ subroutine as_zneupd(rvec, howmny, select, d, z, &
 !
             if (msglvl .gt. 2) then
                 call as_zvout(logfil, ncv, workl(iheig), ndigit, &
-                           '_NEUPD: EIGENVALUES OF H--REORDERED')
+                              '_NEUPD: EIGENVALUES OF H--REORDERED')
                 if (msglvl .gt. 3) then
                     call as_zmout(logfil, ncv, ncv, workl(iuptri), ldq, &
-                               ndigit, '_NEUPD: TRIANGULAR MATRIX AFTER RE-ORDERING')
+                                  ndigit, '_NEUPD: TRIANGULAR MATRIX AFTER RE-ORDERING')
                 end if
             end if
 !
@@ -839,10 +839,10 @@ subroutine as_zneupd(rvec, howmny, select, d, z, &
                 b_incy = to_blas_int(1)
                 call zcopy(b_n, workl(invsub+ncv-1), b_incx, workl(ihbds), b_incy)
                 call as_zvout(logfil, nconv, workl(ihbds), ndigit, &
-                           '_NEUPD: LAST ROW OF THE EIGENVECTOR MATRIX FOR T')
+                              '_NEUPD: LAST ROW OF THE EIGENVECTOR MATRIX FOR T')
                 if (msglvl .gt. 3) then
                     call as_zmout(logfil, ncv, ncv, workl(invsub), ldq, &
-                               ndigit, '_NEUPD: THE EIGENVECTOR MATRIX FOR T')
+                                  ndigit, '_NEUPD: THE EIGENVECTOR MATRIX FOR T')
                 end if
             end if
 !
@@ -957,7 +957,7 @@ subroutine as_zneupd(rvec, howmny, select, d, z, &
     if (type .ne. 'REGULR' .and. msglvl .gt. 1) then
         call as_zvout(logfil, nconv, d, ndigit, '_NEUPD: UNTRANSFORMED RITZ VALUES.')
         call as_zvout(logfil, nconv, workl(ihbds), ndigit, &
-                   '_NEUPD: RITZ ESTIMATES OF THE UNTRANSFORMED RITZ VALUES.')
+                      '_NEUPD: RITZ ESTIMATES OF THE UNTRANSFORMED RITZ VALUES.')
     else if (msglvl .gt. 1) then
         call as_zvout(logfil, nconv, d, ndigit, '_NEUPD: CONVERGED RITZ VALUES.')
         call as_zvout(logfil, nconv, workl(ihbds), ndigit, '_NEUPD: ASSOCIATED RITZ ESTIMATES.')

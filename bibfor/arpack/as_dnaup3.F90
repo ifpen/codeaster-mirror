@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -199,12 +199,12 @@
 ! ASTER INFORMATION
 ! 07/01/2000 TOILETTAGE DU FORTRAN SUIVANT LES REGLES ASTER,
 subroutine as_dnaup3(ido, bmat, n, which, nev, &
-                  np, tol, resid, ishift, mxiter, &
-                  v, ldv, h, ldh, ritzr, &
-                  ritzi, bounds, q, ldq, workl, &
-                  ipntr, workd, info, neqact, alpha, &
-                  nsta, ddlsta, vstab, csta, ldynfa, &
-                  ddlexc, redem)
+                     np, tol, resid, ishift, mxiter, &
+                     v, ldv, h, ldh, ritzr, &
+                     ritzi, bounds, q, ldq, workl, &
+                     ipntr, workd, info, neqact, alpha, &
+                     nsta, ddlsta, vstab, csta, ldynfa, &
+                     ddlexc, redem)
 !            DISPARITION DE SECOND ET DLAMCH,
 !            COMMON TIMING REMPLACE PAR COMMON INFOR,
 !            RAJOUT DU PARAMETRE NEQACT,
@@ -369,8 +369,8 @@ subroutine as_dnaup3(ido, bmat, n, which, nev, &
 !
     if (getv0) then
         call as_dgetv0(ido, bmat, 1, initv, n, &
-                    1, v, ldv, resid, rnorm, &
-                    ipntr, workd, info, alpha)
+                       1, v, ldv, resid, rnorm, &
+                       ipntr, workd, info, alpha)
         if (ido .ne. 99) goto 9000
         if (rnorm .eq. zero) then
 !
@@ -410,8 +410,8 @@ subroutine as_dnaup3(ido, bmat, n, which, nev, &
 !     %----------------------------------------------------------%
 !
     call as_dnaitr(ido, bmat, n, 0, nev, &
-                resid, rnorm, v, ldv, h, &
-                ldh, ipntr, workd, info, alpha)
+                   resid, rnorm, v, ldv, h, &
+                   ldh, ipntr, workd, info, alpha)
 !
 !     %---------------------------------------------------%
 !     | IDO .NE. 99 IMPLIES USE OF REVERSE COMMUNICATION  |
@@ -439,7 +439,7 @@ subroutine as_dnaup3(ido, bmat, n, which, nev, &
     iter = iter+1
     if (msglvl .gt. 0) then
         call as_ivout(logfil, 1, [iter], ndigit, &
-                   '_NAUP2: **** START OF MAJOR ITERATION NUMBER ****')
+                      '_NAUP2: **** START OF MAJOR ITERATION NUMBER ****')
     end if
 !
 !        %-----------------------------------------------------------%
@@ -451,7 +451,7 @@ subroutine as_dnaup3(ido, bmat, n, which, nev, &
     np = kplusp-nev
     if (msglvl .gt. 1) then
         call as_ivout(logfil, 1, [nev], ndigit, &
-                   '_NAUP2: THE LENGTH OF THE CURRENT ARNOLDI FACTORIZATION')
+                      '_NAUP2: THE LENGTH OF THE CURRENT ARNOLDI FACTORIZATION')
         call as_ivout(logfil, 1, [np], ndigit, '_NAUP2: EXTEND THE ARNOLDI FACTORIZATION BY')
     end if
 !
@@ -463,8 +463,8 @@ subroutine as_dnaup3(ido, bmat, n, which, nev, &
 20  continue
     update = .true.
     call as_dnaitr(ido, bmat, n, nev, np, &
-                resid, rnorm, v, ldv, h, &
-                ldh, ipntr, workd, info, alpha)
+                   resid, rnorm, v, ldv, h, &
+                   ldh, ipntr, workd, info, alpha)
 !
 !        %---------------------------------------------------%
 !        | IDO .NE. 99 IMPLIES USE OF REVERSE COMMUNICATION  |
@@ -502,8 +502,8 @@ subroutine as_dnaup3(ido, bmat, n, which, nev, &
 !        %--------------------------------------------------------%
 !
     call as_dneigh(rnorm, kplusp, h, ldh, ritzr, &
-                ritzi, bounds, q, ldq, workl, &
-                ierr)
+                   ritzi, bounds, q, ldq, workl, &
+                   ierr)
 !
     beta = 0.d0
     etat = 0
@@ -575,7 +575,7 @@ subroutine as_dnaup3(ido, bmat, n, which, nev, &
     np = np0
     numcnv = nev
     call as_dngets(ishift, which, nev, np, ritzr, &
-                ritzi, bounds, workl, workl(np+1))
+                   ritzi, bounds, workl, workl(np+1))
     if (nev .eq. nev0+1) numcnv = nev0+1
 !
 !        %-------------------%
@@ -587,7 +587,7 @@ subroutine as_dnaup3(ido, bmat, n, which, nev, &
     b_incy = to_blas_int(1)
     call dcopy(b_n, bounds(np+1), b_incx, workl(2*np+1), b_incy)
     call as_as_dnconv(nev, ritzr(np+1), ritzi(np+1), workl(2*np+1), tol, &
-                   nconv)
+                      nconv)
 !
     if (msglvl .gt. 2) then
         kp(1) = nev
@@ -597,9 +597,9 @@ subroutine as_dnaup3(ido, bmat, n, which, nev, &
         call as_ivout(logfil, 4, kp, ndigit, '_NAUP2: NEV, NP, NUMCNV, NCONV ARE')
         call as_dvout(logfil, kplusp, ritzr, ndigit, '_NAUP2: REAL PART OF THE EIGENVALUES OF H')
         call as_dvout(logfil, kplusp, ritzi, ndigit, &
-                   '_NAUP2: IMAGINARY PART OF THE EIGENVALUES OF H')
+                      '_NAUP2: IMAGINARY PART OF THE EIGENVALUES OF H')
         call as_dvout(logfil, kplusp, bounds, ndigit, &
-                   '_NAUP2: RITZ ESTIMATES OF THE CURRENT NCV RITZ VALUES')
+                      '_NAUP2: RITZ ESTIMATES OF THE CURRENT NCV RITZ VALUES')
     end if
 !
 !        %---------------------------------------------------------%
@@ -624,11 +624,11 @@ subroutine as_dnaup3(ido, bmat, n, which, nev, &
 !
         if (msglvl .gt. 4) then
             call as_dvout(logfil, kplusp, workl(kplusp**2+1), ndigit, &
-                       '_NAUP2: REAL PART OF THE EIG COMPUTED BY _NEIGH:')
+                          '_NAUP2: REAL PART OF THE EIG COMPUTED BY _NEIGH:')
             call as_dvout(logfil, kplusp, workl(kplusp**2+kplusp+1), ndigit, &
-                       '_NAUP2: IMAG PART OF THE EIG COMPUTED BY _NEIGH:')
+                          '_NAUP2: IMAG PART OF THE EIG COMPUTED BY _NEIGH:')
             call as_dvout(logfil, kplusp, workl(kplusp**2+kplusp*2+1), ndigit, &
-                       '_NAUP2: RITZ EISTMATES COMPUTED BY _NEIGH:')
+                          '_NAUP2: RITZ EISTMATES COMPUTED BY _NEIGH:')
         end if
 !
 !           %------------------------------------------------%
@@ -662,7 +662,7 @@ subroutine as_dnaup3(ido, bmat, n, which, nev, &
         if (which .eq. 'SI') wprime = 'LM'
 !
         call as_as_dsortc(wprime, .true._1, kplusp, ritzr, ritzi, &
-                       bounds)
+                          bounds)
 !
 !           %----------------------------------------------%
 !           | NOW SORT RITZ VALUES SO THAT CONVERGED RITZ  |
@@ -679,7 +679,7 @@ subroutine as_dnaup3(ido, bmat, n, which, nev, &
         if (which .eq. 'SI') wprime = 'LI'
 !
         call as_as_dsortc(wprime, .true._1, kplusp, ritzr, ritzi, &
-                       bounds)
+                          bounds)
 !
 !           %--------------------------------------------------%
 !           | SCALE THE RITZ ESTIMATE OF EACH RITZ VALUE       |
@@ -700,7 +700,7 @@ subroutine as_dnaup3(ido, bmat, n, which, nev, &
 !
         wprime = 'LR'
         call as_as_dsortc(wprime, .true._1, nev0, bounds, ritzr, &
-                       ritzi)
+                          ritzi)
 !
 !           %----------------------------------------------%
 !           | SCALE THE RITZ ESTIMATE BACK TO ITS ORIGINAL |
@@ -719,13 +719,13 @@ subroutine as_dnaup3(ido, bmat, n, which, nev, &
 !           %------------------------------------------------%
 !
         call as_as_dsortc(which, .true._1, nconv, ritzr, ritzi, &
-                       bounds)
+                          bounds)
 !
         if (msglvl .gt. 1) then
             call as_dvout(logfil, kplusp, ritzr, ndigit, &
-                       '_NAUP2: SORTED REAL PART OF THE EIGENVALUES')
+                          '_NAUP2: SORTED REAL PART OF THE EIGENVALUES')
             call as_dvout(logfil, kplusp, ritzi, ndigit, &
-                       '_NAUP2: SORTED IMAGINARY PART OF THE EIGENVALUES')
+                          '_NAUP2: SORTED IMAGINARY PART OF THE EIGENVALUES')
             call as_dvout(logfil, kplusp, bounds, ndigit, '_NAUP2: SORTED RITZ ESTIMATES.')
         end if
 !
@@ -767,23 +767,23 @@ subroutine as_dnaup3(ido, bmat, n, which, nev, &
 !           %---------------------------------------%
 !
         if (nevbef .lt. nev) call as_dngets(ishift, which, nev, np, ritzr, &
-                                         ritzi, bounds, workl, workl(np+1))
+                                            ritzi, bounds, workl, workl(np+1))
 !
     end if
 !
     if (msglvl .gt. 0) then
         call as_ivout(logfil, 1, [nconv], ndigit, &
-                   '_NAUP2: NO. OF "CONVERGED" RITZ VALUES AT THIS ITER.')
+                      '_NAUP2: NO. OF "CONVERGED" RITZ VALUES AT THIS ITER.')
         if (msglvl .gt. 1) then
             kp(1) = nev
             kp(2) = np
             call as_ivout(logfil, 2, kp, ndigit, '_NAUP2: NEV AND NP ARE')
             call as_dvout(logfil, nev, ritzr(np+1), ndigit, &
-                       '_NAUP2: "WANTED" RITZ VALUES -- REAL PART')
+                          '_NAUP2: "WANTED" RITZ VALUES -- REAL PART')
             call as_dvout(logfil, nev, ritzi(np+1), ndigit, &
-                       '_NAUP2: "WANTED" RITZ VALUES -- IMAG PART')
+                          '_NAUP2: "WANTED" RITZ VALUES -- IMAG PART')
             call as_dvout(logfil, nev, bounds(np+1), ndigit, &
-                       '_NAUP2: RITZ ESTIMATES OF THE "WANTED" VALUES ')
+                          '_NAUP2: RITZ ESTIMATES OF THE "WANTED" VALUES ')
         end if
     end if
 !
@@ -832,7 +832,7 @@ subroutine as_dnaup3(ido, bmat, n, which, nev, &
         call as_dvout(logfil, np, ritzr, ndigit, '_NAUP2: REAL PART OF THE SHIFTS')
         call as_dvout(logfil, np, ritzi, ndigit, '_NAUP2: IMAGINARY PART OF THE SHIFTS')
         if (ishift .eq. 1) call as_dvout(logfil, np, bounds, ndigit, &
-                                      '_NAUP2: RITZ ESTIMATES OF THE SHIFTS')
+                                         '_NAUP2: RITZ ESTIMATES OF THE SHIFTS')
     end if
 !
 !        %---------------------------------------------------------%
@@ -843,8 +843,8 @@ subroutine as_dnaup3(ido, bmat, n, which, nev, &
 !        %---------------------------------------------------------%
 !
     call as_dnapps(n, nev, np, ritzr, ritzi, &
-                v, ldv, h, ldh, resid, &
-                q, ldq, workl, workd)
+                   v, ldv, h, ldh, resid, &
+                   q, ldq, workl, workd)
 !
 !        %---------------------------------------------%
 !        | COMPUTE THE B-NORM OF THE UPDATED RESIDUAL. |
@@ -897,9 +897,9 @@ subroutine as_dnaup3(ido, bmat, n, which, nev, &
 !
     if (msglvl .gt. 2) then
         call as_dvout(logfil, 1, [rnorm], ndigit, &
-                   '_NAUP2: B-NORM OF RESIDUAL FOR COMPRESSED FACTORIZATION')
+                      '_NAUP2: B-NORM OF RESIDUAL FOR COMPRESSED FACTORIZATION')
         call as_dmout(logfil, nev, nev, h, ldh, &
-                   ndigit, '_NAUP2: COMPRESSED UPPER HESSENBERG MATRIX H')
+                      ndigit, '_NAUP2: COMPRESSED UPPER HESSENBERG MATRIX H')
     end if
 !
     goto 1000

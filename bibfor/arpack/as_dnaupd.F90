@@ -1,6 +1,6 @@
 ! --------------------------------------------------------------------
 ! Copyright (C) LAPACK
-! Copyright (C) 2007 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 2007 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -414,9 +414,9 @@
 !-----------------------------------------------------------------------
 ! CORPS DU PROGRAMME
 subroutine as_dnaupd(ido, bmat, n, which, nev, &
-                  tol, resid, ncv, v, ldv, &
-                  iparam, ipntr, workd, workl, lworkl, &
-                  info, neqact, alpha)
+                     tol, resid, ncv, v, ldv, &
+                     iparam, ipntr, workd, workl, lworkl, &
+                     info, neqact, alpha)
     implicit none
 !
 !     %--------------------------------------%
@@ -606,10 +606,10 @@ subroutine as_dnaupd(ido, bmat, n, which, nev, &
 !     %-------------------------------------------------------%
 !
     call as_dnaup2(ido, bmat, n, which, nev0, &
-                np, tol, resid, ishift, mxiter, &
-                v, ldv, workl(ih), ldh, workl(ritzr), &
-                workl(ritzi), workl(bounds), workl(iq), ldq, workl(iw), &
-                ipntr, workd, info, neqact, alpha)
+                   np, tol, resid, ishift, mxiter, &
+                   v, ldv, workl(ih), ldh, workl(ritzr), &
+                   workl(ritzi), workl(bounds), workl(iq), ldq, workl(iw), &
+                   ipntr, workd, info, neqact, alpha)
 !
 !     %--------------------------------------------------%
 !     | IDO .NE. 99 IMPLIES USE OF REVERSE COMMUNICATION |
@@ -637,9 +637,9 @@ subroutine as_dnaupd(ido, bmat, n, which, nev, &
         call as_ivout(logfil, 1, [mxiter], ndigit, '_NAUPD: NUMBER OF UPDATE ITERATIONS TAKEN')
         call as_ivout(logfil, 1, [np], ndigit, '_NAUPD: NUMBER OF WANTED "CONVERGED" RITZ VALUES')
         call as_dvout(logfil, np, workl(ritzr), ndigit, &
-                   '_NAUPD: REAL PART OF THE FINAL RITZ VALUES')
+                      '_NAUPD: REAL PART OF THE FINAL RITZ VALUES')
         call as_dvout(logfil, np, workl(ritzi), ndigit, &
-                   '_NAUPD: IMAGINARY PART OF THE FINAL RITZ VALUES')
+                      '_NAUPD: IMAGINARY PART OF THE FINAL RITZ VALUES')
         call as_dvout(logfil, np, workl(bounds), ndigit, '_NAUPD: ASSOCIATED RITZ ESTIMATES')
     end if
 !        %--------------------------------%

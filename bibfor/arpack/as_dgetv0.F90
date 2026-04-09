@@ -1,6 +1,6 @@
 ! --------------------------------------------------------------------
 ! Copyright (C) LAPACK
-! Copyright (C) 2007 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 2007 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -18,8 +18,8 @@
 ! --------------------------------------------------------------------
 !
 subroutine as_dgetv0(ido, bmat, itry, initv, n, &
-                  j, v, ldv, resid, rnorm, &
-                  ipntr, workd, ierr, alpha)
+                     j, v, ldv, resid, rnorm, &
+                     ipntr, workd, ierr, alpha)
 !
 !     SUBROUTINE ARPACK GENERANT UN VECTEUR INITIAL DANS IM(OP).
 !-----------------------------------------------------------------------
@@ -441,7 +441,7 @@ subroutine as_dgetv0(ido, bmat, itry, initv, n, &
 !
     if (msglvl .gt. 0) then
         call as_dvout(logfil, 1, [rnorm], ndigit, &
-                   '_GETV0: B-NORM OF INITIAL / RESTARTED STARTING VECTOR')
+                      '_GETV0: B-NORM OF INITIAL / RESTARTED STARTING VECTOR')
     end if
     if (msglvl .gt. 2) then
         call as_dvout(logfil, n, [resid], ndigit, '_GETV0: INITIAL / RESTARTED STARTING VECTOR')

@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -199,8 +199,8 @@
 !        W_{J} =  V_{J}^T * B * OP * V_{J}
 !        R_{J} =  OP*V_{J} - V_{J} * W_{J}
 subroutine as_znaitr(ido, bmat, n, k, np, &
-                  resid, rnorm, v, ldv, h, &
-                  ldh, ipntr, workd, info, alpha)
+                     resid, rnorm, v, ldv, h, &
+                     ldh, ipntr, workd, info, alpha)
 !        H(:,J) = W_{J};
 !        H(J,J-1) = RNORM
 !        RNORM = || R_(J) ||
@@ -443,8 +443,8 @@ subroutine as_znaitr(ido, bmat, n, k, np, &
 !           %--------------------------------------%
 !
     call as_zgetv0(ido, bmat, .false._1, n, j, &
-                v, ldv, resid, rnorm, ipntr, &
-                workd, ierr, alpha)
+                   v, ldv, resid, rnorm, ipntr, &
+                   workd, ierr, alpha)
     if (ido .ne. 99) goto 9000
     if (ierr .lt. 0) then
         itry = itry+1
@@ -808,7 +808,7 @@ subroutine as_znaitr(ido, bmat, n, k, np, &
             rtemp(1) = rnorm
             rtemp(2) = rnorm1
             call as_dvout(logfil, 2, rtemp, ndigit, &
-                       '_NAITR: ITERATIVE REFINEMENT ; RNORM AND RNORM1 ARE')
+                          '_NAITR: ITERATIVE REFINEMENT ; RNORM AND RNORM1 ARE')
         end if
     end if
 !
@@ -890,7 +890,7 @@ subroutine as_znaitr(ido, bmat, n, k, np, &
 !
         if (msglvl .gt. 2) then
             call as_zmout(logfil, k+np, k+np, h, ldh, &
-                       ndigit, '_NAITR: FINAL UPPER HESSENBERG MATRIX H OF ORDER K+NP')
+                          ndigit, '_NAITR: FINAL UPPER HESSENBERG MATRIX H OF ORDER K+NP')
         end if
 !
         goto 9000

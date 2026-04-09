@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 ! --------------------------------------------------------------------
 
 subroutine as_zngets(ishift, which, kev, np, ritz, &
-                  bounds)
+                     bounds)
 !
 !     SUBROUTINE ARPACK CALCULANT NP SHIFTS DU RESTART DE IRAM.
 !---------------------------------------------------------------------
@@ -182,7 +182,7 @@ subroutine as_zngets(ishift, which, kev, np, ritz, &
         call as_ivout(logfil, 1, [np], ndigit, '_NGETS: NP IS')
         call as_zvout(logfil, kev+np, ritz, ndigit, '_NGETS: EIGENVALUES OF CURRENT H MATRIX ')
         call as_zvout(logfil, kev+np, bounds, ndigit, &
-                   '_NGETS: RITZ ESTIMATES OF THE CURRENT KEV+NP RITZ VALUES')
+                      '_NGETS: RITZ ESTIMATES OF THE CURRENT KEV+NP RITZ VALUES')
     end if
 !
 !

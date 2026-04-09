@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -17,8 +17,8 @@
 ! --------------------------------------------------------------------
 !
 subroutine as_znapps(n, kev, np, shift, v, &
-                  ldv, h, ldh, resid, q, &
-                  ldq, workl, workd)
+                     ldv, h, ldh, resid, q, &
+                     ldq, workl, workd)
     implicit none
 !
 !     SUBROUTINE ARPACK PREPARANT LE RESTART VIA UN QR IMPLICITE POUR
@@ -321,9 +321,9 @@ subroutine as_znapps(n, kev, np, shift, v, &
             if (abs(dble(h(i+1, i))) .le. max(ulp*tst1, smlnum)) then
                 if (msglvl .gt. 0) then
                     call as_ivout(logfil, 1, [i], ndigit, &
-                               '_NAPPS: MATRIX SPLITTING AT ROW/COLUMN NO.')
+                                  '_NAPPS: MATRIX SPLITTING AT ROW/COLUMN NO.')
                     call as_ivout(logfil, 1, [jj], ndigit, &
-                               '_NAPPS: MATRIX SPLITTING WITH SHIFT NUMBER.')
+                                  '_NAPPS: MATRIX SPLITTING WITH SHIFT NUMBER.')
                     call as_zvout(logfil, 1, h(i+1, i), ndigit, '_NAPPS: OFF DIAGONAL ELEMENT.')
                 end if
                 iend = i
@@ -541,7 +541,7 @@ subroutine as_znapps(n, kev, np, shift, v, &
         call as_ivout(logfil, 1, [kev], ndigit, '_NAPPS: ORDER OF THE FINAL HESSENBERG MATRIX ')
         if (msglvl .gt. 2) then
             call as_zmout(logfil, kev, kev, h, ldh, &
-                       ndigit, '_NAPPS: UPDATED HESSENBERG MATRIX H FOR NEXT ITERATION')
+                          ndigit, '_NAPPS: UPDATED HESSENBERG MATRIX H FOR NEXT ITERATION')
         end if
 !
     end if

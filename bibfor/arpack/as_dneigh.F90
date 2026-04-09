@@ -1,6 +1,6 @@
 ! --------------------------------------------------------------------
 ! Copyright (C) LAPACK
-! Copyright (C) 2007 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 2007 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -18,8 +18,8 @@
 ! --------------------------------------------------------------------
 !
 subroutine as_dneigh(rnorm, n, h, ldh, ritzr, &
-                  ritzi, bounds, q, ldq, workl, &
-                  ierr)
+                     ritzi, bounds, q, ldq, workl, &
+                     ierr)
 !
 !     SUBROUTINE ARPACK CALCULANT LES MODES PROPRES DE LA MATRICE DE
 !     HESSENBERG AINSI QUE LEURS ERREURS.
@@ -190,7 +190,7 @@ subroutine as_dneigh(rnorm, n, h, ldh, ritzr, &
 !
     if (msglvl .gt. 2) then
         call as_dmout(logfil, n, n, h, ldh, &
-                   ndigit, '_NEIGH: ENTERING UPPER HESSENBERG MATRIX H ')
+                      ndigit, '_NEIGH: ENTERING UPPER HESSENBERG MATRIX H ')
     end if
 !
 !     %-----------------------------------------------------------%
@@ -208,7 +208,7 @@ subroutine as_dneigh(rnorm, n, h, ldh, ritzr, &
     call dlacpy('A', b_m, b_n, h, b_lda, &
                 workl, b_ldb)
     call as_dlaqrb(.true._1, n, 1, n, workl, &
-                n, ritzr, ritzi, bounds, ierr)
+                   n, ritzr, ritzi, bounds, ierr)
     if (ierr .ne. 0) goto 9000
 !
     if (msglvl .gt. 1) then

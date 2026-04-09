@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -17,8 +17,8 @@
 ! --------------------------------------------------------------------
 !
 subroutine as_zgetv0(ido, bmat, initv, n, j, &
-                  v, ldv, resid, rnorm, ipntr, &
-                  workd, ierr, alpha)
+                     v, ldv, resid, rnorm, ipntr, &
+                     workd, ierr, alpha)
 !
 !     SUBROUTINE ARPACK GENERANT UN VECTEUR INITIAL DANS IM(OP).
 !-----------------------------------------------------------------------
@@ -443,7 +443,7 @@ subroutine as_zgetv0(ido, bmat, initv, n, j, &
 !
     if (msglvl .gt. 0) then
         call as_dvout(logfil, 1, [rnorm], ndigit, &
-                   '_GETV0: B-NORM OF INITIAL / RESTARTED STARTING VECTOR')
+                      '_GETV0: B-NORM OF INITIAL / RESTARTED STARTING VECTOR')
     end if
     if (msglvl .gt. 2) then
         call as_zvout(logfil, n, resid, ndigit, '_GETV0: INITIAL / RESTARTED STARTING VECTOR')

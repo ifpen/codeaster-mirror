@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 ! --------------------------------------------------------------------
 
 subroutine as_dngets(ishift, which, kev, np, ritzr, &
-                  ritzi, bounds, shiftr, shifti)
+                     ritzi, bounds, shiftr, shifti)
 !
 !     SUBROUTINE ARPACK CALCULANT NP SHIFTS DU RESTART DE IRAM.
 !---------------------------------------------------------------------
@@ -174,26 +174,26 @@ subroutine as_dngets(ishift, which, kev, np, ritzr, &
 !
     if (which .eq. 'LM') then
         call as_as_dsortc('LR', .true._1, kev+np, ritzr, ritzi, &
-                       bounds)
+                          bounds)
     else if (which .eq. 'SM') then
         call as_as_dsortc('SR', .true._1, kev+np, ritzr, ritzi, &
-                       bounds)
+                          bounds)
     else if (which .eq. 'LR') then
         call as_as_dsortc('LM', .true._1, kev+np, ritzr, ritzi, &
-                       bounds)
+                          bounds)
     else if (which .eq. 'SR') then
         call as_as_dsortc('SM', .true._1, kev+np, ritzr, ritzi, &
-                       bounds)
+                          bounds)
     else if (which .eq. 'LI') then
         call as_as_dsortc('LM', .true._1, kev+np, ritzr, ritzi, &
-                       bounds)
+                          bounds)
     else if (which .eq. 'SI') then
         call as_as_dsortc('SM', .true._1, kev+np, ritzr, ritzi, &
-                       bounds)
+                          bounds)
     end if
 !
     call as_as_dsortc(which, .true._1, kev+np, ritzr, ritzi, &
-                   bounds)
+                      bounds)
 !
 !     %-------------------------------------------------------%
 !     | INCREASE KEV BY ONE IF THE ( RITZR(NP),RITZI(NP) )    |
@@ -219,18 +219,18 @@ subroutine as_dngets(ishift, which, kev, np, ritzr, &
 !        %-------------------------------------------------------%
 !
         call as_as_dsortc('SR', .true._1, np, bounds, ritzr, &
-                       ritzi)
+                          ritzi)
     end if
 !
     if (msglvl .gt. 0) then
         call as_ivout(logfil, 1, [kev], ndigit, '_NGETS: KEV IS')
         call as_ivout(logfil, 1, [np], ndigit, '_NGETS: NP IS')
         call as_dvout(logfil, kev+np, ritzr, ndigit, &
-                   '_NGETS: EIGENVALUES OF CURRENT H MATRIX -- REAL PART')
+                      '_NGETS: EIGENVALUES OF CURRENT H MATRIX -- REAL PART')
         call as_dvout(logfil, kev+np, ritzi, ndigit, &
-                   '_NGETS: EIGENVALUES OF CURRENT H MATRIX -- IMAG PART')
+                      '_NGETS: EIGENVALUES OF CURRENT H MATRIX -- IMAG PART')
         call as_dvout(logfil, kev+np, bounds, ndigit, &
-                   '_NGETS: RITZ ESTIMATES OF THE CURRENT KEV+NP RITZ VALUES')
+                      '_NGETS: RITZ ESTIMATES OF THE CURRENT KEV+NP RITZ VALUES')
     end if
 !
 !     %---------------%

@@ -1,6 +1,6 @@
 ! --------------------------------------------------------------------
 ! Copyright (C) LAPACK
-! Copyright (C) 2007 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 2007 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -213,8 +213,8 @@
 !        ENDIF
 !  END DO
 subroutine as_dnaitr(ido, bmat, n, k, np, &
-                  resid, rnorm, v, ldv, h, &
-                  ldh, ipntr, workd, info, alpha)
+                     resid, rnorm, v, ldv, h, &
+                     ldh, ipntr, workd, info, alpha)
 !
 ! ASTER INFORMATION
 ! 07/01/2000 TOILETTAGE DU FORTRAN SUIVANT LES REGLES ASTER,
@@ -440,8 +440,8 @@ subroutine as_dnaitr(ido, bmat, n, k, np, &
 !           %--------------------------------------%
 !
     call as_dgetv0(ido, bmat, itry, .false._1, n, &
-                j, v, ldv, resid, rnorm, &
-                ipntr, workd, ierr, alpha)
+                   j, v, ldv, resid, rnorm, &
+                   ipntr, workd, ierr, alpha)
     if (ido .ne. 99) goto 9000
     if (ierr .lt. 0) then
         itry = itry+1
@@ -803,7 +803,7 @@ subroutine as_dnaitr(ido, bmat, n, k, np, &
             xtemp(1) = rnorm
             xtemp(2) = rnorm1
             call as_dvout(logfil, 2, xtemp, ndigit, &
-                       '_NAITR: ITERATIVE REFINEMENT , RNORM AND RNORM1 ARE')
+                          '_NAITR: ITERATIVE REFINEMENT , RNORM AND RNORM1 ARE')
         end if
     end if
 !
@@ -882,7 +882,7 @@ subroutine as_dnaitr(ido, bmat, n, k, np, &
 !
         if (msglvl .gt. 2) then
             call as_dmout(logfil, k+np, k+np, h, ldh, &
-                       ndigit, '_NAITR: FINAL UPPER HESSENBERG MATRIX H OF ORDER K+NP')
+                          ndigit, '_NAITR: FINAL UPPER HESSENBERG MATRIX H OF ORDER K+NP')
         end if
 !
         goto 9000

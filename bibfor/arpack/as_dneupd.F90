@@ -1,6 +1,6 @@
 ! --------------------------------------------------------------------
 ! Copyright (C) LAPACK
-! Copyright (C) 2007 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 2007 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -212,10 +212,10 @@
 !        = -2: NEV MUST BE POSITIVE.
 !        = -3: NCV-NEV >= 2 AND LESS THAN OR EQUAL TO N.
 subroutine as_dneupd(rvec, howmny, select, dr, di, &
-                  z, ldz, sigmar, sigmai, workev, &
-                  bmat, n, which, nev, tol, &
-                  resid, ncv, v, ldv, iparam, &
-                  ipntr, workd, workl, lworkl, info)
+                     z, ldz, sigmar, sigmai, workev, &
+                     bmat, n, which, nev, tol, &
+                     resid, ncv, v, ldv, iparam, &
+                     ipntr, workd, workl, lworkl, info)
 !        = -5: WHICH MUST BE ONE OF 'LM', 'SM', 'LR', 'SR', 'LI', 'SI'
 !        = -6: BMAT MUST BE ONE OF 'I' OR 'G'.
 !        = -7: LENGTH OF PRIVATE WORK WORKL ARRAY IS NOT SUFFICIENT.
@@ -584,7 +584,7 @@ subroutine as_dneupd(rvec, howmny, select, dr, di, &
 !
         if (msglvl .gt. 2) then
             call as_dvout(logfil, 1, [thres], ndigit, &
-                       '_NEUPD: THRESHOLD EIGENVALUE USED FOR RE-ORDERING')
+                          '_NEUPD: THRESHOLD EIGENVALUE USED FOR RE-ORDERING')
         end if
 !
 !        %----------------------------------------------------------%
@@ -684,14 +684,14 @@ subroutine as_dneupd(rvec, howmny, select, dr, di, &
 !
         if (msglvl .gt. 1) then
             call as_dvout(logfil, ncv, workl(iheigr), ndigit, &
-                       '_NEUPD: REAL PART OF THE EIGENVALUES OF H')
+                          '_NEUPD: REAL PART OF THE EIGENVALUES OF H')
             call as_dvout(logfil, ncv, workl(iheigi), ndigit, &
-                       '_NEUPD: IMAGINARY PART OF THE EIGENVALUES OF H')
+                          '_NEUPD: IMAGINARY PART OF THE EIGENVALUES OF H')
             call as_dvout(logfil, ncv, workl(ihbds), ndigit, &
-                       '_NEUPD: LAST ROW OF THE SCHUR VECTOR MATRIX')
+                          '_NEUPD: LAST ROW OF THE SCHUR VECTOR MATRIX')
             if (msglvl .gt. 3) then
                 call as_dmout(logfil, ncv, ncv, workl(iuptri), ldh, &
-                           ndigit, '_NEUPD: THE UPPER QUASI-TRIANGULAR MATRIX ')
+                              ndigit, '_NEUPD: THE UPPER QUASI-TRIANGULAR MATRIX ')
             end if
         end if
 !
@@ -712,12 +712,12 @@ subroutine as_dneupd(rvec, howmny, select, dr, di, &
 !
             if (msglvl .gt. 2) then
                 call as_dvout(logfil, ncv, workl(iheigr), ndigit, &
-                           '_NEUPD: REAL PART OF THE EIGENVALUES OF H--REORDERED')
+                              '_NEUPD: REAL PART OF THE EIGENVALUES OF H--REORDERED')
                 call as_dvout(logfil, ncv, workl(iheigi), ndigit, &
-                           '_NEUPD: IMAG PART OF THE EIGENVALUES OF H--REORDERED')
+                              '_NEUPD: IMAG PART OF THE EIGENVALUES OF H--REORDERED')
                 if (msglvl .gt. 3) then
                     call as_dmout(logfil, ncv, ncv, workl(iuptri), ldq, &
-                               ndigit, '_NEUPD: QUASI-TRIANGULAR MATRIX AFTER RE-ORDERING')
+                                  ndigit, '_NEUPD: QUASI-TRIANGULAR MATRIX AFTER RE-ORDERING')
                 end if
             end if
         end if
@@ -925,10 +925,10 @@ subroutine as_dneupd(rvec, howmny, select, dr, di, &
                 b_incy = to_blas_int(1)
                 call dcopy(b_n, workl(invsub+ncv-1), b_incx, workl(ihbds), b_incy)
                 call as_dvout(logfil, ncv, workl(ihbds), ndigit, &
-                           '_NEUPD: LAST ROW OF THE EIGENVECTOR MATRIX FOR T')
+                              '_NEUPD: LAST ROW OF THE EIGENVECTOR MATRIX FOR T')
                 if (msglvl .gt. 3) then
                     call as_dmout(logfil, ncv, ncv, workl(invsub), ldq, &
-                               ndigit, '_NEUPD: THE EIGENVECTOR MATRIX FOR T')
+                                  ndigit, '_NEUPD: THE EIGENVECTOR MATRIX FOR T')
                 end if
             end if
 !
@@ -1132,11 +1132,11 @@ subroutine as_dneupd(rvec, howmny, select, dr, di, &
 !
     if (type .eq. 'SHIFTI' .and. msglvl .gt. 1) then
         call as_dvout(logfil, nconv, dr, ndigit, &
-                   '_NEUPD: UNTRANSFORMED REAL PART OF THE RITZ VALUESS.')
+                      '_NEUPD: UNTRANSFORMED REAL PART OF THE RITZ VALUESS.')
         call as_dvout(logfil, nconv, di, ndigit, &
-                   '_NEUPD: UNTRANSFORMED IMAG PART OF THE RITZ VALUESS.')
+                      '_NEUPD: UNTRANSFORMED IMAG PART OF THE RITZ VALUESS.')
         call as_dvout(logfil, nconv, workl(ihbds), ndigit, &
-                   '_NEUPD: RITZ ESTIMATES OF UNTRANSFORMED RITZ VALUES.')
+                      '_NEUPD: RITZ ESTIMATES OF UNTRANSFORMED RITZ VALUES.')
     else if (type .eq. 'REGULR' .and. msglvl .gt. 1) then
         call as_dvout(logfil, nconv, dr, ndigit, '_NEUPD: REAL PARTS OF CONVERGED RITZ VALUES.')
         call as_dvout(logfil, nconv, di, ndigit, '_NEUPD: IMAG PARTS OF CONVERGED RITZ VALUES.')

@@ -1,6 +1,6 @@
 ! --------------------------------------------------------------------
 ! Copyright (C) LAPACK
-! Copyright (C) 2007 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 2007 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -18,8 +18,8 @@
 ! --------------------------------------------------------------------
 !
 subroutine as_dnapps(n, kev, np, shiftr, shifti, &
-                  v, ldv, h, ldh, resid, &
-                  q, ldq, workl, workd)
+                     v, ldv, h, ldh, resid, &
+                     q, ldq, workl, workd)
 !
 !     SUBROUTINE ARPACK PREPARANT LE RESTART VIA UN QR IMPLICITE POUR
 !     ELIMINER LES NP MODES PROPRES INDESIRABLES.
@@ -369,9 +369,9 @@ subroutine as_dnapps(n, kev, np, shiftr, shifti, &
             if (abs(h(i+1, i)) .le. max(ulp*tst1, smlnum)) then
                 if (msglvl .gt. 0) then
                     call as_ivout(logfil, 1, [i], ndigit, &
-                               '_NAPPS: MATRIX SPLITTING AT ROW/COLUMN NO.')
+                                  '_NAPPS: MATRIX SPLITTING AT ROW/COLUMN NO.')
                     call as_ivout(logfil, 1, [jj], ndigit, &
-                               '_NAPPS: MATRIX SPLITTING WITH SHIFT NUMBER.')
+                                  '_NAPPS: MATRIX SPLITTING WITH SHIFT NUMBER.')
                     call as_dvout(logfil, 1, h(i+1, i), ndigit, '_NAPPS: OFF DIAGONAL ELEMENT.')
                 end if
                 iend = i
@@ -708,7 +708,7 @@ subroutine as_dnapps(n, kev, np, shiftr, shifti, &
         call as_ivout(logfil, 1, [kev], ndigit, '_NAPPS: ORDER OF THE FINAL HESSENBERG MATRIX ')
         if (msglvl .gt. 2) then
             call as_dmout(logfil, kev, kev, h, ldh, &
-                       ndigit, '_NAPPS: UPDATED HESSENBERG MATRIX H FOR NEXT ITERATION')
+                          ndigit, '_NAPPS: UPDATED HESSENBERG MATRIX H FOR NEXT ITERATION')
         end if
     end if
 !

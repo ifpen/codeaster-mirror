@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -17,10 +17,10 @@
 ! --------------------------------------------------------------------
 !
 subroutine as_znaup2(ido, bmat, n, which, nev, &
-                  np, tol, resid, ishift, mxiter, &
-                  v, ldv, h, ldh, ritz, &
-                  bounds, q, ldq, workl, ipntr, &
-                  workd, rwork, info, neqact, alpha)
+                     np, tol, resid, ishift, mxiter, &
+                     v, ldv, h, ldh, ritz, &
+                     bounds, q, ldq, workl, ipntr, &
+                     workd, rwork, info, neqact, alpha)
 !
 !     SUBROUTINE ARPACK CALCULANT LES VALEURS PROPRES DE (OP) VIA
 !     IRAM.
@@ -347,8 +347,8 @@ subroutine as_znaup2(ido, bmat, n, which, nev, &
 !
     if (getv0) then
         call as_zgetv0(ido, bmat, initv, n, 1, &
-                    v, ldv, resid, rnorm, ipntr, &
-                    workd, info, alpha)
+                       v, ldv, resid, rnorm, ipntr, &
+                       workd, info, alpha)
 !
         if (ido .ne. 99) goto 9000
 !
@@ -390,8 +390,8 @@ subroutine as_znaup2(ido, bmat, n, which, nev, &
 !     %----------------------------------------------------------%
 !
     call as_znaitr(ido, bmat, n, 0, nev, &
-                resid, rnorm, v, ldv, h, &
-                ldh, ipntr, workd, info, alpha)
+                   resid, rnorm, v, ldv, h, &
+                   ldh, ipntr, workd, info, alpha)
 !
     if (ido .ne. 99) goto 9000
 !
@@ -416,7 +416,7 @@ subroutine as_znaup2(ido, bmat, n, which, nev, &
 !
     if (msglvl .gt. 0) then
         call as_ivout(logfil, 1, [iter], ndigit, &
-                   '_NAUP2: **** START OF MAJOR ITERATION NUMBER ****')
+                      '_NAUP2: **** START OF MAJOR ITERATION NUMBER ****')
     end if
 !
 !        %-----------------------------------------------------------%
@@ -429,7 +429,7 @@ subroutine as_znaup2(ido, bmat, n, which, nev, &
 !
     if (msglvl .gt. 1) then
         call as_ivout(logfil, 1, [nev], ndigit, &
-                   '_NAUP2: THE LENGTH OF THE CURRENT ARNOLDI FACTORIZATION')
+                      '_NAUP2: THE LENGTH OF THE CURRENT ARNOLDI FACTORIZATION')
         call as_ivout(logfil, 1, [np], ndigit, '_NAUP2: EXTEND THE ARNOLDI FACTORIZATION BY')
     end if
 !
@@ -442,8 +442,8 @@ subroutine as_znaup2(ido, bmat, n, which, nev, &
     update = .true.
 !
     call as_znaitr(ido, bmat, n, nev, np, &
-                resid, rnorm, v, ldv, h, &
-                ldh, ipntr, workd, info, alpha)
+                   resid, rnorm, v, ldv, h, &
+                   ldh, ipntr, workd, info, alpha)
 !
     if (ido .ne. 99) goto 9000
 !
@@ -478,8 +478,8 @@ subroutine as_znaup2(ido, bmat, n, which, nev, &
 !        %--------------------------------------------------------%
 !
     call as_zneigh(rnorm, kplusp, h, ldh, ritz, &
-                bounds, q, ldq, workl, rwork, &
-                ierr)
+                   bounds, q, ldq, workl, rwork, &
+                   ierr)
 !
     if (ierr .ne. 0) then
         info = -8
@@ -520,7 +520,7 @@ subroutine as_znaup2(ido, bmat, n, which, nev, &
 !        %---------------------------------------------------%
 !
     call as_zngets(ishift, which, nev, np, ritz, &
-                bounds)
+                   bounds)
 !
 !        %------------------------------------------------------------%
 !        | CONVERGENCE TEST: CURRENTLY WE USE THE FOLLOWING CRITERIA. |
@@ -547,7 +547,7 @@ subroutine as_znaup2(ido, bmat, n, which, nev, &
         call as_ivout(logfil, 3, kp, ndigit, '_NAUP2: NEV, NP, NCONV ARE')
         call as_zvout(logfil, kplusp, ritz, ndigit, '_NAUP2: THE EIGENVALUES OF H')
         call as_zvout(logfil, kplusp, bounds, ndigit, &
-                   '_NAUP2: RITZ ESTIMATES OF THE CURRENT NCV RITZ VALUES')
+                      '_NAUP2: RITZ ESTIMATES OF THE CURRENT NCV RITZ VALUES')
     end if
 !
 !        %---------------------------------------------------------%
@@ -572,9 +572,9 @@ subroutine as_znaup2(ido, bmat, n, which, nev, &
 !
         if (msglvl .gt. 4) then
             call as_zvout(logfil, kplusp, workl(kplusp**2+1), ndigit, &
-                       '_NAUP2: EIGENVALUES COMPUTED BY _NEIGH:')
+                          '_NAUP2: EIGENVALUES COMPUTED BY _NEIGH:')
             call as_zvout(logfil, kplusp, workl(kplusp**2+kplusp+1), ndigit, &
-                       '_NAUP2: RITZ ESTIMATES COMPUTED BY _NEIGH:')
+                          '_NAUP2: RITZ ESTIMATES COMPUTED BY _NEIGH:')
         end if
 !
 !           %------------------------------------------------%
@@ -688,20 +688,20 @@ subroutine as_znaup2(ido, bmat, n, which, nev, &
 !           %---------------------------------------%
 !
         if (nevbef .lt. nev) call as_zngets(ishift, which, nev, np, ritz, &
-                                         bounds)
+                                            bounds)
 !
     end if
 !
     if (msglvl .gt. 0) then
         call as_ivout(logfil, 1, [nconv], ndigit, &
-                   '_NAUP2: NO. OF "CONVERGED" RITZ VALUES AT THIS ITER.')
+                      '_NAUP2: NO. OF "CONVERGED" RITZ VALUES AT THIS ITER.')
         if (msglvl .gt. 1) then
             kp(1) = nev
             kp(2) = np
             call as_ivout(logfil, 2, kp, ndigit, '_NAUP2: NEV AND NP ARE')
             call as_zvout(logfil, nev, ritz(np+1), ndigit, '_NAUP2: "WANTED" RITZ VALUES ')
             call as_zvout(logfil, nev, bounds(np+1), ndigit, &
-                       '_NAUP2: RITZ ESTIMATES OF THE "WANTED" VALUES ')
+                          '_NAUP2: RITZ ESTIMATES OF THE "WANTED" VALUES ')
         end if
     end if
 !
@@ -737,7 +737,7 @@ subroutine as_znaup2(ido, bmat, n, which, nev, &
         call as_ivout(logfil, 1, [np], ndigit, '_NAUP2: THE NUMBER OF SHIFTS TO APPLY ')
         call as_zvout(logfil, np, ritz, ndigit, '_NAUP2: VALUES OF THE SHIFTS')
         if (ishift .eq. 1) call as_zvout(logfil, np, bounds, ndigit, &
-                                      '_NAUP2: RITZ ESTIMATES OF THE SHIFTS')
+                                         '_NAUP2: RITZ ESTIMATES OF THE SHIFTS')
     end if
 !
 !        %---------------------------------------------------------%
@@ -748,8 +748,8 @@ subroutine as_znaup2(ido, bmat, n, which, nev, &
 !        %---------------------------------------------------------%
 !
     call as_znapps(n, nev, np, ritz, v, &
-                ldv, h, ldh, resid, q, &
-                ldq, workl, workd)
+                   ldv, h, ldh, resid, q, &
+                   ldq, workl, workd)
 !
 !        %---------------------------------------------%
 !        | COMPUTE THE B-NORM OF THE UPDATED RESIDUAL. |
@@ -803,9 +803,9 @@ subroutine as_znaup2(ido, bmat, n, which, nev, &
 !
     if (msglvl .gt. 2) then
         call as_dvout(logfil, 1, [rnorm], ndigit, &
-                   '_NAUP2: B-NORM OF RESIDUAL FOR COMPRESSED FACTORIZATION')
+                      '_NAUP2: B-NORM OF RESIDUAL FOR COMPRESSED FACTORIZATION')
         call as_zmout(logfil, nev, nev, h, ldh, &
-                   ndigit, '_NAUP2: COMPRESSED UPPER HESSENBERG MATRIX H')
+                      ndigit, '_NAUP2: COMPRESSED UPPER HESSENBERG MATRIX H')
     end if
 !
     goto 1000
