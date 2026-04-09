@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2024 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -70,5 +70,10 @@ cata_msg = {
     ),
     13: _(
         """On a atteint le nombre maximal de pas de temps autorisé dans DEFI_LIST_INST. On arrête le calcul."""
+    ),
+    20: _(
+        """
+    Pour la méthode d'adaptation de type DELTA_GRANDEUR - %(k1)s / %(k2)s. Le pas de temps calculé vaut <%(r1)19.12e>.
+"""
     ),
 }
