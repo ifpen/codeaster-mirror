@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -545,7 +545,7 @@ class TimeStepper(Observer):
                     dt_i = mult * currIncr
                     if act.name == "DELTA_GRANDEUR":
                         args = {"valk": [act._fieldName, act._cmp], "valr": dt_i}
-                        logger.info(MessageLog.GetText("I", "ADAPTATION_20", **args))
+                        logger.info(MessageLog.GetText("I", "ADAPTATION_4", **args))
                     else:
                         logger.info(
                             MessageLog.GetText("I", "ADAPTATION_2", valk=act.name, valr=dt_i)
