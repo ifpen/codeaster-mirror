@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2022 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -257,7 +257,7 @@ def textbox(text, maxlen=90):
     maxlen = maxlen - 6
     upleft = chr(0x2554)
     upright = chr(0x2557)
-    horiz = chr(0x2550)
+    horiz = "="
     vert = chr(0x2551)
     botleft = chr(0x255A)
     botright = chr(0x255D)

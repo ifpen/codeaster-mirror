@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -102,15 +102,16 @@ subroutine vpsorn(lmasse, ldynfa, nbeq, nbvect, nfreq, &
 #include "asterf_types.h"
 #include "jeveux.h"
 #include "asterfort/assert.h"
-#include "asterfort/dnaupd.h"
-#include "asterfort/dneupd.h"
+#include "asterfort/as_dnaupd.h"
+#include "asterfort/as_dneupd.h"
 #include "asterfort/mrmult.h"
 #include "asterfort/resoud.h"
 #include "asterfort/utmess.h"
 #include "asterfort/vpgsmm.h"
 #include "asterfort/vpordo.h"
 !
-   integer(kind=8) :: lmasse, ldynfa, nbeq, nbvect, nfreq, lonwl, ddlexc(nbeq), ddllag(nbeq), neqact
+    integer(kind=8) :: lmasse, ldynfa, nbeq, nbvect, nfreq, lonwl
+    integer(kind=8) :: ddlexc(nbeq), ddllag(nbeq), neqact
     integer(kind=8) :: maxitr, ifm, niv, priram(8), nconv
     real(kind=8) :: tolsor, vect(nbeq, nbvect), resid(nbeq), workd(3*nbeq), workl(lonwl)
     real(kind=8) :: dsor(nfreq+1, 2), fshift, vaux(nbeq), workv(3*nbvect), alpha, omecor
@@ -134,7 +135,8 @@ subroutine vpsorn(lmasse, ldynfa, nbeq, nbvect, nfreq, &
     character(len=2) :: which
     character(len=19) :: k19bid, matass, chcine, criter
 !
-   integer(kind=8) :: logfil, ndigit, mgetv0, mnaupd, mnaup2, mnaitr, mneigh, mnapps, mngets, mneupd
+    integer(kind=8) :: logfil, ndigit, mgetv0, mnaupd, mnaup2, mnaitr
+    integer(kind=8) :: mneigh, mnapps, mngets, mneupd
     common/debug/&
      &  logfil, ndigit, mgetv0,&
      &  mnaupd, mnaup2, mnaitr, mneigh, mnapps, mngets, mneupd
@@ -180,10 +182,10 @@ subroutine vpsorn(lmasse, ldynfa, nbeq, nbvect, nfreq, &
 20  continue
 !
 ! CALCUL DES VALEURS PROPRES DE (OP)
-    call dnaupd(ido, bmat, nbeq, which, nfreq, &
-                tolsor, resid, nbvect, vect, nbeq, &
-                iparam, ipntr, workd, workl, lonwl, &
-                info, neqact, abs(alpha))
+    call as_dnaupd(ido, bmat, nbeq, which, nfreq, &
+                   tolsor, resid, nbvect, vect, nbeq, &
+                   iparam, ipntr, workd, workl, lonwl, &
+                   info, neqact, abs(alpha))
 !
 ! NOMBRE DE MODES CONVERGES
     nconv = iparam(5)
@@ -290,11 +292,11 @@ subroutine vpsorn(lmasse, ldynfa, nbeq, nbvect, nfreq, &
 ! CALCUL DES MODES PROPRES APPROCHES DU PB INITIAL
 !
     info = 0
-    call dneupd(rvec, 'A', selec, dsor, dsor(1, 2), &
-                vect, nbeq, sigmar, sigmai, workv, &
-                bmat, nbeq, which, nfreq, tolsor, &
-                resid, nbvect, vect, nbeq, iparam, &
-                ipntr, workd, workl, lonwl, info)
+    call as_dneupd(rvec, 'A', selec, dsor, dsor(1, 2), &
+                   vect, nbeq, sigmar, sigmai, workv, &
+                   bmat, nbeq, which, nfreq, tolsor, &
+                   resid, nbvect, vect, nbeq, iparam, &
+                   ipntr, workd, workl, lonwl, info)
 !
 ! GESTION DES FLAGS D'ERREURS
     if (info .eq. 1) then

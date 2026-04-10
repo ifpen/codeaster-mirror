@@ -555,6 +555,10 @@ void ParallelMesh::create_joints( const VectorLong &domains, const VectorLong &g
     const auto nbCells = getNumberOfCells();
     if ( globalCellIds.size() == 0 ) {
         _globalCellIds->allocate( nbCells, -1 );
+        // ----- A huge value is used for global numbering of cells which are not
+        //       owned by current processor because to obtain the true value
+        //       it must be mandatory to communicate (#34152)
+        _globalCellIds->assign( -std::numeric_limits< ASTERINTEGER >::max() );
     } else {
         ( *_globalCellIds ) = globalCellIds;
     }

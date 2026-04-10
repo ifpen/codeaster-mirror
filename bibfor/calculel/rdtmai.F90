@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -54,7 +54,6 @@ subroutine rdtmai(noma, nomare, base, corrn, corrm, bascor)
     character(len=*) :: corrn, corrm
     character(len=1) :: base, bascor
 !
-! person_in_charge: nicolas.sellenet at edf.fr
 !
 ! ======================================================================
 !     BUT: REDUIRE UN MAILLAGE SUR UNE LISTE DE MAILLES
@@ -104,7 +103,7 @@ subroutine rdtmai(noma, nomare, base, corrn, corrm, bascor)
 ! -1- PRELIMINAIRES
 !     ============
 !
-    lpmesh = isParallelMesh(nomare)
+    lpmesh = isParallelMesh(noma)
 !
 !
 ! --- CALCUL DE LA LISTE DES MAILLES SUR LESQUELLES IL FAUT REDUIRE :
@@ -286,14 +285,11 @@ subroutine rdtmai(noma, nomare, base, corrn, corrm, bascor)
         end do
 !
 ! --- OBJET .NUMALG
-        call jeexin(nomare//'.NUMALG', iret)
-        if (iret .ne. 0) then
-            call wkvect(nomare//'.NUMALG', base//' V I', nbmaou, iadr)
-            call jeveuo(noma//'.NUMALG', 'L', vi=malg)
-            do ima = 1, nbmaou
-                zi(iadr-1+ima) = malg(zi(jnuma+ima-1))
-            end do
-        end if
+        call wkvect(nomare//'.NUMALG', base//' V I', max(nbmaou, 1), iadr)
+        call jeveuo(noma//'.NUMALG', 'L', vi=malg)
+        do ima = 1, nbmaou
+            zi(iadr-1+ima) = malg(zi(jnuma+ima-1))
+        end do
 ! --- OBJET .NOEX
         call wkvect(nomare//'.NOEX', base//' V I', max(nbnoou, 1), iadr)
         call jeveuo(noma//'.NOEX', 'L', vi=noex)
@@ -509,11 +505,8 @@ subroutine rdtmai(noma, nomare, base, corrn, corrm, bascor)
     if (corrm .ne. ' ') then
         if (nbmaou > 0) then
             call wkvect(corrm, bascor//' V I', nbmaou, jcorrm)
-            do imain = 1, nbmain
-                imaou = zi(jwk3-1+imain)
-                if (imaou .ne. 0) then
-                    zi(jcorrm-1+imaou) = imain
-                end if
+            do ima = 1, nbmaou
+                zi(jcorrm-1+ima) = zi(jnuma+ima-1)
             end do
         end if
     end if

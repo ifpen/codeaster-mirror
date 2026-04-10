@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -1013,7 +1013,7 @@ subroutine op0167()
 ! ----- A huge value is used for global numbering of cells which are not
 !       owned by current processor because to obtain the true value
 !       it must be mandatory to communicate (#34152)
-        hugeValue = huge(pCellShift)
+        hugeValue = -huge(pCellShift)
         pCellShift = nbCellPerProc(rank+1)
         iCount = pCellShift+1
         do iCell = 1, nbCellIn

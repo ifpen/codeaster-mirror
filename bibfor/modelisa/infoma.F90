@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -154,6 +154,7 @@ subroutine infoma(nomu, niv_)
             end if
         end do
         call asmpi_comm_vect('MPI_SUM', 'I', 100, vi=dimmai)
+        call asmpi_comm_vect('MPI_SUM', 'I', sci=nbmailL)
     else
         do i = 1, nbmail
             ityp = typmail(i)
