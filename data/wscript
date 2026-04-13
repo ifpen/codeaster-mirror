@@ -30,6 +30,7 @@ Build some data files (dest: share/aster)
 - 'profile.sh': environment script.
 - 'run_aster': script that executes code_aster.
 - 'run_aster_for_ctest': script that executes code_aster used by 'run_ctest'.
+- 'run_aster_extract': script that filter output of 'run_aster' for statistics.
 - 'run_ctest': script that executes a list of testcases using 'ctest'.
 - 'run_sbatch': script that executes code_aster through sbatch.
 """
@@ -297,7 +298,7 @@ def build(self):
 
     # without substitution
     scripts = ["run_aster" + shext, "run_ctest" + shext]
-    shared = ["run_aster_for_ctest" + shext, "ddt_wrapper.tmpl"]
+    shared = ["run_aster_for_ctest" + shext, "ddt_wrapper.tmpl", "run_aster_extract" + shext]
     if self.env.ASTER_PLATFORM_POSIX:
         shared.append("post_install")
     if self.env.PROG_sbatch:
