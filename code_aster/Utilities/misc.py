@@ -32,13 +32,7 @@ import tempfile
 import time
 import warnings
 from subprocess import Popen
-
-try:
-    from asrun import create_run_instance
-
-    HAS_ASRUN = True
-except ImportError:
-    HAS_ASRUN = False
+from run_aster.config import CFG
 
 import aster
 
@@ -48,9 +42,8 @@ from .strfunc import convert, maximize_lines
 from .version import get_version
 
 DEBUG = False
-TMPDIR = (
-    os.environ.get("ASTER_TMPDIR") or os.environ.get("TMPDIR") or os.environ.get("TEMP") or "/tmp"
-)
+# use ASTER_TMPDIR as fallback for compatibility
+WORKDIR = os.environ.get("ASTER_WORKDIR", os.environ.get("ASTER_TMPDIR")) or CFG.get("tmpdir")
 
 
 def set_debug(value):
@@ -63,7 +56,7 @@ def _print(*args):
     """Fonction 'print'."""
     l_str = []
     for arg in args:
-        if type(arg) not in (str, str):
+        if type(arg) is not str:
             arg = repr(arg)
         l_str.append(arg)
     text = convert(" ".join(l_str))
@@ -159,21 +152,12 @@ def get_time():
     return time.strftime("%H:%M:%S") + ".%03d" % msec
 
 
-def get_shared_tmpdir(prefix, default_dir=TMPDIR):
+def get_shared_tmpdir(prefix, dir=WORKDIR):
     """Return a shared temporary directory.
 
-    If asrun shared tmpdir is not known, use *default_dir*.
+    The arguments are the same as for `tempfile.mkdtemp`.
     """
-    shared_tmp = default_dir
-    if HAS_ASRUN:
-        if getattr(get_shared_tmpdir, "cache_run", None) is None:
-            get_shared_tmpdir.cache_run = create_run_instance(
-                debug_stderr=False, log_progress="asrun.log"
-            )
-        run = get_shared_tmpdir.cache_run
-        shared_tmp = run.get("shared_tmp")
-
-    shared_tmp = shared_tmp or os.getcwd()
+    shared_tmp = dir or os.getcwd()
     tmpdir = tempfile.mkdtemp(dir=shared_tmp, prefix=prefix)
     return tmpdir
 
@@ -195,15 +179,12 @@ class SharedTmpdir(contextlib.AbstractContextManager):
         # may be forced with:
         del tmpdir
 
-    Arguments:
-        prefix (str): Prefix to be used for the temporary directory.
-        default_dir (str): Local pathname that will be used if *asrun* is not
-            available (default: /tmp).
+    Arguments are as for `tempfile.mkdtemp`.
     """
 
-    def __init__(self, prefix, default_dir=TMPDIR):
+    def __init__(self, prefix, dir=WORKDIR):
         self._prefix = prefix
-        self._dir = default_dir
+        self._dir = dir
         self._path = None
 
     @property
@@ -246,18 +227,15 @@ class SharedTmpdir(contextlib.AbstractContextManager):
 
 
 @contextlib.contextmanager
-def shared_tmpdir(prefix, default_dir=TMPDIR):
+def shared_tmpdir(prefix, dir=WORKDIR):
     """Return a shared temporary directory with automatic cleanup, to be used
     as a context manager.
 
-    Arguments:
-        prefix (str): Prefix to be used for the temporary directory.
-        default_dir (str): Local pathname that will be used if *asrun* is not
-            available (default: /tmp).
+    Arguments are as for `tempfile.mkdtemp`.
 
     Returns:
         str: Path of the temporary directory.
     """
     warnings.warn("Prefer use SharedTmpdir object", DeprecationWarning)
-    tmpdir = SharedTmpdir(prefix, default_dir)
+    tmpdir = SharedTmpdir(prefix, dir)
     yield tmpdir.path

@@ -507,8 +507,9 @@ def check_config(self):
     self.start_msg(f"Set parameters for 'config.{cfgext}'")
     self.end_msg("...")
     tmpdir = None if self.env.ASTER_PLATFORM_MINGW else "/tmp"
-    if os.environ.get("ASTER_TMPDIR"):
-        tmpdir = os.environ["ASTER_TMPDIR"]
+    # use ASTER_TMPDIR as fallback for compatibility
+    if os.environ.get("ASTER_WORKDIR", os.environ.get("ASTER_TMPDIR")):
+        tmpdir = os.environ["ASTER_WORKDIR"]
     cfg["tmpdir"] = tmpdir
 
     addmem = 1024
@@ -714,7 +715,6 @@ def _call_cmd(self, msg, cmd):
 
 @Configure.conf
 def check_external_programs(self):
-    exe = ".exe" if self.env.ASTER_PLATFORM_MINGW else ""
     bat = ".bat" if self.env.ASTER_PLATFORM_MINGW else ""
     _check_prog(
         self, "gmsh", ["gmsh"], mandatory=self.options.with_prog_gmsh, add_paths=["${GMSH_BIN_DIR}"]
