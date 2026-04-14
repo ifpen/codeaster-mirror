@@ -344,8 +344,8 @@ def main(argv=None):
     if args.nlist:
         print("Command lines for each batch job:")
         for icount in range(args.nlist):
-            wrkdir = osp.join(resutest, f"{icount + 1:03d}")
-            print(f"  cd {wrkdir} && ctest " + " ".join([f"'{i}'" for i in ctest_args]))
+            workdir = osp.join(resutest, f"{icount + 1:03d}")
+            print(f"  cd {workdir} && ctest " + " ".join([f"'{i}'" for i in ctest_args]))
         print("Build consolidated report:")
         print(f"  cd {resutest}")
         bindir = osp.normpath(osp.join(RUNASTER_ROOT, "bin"))

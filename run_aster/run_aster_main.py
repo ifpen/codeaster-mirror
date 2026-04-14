@@ -184,11 +184,12 @@ def parse_args(argv):
     parser.add_argument(
         "--env",
         action="store_true",
-        help="do not execute, only prepare the working directory ('--wrkdir' is required)",
+        help="do not execute, only prepare the working directory ('--workdir' is required)",
     )
     parser.add_argument(
-        "-w", "--wrkdir", action="store", help="use this directory as working directory"
+        "-w", "--workdir", action="store", help="use this directory as working directory"
     )
+    parser.add_argument("--wrkdir", action="store", help=argparse.SUPPRESS)
     parser.add_argument(
         "--all-procs",
         dest="only_proc0",
@@ -313,8 +314,12 @@ def parse_args(argv):
         sha1 = CFG.get("version_sha1")[:12]
         logger.info("code_aster %s (%s)", tag, sha1)
         parser.exit(0)
-    if args.env and not args.wrkdir:
-        parser.error("Argument '--wrkdir' is required if '--env' is enabled")
+    if args.wrkdir:
+        logger.warning("'--wrkdir' is deprecated, please use '--workdir'")
+        if not args.workdir:
+            args.workdir = args.wrkdir
+    if args.env and not args.workdir:
+        parser.error("Argument '--workdir' is required if '--env' is enabled")
     if args.debugpy_runner and not HAS_DEBUGPY:
         parser.error("can not import 'debugpy'")
     return args
@@ -434,7 +439,7 @@ def main(argv=None):
     if args.only_proc0 is None:
         args.only_proc0 = CFG.get("only-proc0", False)
 
-    wrkdir = args.wrkdir or create_temporary_dir(dir=CFG.get("tmpdir"))
+    workdir = args.workdir or create_temporary_dir()
     exitcode = -1
     try:
         if need_split or need_mpiexec:
@@ -445,7 +450,7 @@ def main(argv=None):
             try:
                 expdir = create_temporary_dir(dir=os.fspath(Path.home() / ".tmp_run_aster"))
             except (OSError, KeyError):
-                expdir = create_temporary_dir(dir=CFG.get("tmpdir"))
+                expdir = create_temporary_dir()
             statfile = osp.join(expdir, "__status__")
             basn = osp.basename(osp.splitext(args.file or "unnamed")[0])
             expected = export.get("expected_diag", [])
@@ -453,9 +458,9 @@ def main(argv=None):
                 fexp = osp.join(expdir, basn + "." + str(exp_i.get("step")))
                 exp_i.write_to(fexp)
                 argv_i = [i for i in argv if i not in (args.file, "--mpi")]
-                if not args.wrkdir:
-                    argv_i.append("--wrkdir")
-                    argv_i.append(wrkdir)
+                if not args.workdir:
+                    argv_i.append("--workdir")
+                    argv_i.append(workdir)
                 argv_i.extend(["--status-file", statfile])
                 if "--no-mpi" not in argv_i:
                     argv_i.append("--no-mpi")
@@ -509,16 +514,16 @@ def main(argv=None):
                 wrapper = args.exectool
             opts["exectool"] = wrapper
         calc = RunAster.factory(export, **opts)
-        status = calc.execute(wrkdir)
+        status = calc.execute(workdir)
         exitcode = status.exitcode
         if args.statusfile:
             status.save(args.statusfile)
         if tmpf and not opts["env"]:
             os.remove(tmpf)
     finally:
-        if not args.wrkdir:
-            os.chdir(osp.dirname(wrkdir))
-            shutil.rmtree(wrkdir, ignore_errors=True)
+        if not args.workdir:
+            os.chdir(osp.dirname(workdir))
+            shutil.rmtree(workdir, ignore_errors=True)
     return exitcode
 
 
