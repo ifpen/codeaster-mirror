@@ -338,6 +338,8 @@ def main(argv=None):
     procid = args.proc0id
     if CFG.get("parallel", False):
         procid = get_procid()
+    if procid < 0:
+        args.only_proc0 = False
 
     direct = args.file and osp.splitext(args.file)[-1] in (".py", ".comm")
     export = Export(
