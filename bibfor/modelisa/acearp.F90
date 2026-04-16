@@ -69,6 +69,7 @@ subroutine acearp(nbocc, infdonn, infcarte, grplmax, zjdlm)
     integer(kind=8) :: nbparno, nb_noeu_disc, nc, ncar, ncmp, ndim, ng, ngp, nma, nrep, nval
     integer(kind=8) :: dimcar, nummail, NoeudMaxMaille, MailleMaxOccur
     integer(kind=8) :: vali(2)
+    integer(kind=8) :: jdme
 ! --------------------------------------------------------------------------------------------------
     real(kind=8)      :: val(nbval), eta, vale(nbval), rirot(3)
     character(len=1)  :: kma(3)
@@ -89,6 +90,7 @@ subroutine acearp(nbocc, infdonn, infcarte, grplmax, zjdlm)
     nomu = infdonn%nomu
     noma = infdonn%maillage
     ndim = infdonn%dimmod
+    jdme = infdonn%jmodmail
 !   Pour les discrets c'est obligatoirement du 2D ou 3D
     ASSERT((ndim .eq. 2) .or. (ndim .eq. 3))
 !   Si c'est un maillage partionné ==> PLOUF
@@ -212,7 +214,7 @@ subroutine acearp(nbocc, infdonn, infcarte, grplmax, zjdlm)
                     idecal = idecal+2
                 endif
                 call rairep(noma, ioc, car(nc), vale, ng, &
-                            grplmax, zjdlm, nbparno, zk8(itbno), zr(irgno), rirot, ndim)
+                            grplmax, zjdlm, nbparno, zk8(itbno), zr(irgno), rirot, ndim, jdme)
             else if (trarot) then
                 lamass = 'M'//car(nc)(2:8)
                 ! En 3D          1  2  3  4  5  6     1  2  3  4  5  6
@@ -239,7 +241,7 @@ subroutine acearp(nbocc, infdonn, infcarte, grplmax, zjdlm)
                     idecal = idecal+3
                 endif
                 call rairep(noma, ioc, car(nc), vale, ng, &
-                            grplmax, zjdlm, nbparno, zk8(itbno), zr(irgno), rirot, ndim)
+                            grplmax, zjdlm, nbparno, zk8(itbno), zr(irgno), rirot, ndim, jdme)
             else
                 ASSERT(.false.)
             end if
