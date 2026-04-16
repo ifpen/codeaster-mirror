@@ -225,7 +225,7 @@ class SlurmJob:
         """Setup for S3 Slurm Plugin."""
         # check if the plugin is installed within this version
         # and if it is not disabled with the ASTER_S3SP environment variable (=0).
-        is_enabled = True and os.environ.get("ASTER_S3SP", "1") != "0"
+        is_enabled = CFG.get("use_s3sp") and os.environ.get("ASTER_S3SP", "1") != "0"
         if not is_enabled:
             return
         self._template = HEADER + HEADER_S3SP + COMMAND_S3SP

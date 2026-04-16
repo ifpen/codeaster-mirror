@@ -541,6 +541,8 @@ def check_config(self):
         "valgrind": "valgrind --tool=memcheck --leak-check=full --error-limit=no --track-origins=yes",
         "gdb": osp.join(self.env.ASTERDATADIR, "exectool", "gdb_wrapper"),
     }
+    # slurm plugin
+    cfg["use_s3sp"] = 0
     from_env = self.env["CONFIG_PARAMETERS"]
     for param in (
         "tmpdir",
@@ -554,6 +556,7 @@ def check_config(self):
         "require_mpiexec",
         "use_srun",
         "exectool",
+        "use_s3sp",
     ):
         verbose = param != "require_mpiexec" and cfg.get(param) is not None
         if verbose:
