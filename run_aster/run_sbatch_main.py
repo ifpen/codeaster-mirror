@@ -45,11 +45,12 @@ import sys
 import tempfile
 from math import ceil
 from subprocess import run
+from typing import Any
 
+from .config import CFG
 from .export import Export
 from .logger import logger
 from .utils import RUNASTER_ROOT
-from .config import CFG
 
 USAGE = """
     run_sbatch [sbatch-options] FILE.export
@@ -70,7 +71,9 @@ or:
     run_sbatch FILE.export
 """
 
-TEMPLATE = """#!/bin/bash
+HEADER = """#!/bin/bash
+# + passed on command line: {sbatch_args}
+
 #SBATCH --job-name={name}
 
 # number of nodes
@@ -94,10 +97,30 @@ TEMPLATE = """#!/bin/bash
 # redirect output in the current directory
 #SBATCH --output={output}
 #SBATCH --error={output}.stderr
-
-# + passed on command line: {sbatch_args}
-
+"""
+COMMAND = """
 {RUNASTER_ROOT}/bin/run_aster {run_aster_options} {study}
+"""
+
+HEADER_S3SP = """
+# arguments for s3 slurm splugin
+#SBATCH --s3sp-enable
+#SBATCH --s3sp-search-dir={scratch_dir}/.spank
+#SBATCH --s3sp-file-list=%j.output
+"""
+COMMAND_S3SP = """
+SPDIR={scratch_dir}/.spank
+fcap=${{SPDIR}}/${{SLURM_JOBID}}.output
+ftmp=${{SPDIR}}/${{SLURM_JOBID}}.tmp.txt
+mkdir -p ${{SPDIR}}
+
+{RUNASTER_ROOT}/bin/run_aster {run_aster_options} {study} | tee ${{ftmp}}
+
+{RUNASTER_ROOT}/share/aster/run_aster_extract -o ${{fcap}} ${{ftmp}}
+
+echo "+ cleaning old files from ${{SPDIR}}..."
+find ${{SPDIR}} -type f -mmin +240 -print -delete
+rm -f ${{ftmp}}
 """
 
 
@@ -163,20 +186,77 @@ def _run(cmd):
     return run(cmd)
 
 
-def check_parameters(params):
-    """Check parameters consistency.
+class SlurmJob:
+    """This object represents the setup of a Slurm job."""
 
-    Arguments:
-        params (dict): Current parameters.
-    """
-    nbnodes = params["mpi_nbnodes"]
-    cpu_per_node = ceil(params["mpi_nbcpu"] / nbnodes)
-    params["memory_node"] = int(cpu_per_node * params["memory_limit"])
-    params["time_limit"] = int(params["time_limit"])
-    if nbnodes > 1 or cpu_per_node >= 16 or "exclusive" in params["testlist"]:
-        params["options"] += " --exclusive"
-    if "bm" in params["testlist"]:
-        params["options"] += " --partition=bm"
+    _params = _args = _template = None
+
+    def __init__(self):
+        self._params = {}
+        self._args = []
+        self._template = HEADER + COMMAND
+
+    def set(self, key: str, value: Any):
+        """Set the value of a parameter."""
+        self._params[key] = value
+
+    def update(self, values: dict):
+        """Update parameters values from a dict."""
+        self._params.update(values)
+
+    def get(self, key: str) -> Any:
+        """Get the value of a parameter."""
+        return self._params[key]
+
+    def check_parameters(self):
+        """Check parameters consistency."""
+        params = self._params
+        nbnodes = params["mpi_nbnodes"]
+        cpu_per_node = ceil(params["mpi_nbcpu"] / nbnodes)
+        params["memory_node"] = int(cpu_per_node * params["memory_limit"])
+        params["time_limit"] = int(params["time_limit"])
+        if nbnodes > 1 or cpu_per_node >= 16 or "exclusive" in params["testlist"]:
+            params["options"] += " --exclusive"
+        if "bm" in params["testlist"]:
+            params["options"] += " --partition=bm"
+        self.check_s3sp()
+
+    def check_s3sp(self):
+        """Setup for S3 Slurm Plugin."""
+        # check if the plugin is installed within this version
+        # and if it is not disabled with the ASTER_S3SP environment variable (=0).
+        is_enabled = CFG.get("use_s3sp") and os.environ.get("ASTER_S3SP", "1") != "0"
+        if not is_enabled:
+            return
+        self._template = HEADER + HEADER_S3SP + COMMAND_S3SP
+
+    def render(self) -> str:
+        """Render the template with the job parameters."""
+        logger.debug("Parameters: %s", self._params)
+        return self._template.format(**self._params)
+
+    def submit(self, dry_run: bool = False) -> int:
+        """Submit the job and return the exit code."""
+        content = self.render()
+        with tempfile.NamedTemporaryFile(
+            prefix="batch", suffix=".sh", mode="w", delete=False
+        ) as fobj:
+            fobj.write(content)
+            script = fobj.name
+
+        logger.info("+ submitted script:\n%s", content)
+        os.chmod(script, stat.S_IRWXU)
+        if dry_run:
+            logger.info("+ filename: %s", script)
+            return 0
+        with open(self._params["output"].replace("-%j", "") + ".sbatch", "w") as fscr:
+            logger.info("+ filename: %s", fscr.name)
+            fscr.write(content)
+        try:
+            proc = _run(["sbatch"] + self._params["sbatch_args"] + [script])
+        finally:
+            os.remove(script)
+        return proc.returncode
 
 
 def main(argv=None):
@@ -197,43 +277,31 @@ def main(argv=None):
         args.opts.append(f"--time_limit={args.time_limit}")
     if args.memory_limit:
         args.opts.append(f"--memory_limit={args.memory_limit}")
-    params = {
-        "name": osp.splitext(osp.basename(args.file))[0],
-        "mpi_nbcpu": export.get("mpi_nbcpu", 1),
-        "mpi_nbnodes": export.get("mpi_nbnoeud", 1),
-        "nbthreads": export.get("ncpus", 1),
-        "time_limit": args.time_limit or export.get("time_limit", 3600),
-        "memory_limit": memory,
-        "memory_node": None,
-        "options": "",
-        "study": args.file,
-        "run_aster_options": " ".join(args.opts),
-        "RUNASTER_ROOT": RUNASTER_ROOT,
-        "testlist": export.get("testlist", []),
-        "sbatch_args": sbatch_args,
-    }
-    params["output"] = args.output or params["name"] + "-%j.txt"
-    check_parameters(params)
 
-    logger.debug("Parameters: %s", params)
-    content = TEMPLATE.format(**params)
-    with tempfile.NamedTemporaryFile(prefix="batch", suffix=".sh", mode="w", delete=False) as fobj:
-        fobj.write(content)
-        script = fobj.name
+    job = SlurmJob()
+    job.update(
+        {
+            "name": osp.splitext(osp.basename(args.file))[0],
+            "mpi_nbcpu": export.get("mpi_nbcpu", 1),
+            "mpi_nbnodes": export.get("mpi_nbnoeud", 1),
+            "nbthreads": export.get("ncpus", 1),
+            "time_limit": args.time_limit or export.get("time_limit", 3600),
+            "memory_limit": memory,
+            "memory_node": None,
+            "options": "",
+            "study": args.file,
+            "run_aster_options": " ".join(args.opts),
+            "RUNASTER_ROOT": RUNASTER_ROOT,
+            "testlist": export.get("testlist", []),
+            "sbatch_args": sbatch_args,
+            "scratch_dir": os.environ.get("SCRATCHDIR", "/tmp"),
+        }
+    )
+    job.set("output", args.output or job.get("name") + "-%j.txt")
+    job.check_parameters()
 
-    logger.info("+ submitted script:\n%s", content)
-    os.chmod(script, stat.S_IRWXU)
-    if args.dry_run:
-        logger.info("+ filename: %s", script)
-        return 0
-    with open(params["output"].replace("-%j", "") + ".sbatch", "w") as fscr:
-        logger.info("+ filename: %s", fscr.name)
-        fscr.write(content)
-    try:
-        proc = _run(["sbatch"] + sbatch_args + [script])
-    finally:
-        os.remove(script)
-    return proc.returncode
+    exitcode = job.submit(args.dry_run)
+    return exitcode
 
 
 if __name__ == "__main__":
