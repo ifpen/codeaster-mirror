@@ -32,6 +32,7 @@ import os.path as osp
 import shutil
 import stat
 from glob import glob
+from pathlib import Path
 from string import Template
 
 try:
@@ -41,10 +42,20 @@ except ImportError:
 
 from .logger import logger
 
-# installation root is defined by launcher script or relatively to this file
-RUNASTER_ROOT = os.environ.get(
-    "RUNASTER_ROOT", osp.dirname(osp.dirname(osp.dirname(osp.dirname(osp.abspath(__file__)))))
-)
+
+# Installation root is defined by launcher script or relatively to this file.
+# It supports lib/pythonX.Y/site-packages or lib/aster installations.
+def _set_root():
+    path = os.environ.get("RUNASTER_ROOT")
+    if path:
+        return path
+    path = Path(__file__).absolute()
+    while path != path.parent and path.name != "lib":
+        path = path.parent
+    return str(path.parent)
+
+
+RUNASTER_ROOT = _set_root()
 RUNASTER_PLATFORM = "linux" if os.name != "nt" else "win"
 
 
