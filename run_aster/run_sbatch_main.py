@@ -116,7 +116,7 @@ mkdir -p ${{SPDIR}}
 
 {RUNASTER_ROOT}/bin/run_aster {run_aster_options} {study} | tee ${{ftmp}}
 
-{RUNASTER_ROOT}/bin/run_aster_extract -o ${{fcap}} ${{ftmp}}
+{RUNASTER_ROOT}/share/aster/run_aster_extract -o ${{fcap}} ${{ftmp}}
 
 echo "+ cleaning old files from ${{SPDIR}}..."
 find ${{SPDIR}} -type f -mmin +240 -print -delete

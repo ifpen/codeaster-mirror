@@ -133,7 +133,7 @@ class Filter:
     def anonymize(self):
         """Remove username"""
         username = getpass.getuser()
-        expr = re.compile(re.escape(username))
+        expr = re.compile(re.escape(username), re.I)
         self.content = expr.sub("x" * len(username), self.content)
 
     @stats
