@@ -161,6 +161,7 @@ VERSION_PARAMS = {
     "version_tag": "str",
     "version_sha1": "str",
     "tmpdir": "str",
+    "shared_tmpdir": "str",
     "addmem": "int",
     "parallel": "bool",
     "python": "str",

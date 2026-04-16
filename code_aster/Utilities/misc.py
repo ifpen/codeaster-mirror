@@ -31,9 +31,10 @@ import tempfile
 import time
 import warnings
 from subprocess import Popen
-from run_aster.config import CFG
 
 import aster
+
+from run_aster.config import CFG
 
 from .logger import logger
 from .mpi_utils import MPI
@@ -41,8 +42,6 @@ from .strfunc import convert, maximize_lines
 from .version import get_version
 
 DEBUG = False
-# use ASTER_TMPDIR as fallback for compatibility
-WORKDIR = os.environ.get("ASTER_WORKDIR", os.environ.get("ASTER_TMPDIR")) or CFG.get("tmpdir")
 
 
 def set_debug(value):
@@ -151,13 +150,15 @@ def get_time():
     return time.strftime("%H:%M:%S") + ".%03d" % msec
 
 
-def get_shared_tmpdir(prefix, dir=WORKDIR):
+def get_shared_tmpdir(prefix, dir=None):
     """Return a shared temporary directory.
+
+    All processes should have access to this directory.
 
     The arguments are the same as for `tempfile.mkdtemp`.
     """
-    shared_tmp = dir or os.getcwd()
-    tmpdir = tempfile.mkdtemp(dir=shared_tmp, prefix=prefix)
+    dir = dir or CFG.get("shared_tmpdir")
+    tmpdir = tempfile.mkdtemp(dir=dir, prefix=prefix)
     return tmpdir
 
 
@@ -181,7 +182,7 @@ class SharedTmpdir(contextlib.AbstractContextManager):
     Arguments are as for `tempfile.mkdtemp`.
     """
 
-    def __init__(self, prefix, dir=WORKDIR):
+    def __init__(self, prefix, dir=None):
         self._prefix = prefix
         self._dir = dir
         self._path = None
@@ -226,7 +227,7 @@ class SharedTmpdir(contextlib.AbstractContextManager):
 
 
 @contextlib.contextmanager
-def shared_tmpdir(prefix, dir=WORKDIR):
+def shared_tmpdir(prefix, dir=None):
     """Return a shared temporary directory with automatic cleanup, to be used
     as a context manager.
 

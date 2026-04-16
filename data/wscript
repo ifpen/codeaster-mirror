@@ -507,10 +507,8 @@ def check_config(self):
     self.start_msg(f"Set parameters for 'config.{cfgext}'")
     self.end_msg("...")
     tmpdir = None if self.env.ASTER_PLATFORM_MINGW else "/tmp"
-    # use ASTER_TMPDIR as fallback for compatibility
-    if os.environ.get("ASTER_WORKDIR", os.environ.get("ASTER_TMPDIR")):
-        tmpdir = os.environ["ASTER_WORKDIR"]
     cfg["tmpdir"] = tmpdir
+    cfg["shared_tmpdir"] = tmpdir
 
     addmem = 1024
     if os.environ.get("ADDMEM"):
@@ -547,6 +545,7 @@ def check_config(self):
     from_env = self.env["CONFIG_PARAMETERS"]
     for param in (
         "tmpdir",
+        "shared_tmpdir",
         "addmem",
         "python",
         "python_interactive",
