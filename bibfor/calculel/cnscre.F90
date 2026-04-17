@@ -26,6 +26,7 @@ subroutine cnscre(maz, nomgdz, ncmp, licmp, basez, &
 #include "asterfort/assert.h"
 #include "asterfort/detrsd.h"
 #include "asterfort/dismoi.h"
+#include "asterfort/jeecra.h"
 #include "asterfort/jedema.h"
 #include "asterfort/jemarq.h"
 #include "asterfort/jeundf.h"
@@ -117,13 +118,15 @@ subroutine cnscre(maz, nomgdz, ncmp, licmp, basez, &
 !------------------------------------------------------------------
 !     5- CREATION DE CNS.CNSL:
 !     ------------------------
-    call wkvect(cns//'.CNSL', base//' V L', nbno*ncmp, jcnsl)
+    call wkvect(cns//'.CNSL', base//' V L', max(nbno*ncmp, 1), jcnsl)
+    call jeecra(cns//'.CNSL', 'LONUTI', nbno*ncmp)
     call jeundf(cns//'.CNSL')
 !
 !------------------------------------------------------------------
 !     6- CREATION DE CNS.CNSV:
 !     ------------------------
-    call wkvect(cns//'.CNSV', base//' V '//tsca, nbno*ncmp, jcnsv)
+    call wkvect(cns//'.CNSV', base//' V '//tsca, max(nbno*ncmp, 1), jcnsv)
+    call jeecra(cns//'.CNSV', 'LONUTI', nbno*ncmp)
     call jeundf(cns//'.CNSV', undf0)
 !
     call jedema()

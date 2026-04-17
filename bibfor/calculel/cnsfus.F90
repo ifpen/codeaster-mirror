@@ -148,8 +148,7 @@ subroutine cnsfus(nbchs, lichs, lcumul, lcoefr, lcoefc, &
 !
 !     2- ALLOCATION DE CNS3 :
 !     ---------------------------------------
-    call cnscre(ma, nomgd, ncmp3, licmp, base, &
-                cns3)
+    call cnscre(ma, nomgd, ncmp3, licmp, base, cns3)
     call jeveuo(cns3//'.CNSD', 'L', jcn3d)
     call jeveuo(cns3//'.CNSC', 'L', vk8=cn3c)
     call jeveuo(cns3//'.CNSV', 'E', jcn3v)

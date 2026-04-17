@@ -31,6 +31,7 @@ subroutine cnoaff(noma, nomgd, base, cno)
 #include "asterfort/getvr8.h"
 #include "asterfort/getvtx.h"
 #include "asterfort/isParallelMesh.h"
+#include "asterfort/jeecra.h"
 #include "asterfort/jedema.h"
 #include "asterfort/jedetr.h"
 #include "asterfort/jemarq.h"
@@ -201,7 +202,8 @@ subroutine cnoaff(noma, nomgd, base, cno)
         if (nbtou .ne. 0) then
             nbnoe = nbno
             call jedetr(mesnoe)
-            call wkvect(mesnoe, 'V V I', nbnoe, jlno)
+            call wkvect(mesnoe, 'V V I', max(nbnoe, 1), jlno)
+            call jeecra(mesnoe, 'LONUTI', nbnoe)
             do i = 1, nbnoe
                 zi(jlno+i-1) = i
             end do

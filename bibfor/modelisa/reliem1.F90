@@ -174,7 +174,7 @@ subroutine reliem1(ligrel, ma, typem, motfaz, iocc, &
         end if
     end if
     call dismoi('NB_NO_MAILLA', ma, 'MAILLAGE', repi=nbno)
-    AS_ALLOCATE(vi4=indic_noeud, size=nbno)
+    AS_ALLOCATE(vi4=indic_noeud, size=max(nbno, 1))
 !
     do k = 1, nbma
         zi4(itrma-1+k) = 0
