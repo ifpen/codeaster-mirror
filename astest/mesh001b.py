@@ -525,6 +525,7 @@ test.assertEqual(
     [3321, 3321, 3825][rank],
 )
 
+# check issue35697
 field_r = CREA_CHAMP(
     TYPE_CHAM="NOEU_DEPL_R",
     OPERATION="AFFE",

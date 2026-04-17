@@ -262,6 +262,10 @@ contains
         this%xmin = R8MAEM()
         this%xmax = -R8MAEM()
 !
+        if (nb_pts == 0) then
+            goto 999
+        end if
+!
         do i_pt = 1, nb_pts
             do i_dim = 1, 3
                 this%xmin(i_dim) = min(this%xmin(i_dim), coordinates(i_dim, i_pt))
@@ -294,6 +298,8 @@ contains
         call this%node%split(nb_pts, coordinates, this%dim, max_pts_by_node, max_level, &
                              nb_pts, sub_pts)
         deallocate (sub_pts)
+!
+999     continue
 !
     end subroutine init_octree
 !
