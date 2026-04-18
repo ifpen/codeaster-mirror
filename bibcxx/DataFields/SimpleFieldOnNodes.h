@@ -146,9 +146,12 @@ class SimpleFieldOnNodes : public DataField {
      * @brief Constructeur
 
      */
-    SimpleFieldOnNodes() : SimpleFieldOnNodes( DataStructureNaming::getNewName( 19 ) ) {};
+    SimpleFieldOnNodes() = delete;
 
-    SimpleFieldOnNodes( const BaseMeshPtr mesh ) : SimpleFieldOnNodes() { _mesh = mesh; };
+    SimpleFieldOnNodes( const BaseMeshPtr mesh )
+        : SimpleFieldOnNodes( DataStructureNaming::getNewName( 19 ) ) {
+        _mesh = mesh;
+    };
 
     SimpleFieldOnNodes( const BaseMeshPtr mesh, const std::string quantity,
                         const VectorString &comp, bool zero = false )
@@ -170,6 +173,18 @@ class SimpleFieldOnNodes : public DataField {
         FreeStr( tabNames );
 
         build();
+    }
+
+    void setMesh( const BaseMeshPtr mesh ) {
+        if ( mesh ) {
+            if ( _mesh ) {
+                if ( _mesh != mesh ) {
+                    raiseAsterError( "Incompatible meshes." );
+                }
+            } else {
+                _mesh = mesh;
+            }
+        }
     }
 
     /**

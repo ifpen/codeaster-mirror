@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
-# person_in_charge: francesco.bettonte@edf.fr
 """
 :py:class:`SimpleFieldOnNodesReal`
 Simple Fields defined on nodes of elements
@@ -36,6 +35,19 @@ from .component import ComponentOnNodes
 class SFoNStateBuilder(InternalStateBuilder):
     """Class that returns the internal state of a *SimpleFieldOnNodes*."""
 
+    def save(self, field):
+        """Return the internal state of a *Result* to be pickled.
+
+        Arguments:
+            field (*FieldOnCells*): The *FieldOnCells* object to be pickled.
+
+        Returns:
+            *InternalStateBuilder*: The internal state itself.
+        """
+        super().save(field)
+        self._st["mesh"] = field.getMesh()
+        return self
+
     def restore(self, field):
         """Restore the *DataStructure* content from the previously saved internal
         state.
@@ -44,6 +56,7 @@ class SFoNStateBuilder(InternalStateBuilder):
             field (*DataStructure*): The *DataStructure* object to be restored.
         """
         super().restore(field)
+        field.setMesh(self._st["mesh"])
         field.build()
 
 
@@ -233,6 +246,8 @@ class ExtendedSimpleFieldOnNodesReal:
 
 @injector(SimpleFieldOnNodesComplex)
 class ExtendedSimpleFieldOnNodesComplex:
+    internalStateBuilder = SFoNStateBuilder
+
     def getValues(self, copy=False):
         """
         Returns two numpy arrays with shape ( number_of_cells_with_components, number_of_components )

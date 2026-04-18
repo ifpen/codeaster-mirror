@@ -316,11 +316,11 @@
    * - :py:class:`~code_aster.Objects.RitzBasis`
      - ``mode_meca``
    * - :py:class:`~code_aster.Objects.SimpleFieldOnCellsReal`
-     - ``cham_elem_s``
+     - 
    * - :py:class:`~code_aster.Objects.SimpleFieldOnNodesComplex`
-     - ``cham_no_s``
+     - 
    * - :py:class:`~code_aster.Objects.SimpleFieldOnNodesReal`
-     - ``cham_no_s``
+     - 
    * - :py:class:`~code_aster.Objects.Skeleton`
      - ``squelette``
    * - :py:class:`~code_aster.Objects.StandardModalBasis`
