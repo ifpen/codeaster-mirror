@@ -142,10 +142,6 @@ subroutine rairep(noma, ioc, km, rigiRep, nbgr, &
         call jeveuo(jexnom(magrma, ligrma(ii)), 'L', ldgm)
         do in = 0, nb-1
             num_maille = zi(ldgm+in)
-            call jenuno(jexnum('&CATA.TE.NOMTE', zi(jdme-1+num_maille)), ktyelm)
-            if ((ktyelm .eq. "MEC3TR7H") .or. (ktyelm .eq. "MEC3QU9H")) then
-                call utmess('F', 'MODELISA6_39')
-            end if
             if (num_maille .le. 0) then
                 nommai = '????'
                 call utmess('F', 'AFFECARAELEM_25', si=ioc, nk=2, valk=[ligrma(ii), nommai])
@@ -153,6 +149,11 @@ subroutine rairep(noma, ioc, km, rigiRep, nbgr, &
                 nommai = int_to_char8(num_maille)
                 call utmess('F', 'AFFECARAELEM_25', si=ioc, nk=2, valk=[ligrma(ii), nommai])
             end if
+            call jenuno(jexnum('&CATA.TE.NOMTE', zi(jdme-1+num_maille)), ktyelm)
+            if ((ktyelm .eq. "MEC3TR7H") .or. (ktyelm .eq. "MEC3QU9H")) then
+                call utmess('F', 'MODELISA6_39')
+            end if
+
             NbMaille = NbMaille+1
             call jelira(jexnum(manoma, num_maille), 'LONMAX', nm)
             call jenuno(jexnum('&CATA.TM.NOMTM', zi(ltyp-1+num_maille)), typm)
