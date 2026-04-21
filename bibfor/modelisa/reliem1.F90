@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -52,7 +52,6 @@ subroutine reliem1(ligrel, ma, typem, motfaz, iocc, &
     aster_logical, optional, intent(in) :: l_keep_propz
     aster_logical, optional, intent(in) :: l_allz
 ! ----------------------------------------------------------------------
-! person_in_charge: jacques.pellet at edf.fr
 !
 !     CE MODULE PERMET DE CREER UN OBJET JEVEUX CONTENANT UNE LISTE
 !     DE NOMS OU NUMEROS DE MAILLES OU DE NOEUDS CORRESPONDANT AUX

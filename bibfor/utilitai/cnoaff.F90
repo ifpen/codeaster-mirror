@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -49,7 +49,6 @@ subroutine cnoaff(noma, nomgd, base, cno)
 !
     character(len=1) :: base
     character(len=8) :: nomgd, noma, cno
-! person_in_charge: jacques.pellet at edf.fr
 !
 !     COMMANDE   :  CREA_CHAMP/OPERATION:'AFFE', TYPE DE CHAMP : 'NOEU'
 !
