@@ -230,7 +230,7 @@ module crea_maillage_module
 !
     public :: Medge, Mface, Mcell, Mmesh, Mconverter
     private :: numbering_edge, numbering_face, dividing_cell, mult_elem
-    private :: sort_nodes_edge, barycenter_alge, search_in_list
+    private :: sort_nodes_face, barycenter_alge, search_in_list
 contains
 !
 !===================================================================================================
