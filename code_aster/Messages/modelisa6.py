@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -184,6 +184,11 @@ cata_msg = {
     38: _(
         """
  on ne trouve pas les angles nautiques pour le tuyau
+"""
+    ),
+    39: _(
+        """
+ RIGI_PARASOL n'est pas disponible pour le modèle COQUE_3D.
 """
     ),
     58: _(

@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@
 !
 interface
     subroutine rairep(noma, ioc, km, rigi, nbgr, &
-                      ligrma, zjdlm, nbno, tabnoe, rignoe, rirot, ndim)
+                      ligrma, zjdlm, nbno, tabnoe, rignoe, rirot, ndim, jdme)
         integer(kind=8)   :: nbgr
         character(len=8)  :: noma
         integer(kind=8)   :: ioc
@@ -33,5 +33,6 @@ interface
         real(kind=8)      :: rignoe(*)
         real(kind=8)      :: rirot(3)
         integer(kind=8)   :: ndim
+        integer(kind=8)   :: jdme
     end subroutine rairep
 end interface

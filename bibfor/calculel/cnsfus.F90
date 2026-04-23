@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -18,7 +18,6 @@
 
 subroutine cnsfus(nbchs, lichs, lcumul, lcoefr, lcoefc, &
                   lcoc, base, cns3z)
-! person_in_charge: jacques.pellet at edf.fr
 ! A_UTIL
     implicit none
 #include "asterf_types.h"
@@ -148,8 +147,7 @@ subroutine cnsfus(nbchs, lichs, lcumul, lcoefr, lcoefc, &
 !
 !     2- ALLOCATION DE CNS3 :
 !     ---------------------------------------
-    call cnscre(ma, nomgd, ncmp3, licmp, base, &
-                cns3)
+    call cnscre(ma, nomgd, ncmp3, licmp, base, cns3)
     call jeveuo(cns3//'.CNSD', 'L', jcn3d)
     call jeveuo(cns3//'.CNSC', 'L', vk8=cn3c)
     call jeveuo(cns3//'.CNSV', 'E', jcn3v)

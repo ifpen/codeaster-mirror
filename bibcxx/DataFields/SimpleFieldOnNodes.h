@@ -6,7 +6,7 @@
  * @brief Fichier entete de la classe SimpleFieldOnNodes
  * @author Nicolas Sellenet
  * @section LICENCE
- *   Copyright (C) 1991 - 2025  EDF R&D                www.code-aster.org
+ *   Copyright (C) 1991 - 2026  EDF www.code-aster.org
  *
  *   This file is part of Code_Aster.
  *
@@ -23,8 +23,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Code_Aster.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* person_in_charge: nicolas.sellenet at edf.fr */
 
 #include "astercxx.h"
 
@@ -141,15 +139,19 @@ class SimpleFieldOnNodes : public DataField {
           _values( JeveuxVector< ValueType >( getName() + ".CNSV" ) ),
           _allocated( JeveuxVectorLogical( getName() + ".CNSL" ) ),
           _nbNodes( 0 ),
-          _nbComp( 0 ) {};
+          _nbComp( 0 ),
+          _mesh( nullptr ) {};
 
     /**
      * @brief Constructeur
 
      */
-    SimpleFieldOnNodes() : SimpleFieldOnNodes( DataStructureNaming::getNewName( 19 ) ) {};
+    SimpleFieldOnNodes() = delete;
 
-    SimpleFieldOnNodes( const BaseMeshPtr mesh ) : SimpleFieldOnNodes() { _mesh = mesh; };
+    SimpleFieldOnNodes( const BaseMeshPtr mesh )
+        : SimpleFieldOnNodes( DataStructureNaming::getNewName( 19 ) ) {
+        _mesh = mesh;
+    };
 
     SimpleFieldOnNodes( const BaseMeshPtr mesh, const std::string quantity,
                         const VectorString &comp, bool zero = false )
@@ -171,6 +173,18 @@ class SimpleFieldOnNodes : public DataField {
         FreeStr( tabNames );
 
         build();
+    }
+
+    void setMesh( const BaseMeshPtr mesh ) {
+        if ( mesh ) {
+            if ( _mesh ) {
+                if ( _mesh != mesh ) {
+                    raiseAsterError( "Incompatible meshes." );
+                }
+            } else {
+                _mesh = mesh;
+            }
+        }
     }
 
     /**
@@ -436,7 +450,9 @@ class SimpleFieldOnNodes : public DataField {
         _buildComponentsName2Index();
 
         AS_ASSERT( _values->size() == _nbNodes * _nbComp );
-        AS_ASSERT( _values->size() > 0 );
+        if ( !this->getMesh()->isParallel() ) {
+            AS_ASSERT( _values->size() > 0 );
+        }
 
         return true;
     }

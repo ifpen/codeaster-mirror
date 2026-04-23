@@ -64,12 +64,13 @@ FMT_DIAG = """
 """
 
 
-def create_temporary_dir(dir):
+def create_temporary_dir(dir=None):
     """Create a temporary directory.
 
     Returns:
         str: Path of the directory.
     """
+    dir = os.environ.get("ASTER_WORKDIR", CFG.get("tmpdir"))
     if dir:
         os.makedirs(dir, exist_ok=True)
     return tempfile.mkdtemp(prefix="run_aster_", dir=dir)
@@ -154,19 +155,19 @@ class RunAster:
         self._last = export.get("step") + 1 == export.get("nbsteps")
         self._savdb = savedb or bool([i for i in export.resultfiles if i.filetype == "base"])
 
-    def execute(self, wrkdir):
+    def execute(self, workdir):
         """Execution in a working directory.
 
         Arguments:
-            wrkdir (str): Working directory.
+            workdir (str): Working directory.
 
         Returns:
             Status: Status object.
         """
         if self._parallel:
-            wrkdir = osp.join(wrkdir, f"proc.{self._procid}")
-        os.makedirs(wrkdir, exist_ok=True)
-        os.chdir(wrkdir)
+            workdir = osp.join(workdir, f"proc.{self._procid}")
+        os.makedirs(workdir, exist_ok=True)
+        os.chdir(workdir)
         status = self._execute()
         return status
 

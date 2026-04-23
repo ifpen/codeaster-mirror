@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -1180,6 +1180,30 @@ L_AMOR3 = CALC_AMOR_MODAL(
     ),
     CORR_AMOR_NEGATIF="IGNORE",
 )
+
+# Validation de IMPR_RESU/ CONCEPT :
+# -----------------------------------------
+
+CHARG1 = AFFE_CHAR_MECA(
+    MODELE=STICKMOD, PESANTEUR=(_F(GRAVITE=9.81, DIRECTION=(0.0, 0.0, -1.0), GROUP_MA="SRADIER"),)
+)
+
+# validation de la fiche 20343 :
+IMPR_CONCEPT(
+    FORMAT="MED",
+    UNITE=78,
+    CONCEPT=(_F(CHAM_MATER=CHAMPMAT), _F(CARA_ELEM=CARA_ELE), _F(CHARGE=CHARG1)),
+)
+
+
+IMPR_CONCEPT(
+    FORMAT="RESULTAT",
+    UNITE=79,
+    CONCEPT=(_F(CHAM_MATER=CHAMPMAT), _F(CARA_ELEM=CARA_ELE), _F(CHARGE=CHARG1)),
+)
+
+# pour fiche 18076 (couverture routine dismcr.f) :
+IMPR_CONCEPT(FORMAT="MED", UNITE=77, CONCEPT=(_F(CARA_ELEM=CARA_ELE),))
 
 
 FIN()

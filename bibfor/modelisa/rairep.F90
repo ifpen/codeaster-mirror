@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -17,11 +17,11 @@
 ! --------------------------------------------------------------------
 !
 subroutine rairep(noma, ioc, km, rigiRep, nbgr, &
-                  ligrma, zjdlm, nbno, tabnoe, rignoe, rirot, ndim)
+                  ligrma, zjdlm, nbno, tabnoe, rignoe, rirot, ndim, jdme)
 !
 !
     implicit none
-    integer(kind=8) :: ioc, nbgr, nbno, ndim
+    integer(kind=8) :: ioc, nbgr, nbno, ndim, jdme
     integer(kind=8) :: zjdlm(*)
     character(len=8) :: noma, tabnoe(*), km
     character(len=24) :: ligrma(nbgr)
@@ -80,6 +80,7 @@ subroutine rairep(noma, ioc, km, rigiRep, nbgr, &
     real(kind=8), pointer   :: coord(:) => null()
 !
     character(len=8), pointer :: fongro(:) => null()
+    character(len=16) :: ktyelm
 !
     blas_int :: b_1, b_2, b_3
 !
@@ -91,6 +92,7 @@ subroutine rairep(noma, ioc, km, rigiRep, nbgr, &
     magrma = noma//'.GROUPEMA'
     manoma = noma//'.CONNEX'
     matyma = noma//'.TYPMAIL'
+
 !
 !   Coordonnées des noeuds
     call jeveuo(noma//'.COORDO    .VALE', 'L', vr=coord)
@@ -147,6 +149,11 @@ subroutine rairep(noma, ioc, km, rigiRep, nbgr, &
                 nommai = int_to_char8(num_maille)
                 call utmess('F', 'AFFECARAELEM_25', si=ioc, nk=2, valk=[ligrma(ii), nommai])
             end if
+            call jenuno(jexnum('&CATA.TE.NOMTE', zi(jdme-1+num_maille)), ktyelm)
+            if ((ktyelm .eq. "MEC3TR7H") .or. (ktyelm .eq. "MEC3QU9H")) then
+                call utmess('F', 'MODELISA6_39')
+            end if
+
             NbMaille = NbMaille+1
             call jelira(jexnum(manoma, num_maille), 'LONMAX', nm)
             call jenuno(jexnum('&CATA.TM.NOMTM', zi(ltyp-1+num_maille)), typm)

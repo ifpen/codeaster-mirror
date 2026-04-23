@@ -257,11 +257,6 @@ Risques et conseils :
   Il faut utiliser le mot clé : EXCIT / TYPE_CHARGE='SUIV'
 """
     ),
-    82: _(
-        """
-  Le groupe de noeuds %(k1)s n'appartient pas au maillage %(k2)s.
-"""
-    ),
     83: _(
         """
   L'option %(k1)s n'est pas traitée pour un résultat de type FOURIER_ELAS

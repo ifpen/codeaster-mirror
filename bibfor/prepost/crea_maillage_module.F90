@@ -32,6 +32,8 @@ module crea_maillage_module
 #include "asterc/asmpi_comm.h"
 #include "asterc/asmpi_sendrecv_i.h"
 #include "asterc/asmpi_sendrecv_r.h"
+#include "asterc/asmpi_split_comm.h"
+#include "asterc/asmpi_barrier_wrap.h"
 #include "asterfort/as_allocate.h"
 #include "asterfort/as_deallocate.h"
 #include "asterfort/asmpi_comm_vect.h"
@@ -205,8 +207,8 @@ module crea_maillage_module
         procedure, private, pass :: convert_edge
         procedure, private, pass :: convert_face
         procedure, private, pass :: convert_volume
-        procedure, private, pass :: copy_group_ma
-        procedure, private, pass :: copy_group_no
+        procedure, public, pass :: copy_group_ma
+        procedure, public, pass :: copy_group_no
         procedure, private, pass :: find_edge
         procedure, private, pass :: find_face
         procedure, private, pass :: find_volume
@@ -228,8 +230,32 @@ module crea_maillage_module
 !
     public :: Medge, Mface, Mcell, Mmesh, Mconverter
     private :: numbering_edge, numbering_face, dividing_cell, mult_elem
-    private :: sort_nodes_face, barycenter_alge
+    private :: sort_nodes_face, barycenter_alge, search_in_list
 contains
+!
+!===================================================================================================
+!
+!===================================================================================================
+    integer(ip) function search_in_list(name, nb_grp, list_name)
+!
+        implicit none
+!
+        integer(kind=8), intent(in) :: nb_grp
+        character(len=24), intent(in) :: name, list_name(*)
+!
+        integer(kind=8) :: i_name
+!
+        search_in_list = -one_ip
+!
+        do i_name = 1, nb_grp
+            if (name .eq. list_name(i_name)) then
+                search_in_list = int(i_name, kind=ip)
+                exit
+            end if
+        end do
+!
+    end function
+
 !
 !===================================================================================================
 !
@@ -2090,9 +2116,11 @@ contains
 ! --- Create nodes
 !
 ! ------ Copy coordinates
-        call wkvect(cooval, 'G V R', this%nb_nodes*3, vr=v_coor)
+        call wkvect(cooval, 'G V R', max(this%nb_nodes*3, 1), vr=v_coor)
+        call jeecra(cooval, 'LONUTI', this%nb_nodes*3)
         if (this%isHPC) then
-            call wkvect(mesh_out//'.NOEX', 'G V I', to_aster_int(this%nb_nodes), vi=v_noex)
+            call wkvect(mesh_out//'.NOEX', 'G V I', max(to_aster_int(this%nb_nodes), 1), vi=v_noex)
+            call jeecra(mesh_out//'.NOEX', 'LONUTI', to_aster_int(this%nb_nodes))
         end if
         call codent(to_aster_int(this%dim_mesh), 'G', dimesp)
         call jeecra(cooval, 'DOCU', cval=dimesp)
@@ -2124,7 +2152,9 @@ contains
             end do
             deallocate (v_nuloc)
 !
-            call wkvect(mesh_out//'.NUNOLG', 'G V I', to_aster_int(this%nb_nodes), vi=v_nunogl)
+            call wkvect(mesh_out//'.NUNOLG', 'G V I', max(to_aster_int(this%nb_nodes), 1), &
+                        vi=v_nunogl)
+            call jeecra(mesh_out//'.NUNOLG', 'LONUTI', to_aster_int(this%nb_nodes))
             v_nunogl = -1
             do i_node = one_ip, this%nb_nodes
                 if (v_noex(i_node) == rank) then
@@ -2151,19 +2181,22 @@ contains
             end if
         end do
 ! ------ Create connectivity
-        call wkvect(typmai, 'G V I', to_aster_int(this%nb_cells), vi=v_int)
-        call jecrec(connex, 'G V I', 'NU', 'CONTIG', 'VARIABLE', to_aster_int(this%nb_cells))
+        call wkvect(typmai, 'G V I', max(to_aster_int(this%nb_cells), 1), vi=v_int)
+        call jeecra(typmai, 'LONUTI', to_aster_int(this%nb_cells))
+        call jecrec(connex, 'G V I', 'NU', 'CONTIG', 'VARIABLE', &
+                    max(to_aster_int(this%nb_cells), 1))
         call jeecra(connex, 'NUTIOC', to_aster_int(this%nb_cells))
         call jeecra(connex, 'LONT', nbnoma)
         if (this%isHPC) then
-            call wkvect(mesh_out//'.MAEX', 'G V I', to_aster_int(this%nb_cells), vi=v_maex)
+            call wkvect(mesh_out//'.MAEX', 'G V I', max(to_aster_int(this%nb_cells), 1), vi=v_maex)
+            call jeecra(mesh_out//'.MAEX', 'LONUTI', to_aster_int(this%nb_cells))
         end if
 !
         nb_ma_loc = 0
         cell_id2 = 0
         do i_cell = one_ip, this%nb_total_cells
             if (this%cells(i_cell)%keep) then
-                cell_id2 = cell_id2+1
+                cell_id2 = cell_id2+one_ip
                 cell_id = this%cells(i_cell)%id
                 ASSERT(cell_id == cell_id2)
                 v_int(cell_id) = this%converter%cata_type(this%cells(i_cell)%type)
@@ -2194,7 +2227,9 @@ contains
                 deca = deca+v_nuloc(i_proc)
             end do
             deallocate (v_nuloc)
-            call wkvect(mesh_out//'.NUMALG', 'G V I', to_aster_int(this%nb_cells), vi=v_numagl)
+            call wkvect(mesh_out//'.NUMALG', 'G V I', max(to_aster_int(this%nb_cells), 1), &
+                        vi=v_numagl)
+            call jeecra(mesh_out//'.NUMALG', 'LONUTI', to_aster_int(this%nb_cells))
             v_numagl = -1
             do i_cell = one_ip, this%nb_cells
                 if (v_maex(i_cell) == rank) then
@@ -3082,7 +3117,9 @@ contains
             end do
         end if
         ASSERT(this%nb_nodes <= this%nb_total_nodes)
-        ASSERT(this%nb_nodes > zero_ip)
+        if (.not. this%isHPC) then
+            ASSERT(this%nb_nodes > zero_ip)
+        end if
     end subroutine
 !
 ! ==================================================================================================
@@ -3389,12 +3426,14 @@ contains
 !
 ! ==================================================================================================
 !
-    subroutine copy_group_no(this, grpnoe, gpptnn)
+    subroutine copy_group_no(this, grpnoe, gpptnn, nb_grp, list_grps)
 !
         implicit none
 !
         class(Mmesh), intent(in) :: this
         character(len=24), intent(in) :: grpnoe, gpptnn
+        integer(kind=8), optional, intent(in) :: nb_grp
+        character(len=24), optional, intent(in) :: list_grps(*)
 ! -----------------------------------------------------------------------
         integer(kind=8) :: codret, i_group, nb_nodes_in, nb_grno_out
         integer(kind=8) :: nb_grno_in
@@ -3420,6 +3459,12 @@ contains
 !
 ! --- Find groups
         do i_group = 1, nb_grno_in
+            call jenuno(jexnum(grno_in, i_group), nomgrp)
+            if (present(list_grps)) then
+                if (search_in_list(nomgrp, nb_grp, list_grps) < one_ip) then
+                    cycle
+                end if
+            end if
             call jeveuo(jexnum(grno_in, i_group), 'L', vi=nodes_in)
             call jelira(jexnum(grno_in, i_group), 'LONUTI', nb_nodes_in)
             do i_node = one_ip, int(nb_nodes_in, kind=ip)
@@ -3470,12 +3515,14 @@ contains
 !
 ! ==================================================================================================
 !
-    subroutine copy_group_ma(this, grpmai, gpptnm)
+    subroutine copy_group_ma(this, grpmai, gpptnm, nb_grp, list_grps)
 !
         implicit none
 !
         class(Mmesh), intent(inout) :: this
         character(len=24), intent(in) :: grpmai, gpptnm
+        integer(kind=8), optional, intent(in) :: nb_grp
+        character(len=24), optional, intent(in) :: list_grps(*)
 ! -----------------------------------------------------------------------
         integer(kind=8) :: nb_cells_in, nb_cells_out, codret, nb_grma_out
         integer(kind=8) :: i_group, nb_grma_in, i_cell
@@ -3503,6 +3550,12 @@ contains
 !
 ! --- Find groups
         do i_group = 1, nb_grma_in
+            call jenuno(jexnum(grma_in, i_group), nomgrp)
+            if (present(list_grps)) then
+                if (search_in_list(nomgrp, nb_grp, list_grps) < one_ip) then
+                    cycle
+                end if
+            end if
             call jeveuo(jexnum(grma_in, i_group), 'L', vi=cells_in)
             call jelira(jexnum(grma_in, i_group), 'LONUTI', nb_cells_in)
             do i_cell = 1, nb_cells_in
@@ -3704,7 +3757,8 @@ contains
         real(kind=8), allocatable :: v_send(:)
         real(kind=8), allocatable :: v_recv(:)
         mpi_int, parameter :: mpi_one = to_mpi_int(1)
-        mpi_int :: msize, mrank, count_send, count_recv, id, tag, mpicou
+        mpi_int :: msize, mrank, count_send, count_recv, id, tag, mpicou, mpiloc
+        mpi_int :: color, key, ierror
         mpi_int, allocatable :: v_count(:)
         mpi_int, allocatable :: v_displ(:)
 
@@ -3740,6 +3794,7 @@ contains
             call asmpi_info(rank=mrank, size=msize)
             rank = to_aster_int(mrank)
             nbproc = to_aster_int(msize)
+            mpiloc = to_mpi_int(0)
 !
 ! --- 0: On enregiste le nombre de couches de ghost
             call wkvect(nblg, 'G V I', 1, vi=v_nblg)
@@ -3755,9 +3810,9 @@ contains
             call jeveuo(mesh_out//".MAEX", 'L', vi=v_maex)
             call jeveuo(mesh_out//".NUMALG", 'E', vi=v_numalg)
 !
+            allocate (v_rnode(nbproc))
             if (nbproc == 1) goto 100
 !
-            allocate (v_rnode(nbproc))
             v_rnode = 0
             do i_node = one_ip, this%nb_nodes
                 owner = v_noex(i_node)
@@ -3777,11 +3832,9 @@ contains
                 call wkvect(domj, 'G V I', nb_recv, vi=v_proc)
                 call jecrec(send, 'G V I', 'NU', 'DISPERSE', 'VARIABLE', nb_recv)
                 call jecrec(recv, 'G V I', 'NU', 'DISPERSE', 'VARIABLE', nb_recv)
-                call jeveuo(gcom, 'E', vi=v_gcom)
-                v_gcom(1) = mpicou
-            else
-                goto 100
             end if
+            call jeveuo(gcom, 'E', vi=v_gcom)
+            v_gcom(1) = mpicou
             nb_recv = 0
             do i_proc = 0, nbproc-1
                 if (v_rnode(i_proc+1) > 0) then
@@ -3794,9 +3847,23 @@ contains
             end do
             call sort_i8(v_proc, nb_recv)
 !
+            if (nb_recv > 0) then
+                color = 1
+                key = 1
+                call asmpi_split_comm(mpicou, color, key, "TMPCOMM", mpiloc)
+                call asmpi_comm('SET', mpiloc)
+            else
+                color = 0
+                key = 0
+                call asmpi_split_comm(mpicou, color, key, "TMPCOMM", mpiloc)
+                call asmpi_comm('SET', mpiloc)
+                go to 100
+            end if
+!
             allocate (v_comm(nbproc))
             allocate (v_tag(nbproc))
-            call build_tree_comm(v_proc, nb_recv, v_pgid, mpicou, v_comm, v_tag)
+!
+            call build_tree_comm(v_proc, nb_recv, v_pgid, mpiloc, v_comm, v_tag)
 ! --- Pour accélérer la recherche, on garde les cells avec un noeud non-proprio
             allocate (v_ckeep(this%nb_total_cells))
             nb_cells_keep = zero_ip
@@ -3899,7 +3966,7 @@ contains
 ! --- Send and Receive size
                 n_coor_send = v_rnode(proc_id+1)
                 call asmpi_sendrecv_i([n_coor_send], mpi_one, id, tag, &
-                                      recv1, mpi_one, id, tag, mpicou)
+                                      recv1, mpi_one, id, tag, mpiloc)
                 n_coor_recv = recv1(1)
 !
                 allocate (v_send(4*n_coor_send))
@@ -3922,7 +3989,7 @@ contains
                 count_send = to_mpi_int(4*n_coor_send)
                 count_recv = to_mpi_int(4*n_coor_recv)
                 call asmpi_sendrecv_r(v_send, count_send, id, tag, &
-                                      v_recv, count_recv, id, tag, mpicou)
+                                      v_recv, count_recv, id, tag, mpiloc)
 !
                 if (this%info >= 2) then
                     print *, "-Domaine: ", proc_id, &
@@ -3961,7 +4028,7 @@ contains
                 count_send = to_mpi_int(2*n_coor_recv)
                 count_recv = to_mpi_int(2*n_coor_send)
                 call asmpi_sendrecv_i(v_snume, count_send, id, tag, &
-                                      v_rnume, count_recv, id, tag, mpicou)
+                                      v_rnume, count_recv, id, tag, mpiloc)
 !
 ! --- Create joint .R
                 call jecroc(jexnum(recv, i_comm))
@@ -3985,7 +4052,6 @@ contains
             call n_octree%free()
             deallocate (v_nkeep)
             deallocate (v_ckeep)
-            deallocate (v_rnode)
             deallocate (v_tag)
             deallocate (v_comm)
 !
@@ -4021,7 +4087,7 @@ contains
             allocate (v_displ(nbproc+1))
             allocate (v_count(nbproc))
             v_rnume = 0
-            call asmpi_allgather_i([nb_ma_send], mpi_one, v_rnume, mpi_one, mpicou)
+            call asmpi_allgather_i([nb_ma_send], mpi_one, v_rnume, mpi_one, mpiloc)
 !
 ! ---- Compute offset
             nb_ma_recv_tot = 0
@@ -4035,7 +4101,7 @@ contains
             allocate (v_recv(4*nb_ma_recv_tot))
             count_send = to_mpi_int(4*nb_ma_send)
 ! --- Send id and coordinates
-            call asmpi_allgatherv_r(v_send, count_send, v_recv, v_count, v_displ, mpicou)
+            call asmpi_allgatherv_r(v_send, count_send, v_recv, v_count, v_displ, mpiloc)
             deallocate (v_send)
             deallocate (v_displ)
             deallocate (v_count)
@@ -4075,6 +4141,7 @@ contains
             deallocate (v_recv)
 !
 100         continue
+            deallocate (v_rnode)
 !
             if (nbproc == 1) then
                 do i_node = one_ip, this%nb_nodes
@@ -4092,6 +4159,12 @@ contains
             do i_cell = one_ip, this%nb_cells
                 ASSERT(v_numalg(i_cell) >= 0)
             end do
+!
+            call asmpi_barrier_wrap(mpicou, ierror)
+            call asmpi_comm('SET', mpicou)
+            if (mpiloc .ne. 0) then
+                call asmpi_comm('FREE', mpiloc)
+            end if
 !
             if (this%info >= 2) then
                 call cpu_time(end)

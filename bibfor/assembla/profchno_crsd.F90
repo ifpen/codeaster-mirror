@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -153,6 +153,7 @@ subroutine profchno_crsd(nume_equaz, base, nb_equa, meshz, nb_ligrz, &
 !
 ! - Length of &MAILLA object in PRNO
 !
-    call jeecra(jexnum(nume_equa//'.PRNO', i_ligr_mesh), 'LONMAX', prno_length)
+    call jeecra(jexnum(nume_equa//'.PRNO', i_ligr_mesh), 'LONMAX', max(prno_length, 1))
+    call jeecra(jexnum(nume_equa//'.PRNO', i_ligr_mesh), 'LONUTI', prno_length)
 !
 end subroutine

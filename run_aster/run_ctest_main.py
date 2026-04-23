@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -344,8 +344,8 @@ def main(argv=None):
     if args.nlist:
         print("Command lines for each batch job:")
         for icount in range(args.nlist):
-            wrkdir = osp.join(resutest, f"{icount + 1:03d}")
-            print(f"  cd {wrkdir} && ctest " + " ".join([f"'{i}'" for i in ctest_args]))
+            workdir = osp.join(resutest, f"{icount + 1:03d}")
+            print(f"  cd {workdir} && ctest " + " ".join([f"'{i}'" for i in ctest_args]))
         print("Build consolidated report:")
         print(f"  cd {resutest}")
         bindir = osp.normpath(osp.join(RUNASTER_ROOT, "bin"))

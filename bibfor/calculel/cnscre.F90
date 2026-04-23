@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -18,7 +18,6 @@
 
 subroutine cnscre(maz, nomgdz, ncmp, licmp, basez, &
                   cnsz, undf0_)
-! person_in_charge: jacques.pellet at edf.fr
 ! A_UTIL
     implicit none
 #include "asterf_types.h"
@@ -26,6 +25,7 @@ subroutine cnscre(maz, nomgdz, ncmp, licmp, basez, &
 #include "asterfort/assert.h"
 #include "asterfort/detrsd.h"
 #include "asterfort/dismoi.h"
+#include "asterfort/jeecra.h"
 #include "asterfort/jedema.h"
 #include "asterfort/jemarq.h"
 #include "asterfort/jeundf.h"
@@ -117,13 +117,15 @@ subroutine cnscre(maz, nomgdz, ncmp, licmp, basez, &
 !------------------------------------------------------------------
 !     5- CREATION DE CNS.CNSL:
 !     ------------------------
-    call wkvect(cns//'.CNSL', base//' V L', nbno*ncmp, jcnsl)
+    call wkvect(cns//'.CNSL', base//' V L', max(nbno*ncmp, 1), jcnsl)
+    call jeecra(cns//'.CNSL', 'LONUTI', nbno*ncmp)
     call jeundf(cns//'.CNSL')
 !
 !------------------------------------------------------------------
 !     6- CREATION DE CNS.CNSV:
 !     ------------------------
-    call wkvect(cns//'.CNSV', base//' V '//tsca, nbno*ncmp, jcnsv)
+    call wkvect(cns//'.CNSV', base//' V '//tsca, max(nbno*ncmp, 1), jcnsv)
+    call jeecra(cns//'.CNSV', 'LONUTI', nbno*ncmp)
     call jeundf(cns//'.CNSV', undf0)
 !
     call jedema()

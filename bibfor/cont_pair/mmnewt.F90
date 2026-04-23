@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -143,7 +143,7 @@ subroutine mmnewt(type_elem, nb_node, nb_dim, elem_coor, pt_coor, &
     end if
 
 ! - Local curvatures
-    if (type_elem .ne. 'QU4' .and. type_elem .ne. 'QU8' .and. type_elem .ne. 'QU9') then
+    if (type_elem .ne. 'QU4' .and. type_elem .ne. 'QU8') then
         do idim = 1, nb_dim
             do ino = 1, nb_node
                 par11(idim) = elem_coor(3*(ino-1)+idim)*ddff(1, ino)+par11(idim)

@@ -507,9 +507,8 @@ def check_config(self):
     self.start_msg(f"Set parameters for 'config.{cfgext}'")
     self.end_msg("...")
     tmpdir = None if self.env.ASTER_PLATFORM_MINGW else "/tmp"
-    if os.environ.get("ASTER_TMPDIR"):
-        tmpdir = os.environ["ASTER_TMPDIR"]
     cfg["tmpdir"] = tmpdir
+    cfg["shared_tmpdir"] = tmpdir
 
     addmem = 1024
     if os.environ.get("ADDMEM"):
@@ -546,6 +545,7 @@ def check_config(self):
     from_env = self.env["CONFIG_PARAMETERS"]
     for param in (
         "tmpdir",
+        "shared_tmpdir",
         "addmem",
         "python",
         "python_interactive",
@@ -714,7 +714,6 @@ def _call_cmd(self, msg, cmd):
 
 @Configure.conf
 def check_external_programs(self):
-    exe = ".exe" if self.env.ASTER_PLATFORM_MINGW else ""
     bat = ".bat" if self.env.ASTER_PLATFORM_MINGW else ""
     _check_prog(
         self, "gmsh", ["gmsh"], mandatory=self.options.with_prog_gmsh, add_paths=["${GMSH_BIN_DIR}"]

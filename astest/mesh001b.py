@@ -525,6 +525,14 @@ test.assertEqual(
     [3321, 3321, 3825][rank],
 )
 
+# check issue35697
+field_r = CREA_CHAMP(
+    TYPE_CHAM="NOEU_DEPL_R",
+    OPERATION="AFFE",
+    MAILLAGE=square2,
+    AFFE=_F(TOUT="OUI", NOM_CMP=("DX", "DY"), VALE=(1.0, 2.0)),
+)
+
 
 # test ghosts
 square = CA.ParallelMesh.buildSquare(refine=2, deterministic=True, ghost=2)

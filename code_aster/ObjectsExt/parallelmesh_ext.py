@@ -291,7 +291,11 @@ class ExtendedParallelMesh:
             ParallelMesh: the restricted mesh.
         """
 
-        return CREA_MAILLAGE(MAILLAGE=self, RESTREINT=_F(GROUP_MA=groupsOfCells), INFO=info)
+        return CREA_MAILLAGE(
+            MAILLAGE=self,
+            RESTREINT=_F(GROUP_MA=groupsOfCells, TOUT_GROUP_MA="OUI", TOUT_GROUP_NO="OUI"),
+            INFO=info,
+        )
 
     def createMedCouplingMesh(self, spacedim_3d=False):
         """Returns the MEDCoupling unstructured mesh associated to the current mesh.

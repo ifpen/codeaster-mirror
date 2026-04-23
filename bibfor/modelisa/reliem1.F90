@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -52,7 +52,6 @@ subroutine reliem1(ligrel, ma, typem, motfaz, iocc, &
     aster_logical, optional, intent(in) :: l_keep_propz
     aster_logical, optional, intent(in) :: l_allz
 ! ----------------------------------------------------------------------
-! person_in_charge: jacques.pellet at edf.fr
 !
 !     CE MODULE PERMET DE CREER UN OBJET JEVEUX CONTENANT UNE LISTE
 !     DE NOMS OU NUMEROS DE MAILLES OU DE NOEUDS CORRESPONDANT AUX
@@ -174,7 +173,7 @@ subroutine reliem1(ligrel, ma, typem, motfaz, iocc, &
         end if
     end if
     call dismoi('NB_NO_MAILLA', ma, 'MAILLAGE', repi=nbno)
-    AS_ALLOCATE(vi4=indic_noeud, size=nbno)
+    AS_ALLOCATE(vi4=indic_noeud, size=max(nbno, 1))
 !
     do k = 1, nbma
         zi4(itrma-1+k) = 0
