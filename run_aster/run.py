@@ -70,7 +70,7 @@ def create_temporary_dir(dir=None):
     Returns:
         str: Path of the directory.
     """
-    dir = os.environ.get("ASTER_WORKDIR", CFG.get("tmpdir"))
+    dir = dir or os.environ.get("ASTER_WORKDIR", CFG.get("tmpdir"))
     if dir:
         os.makedirs(dir, exist_ok=True)
     return tempfile.mkdtemp(prefix="run_aster_", dir=dir)
