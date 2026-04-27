@@ -302,7 +302,7 @@ def main(argv=None):
             "scratch_dir": os.environ.get("SCRATCHDIR", "/tmp"),
         }
     )
-    job.set("output", args.output or job.get("name") + "-%j.txt")
+    job.set("output", args.output or Path(job.get("name") + "-%j.txt"))
     job.check_parameters()
 
     exitcode = job.submit(args.dry_run)
