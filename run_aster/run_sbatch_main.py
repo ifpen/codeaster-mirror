@@ -125,7 +125,7 @@ rm -f ${{ftmp}}
 """
 
 
-def parse_args(argv: list[str]):
+def parse_args(argv):
     """Parse command line arguments.
 
     Arguments:
@@ -185,7 +185,7 @@ def parse_args(argv: list[str]):
     return args, others
 
 
-def _run(cmd: list[str]):
+def _run(cmd):
     logger.debug("execute: %s", " ".join(cmd))
     return run(cmd)
 
