@@ -30,6 +30,7 @@ import socket
 import tempfile
 import time
 import warnings
+from pathlib import Path
 from subprocess import Popen
 
 import aster
@@ -158,6 +159,12 @@ def get_shared_tmpdir(prefix, dir=None):
     The arguments are the same as for `tempfile.mkdtemp`.
     """
     dir = dir or CFG.get("shared_tmpdir")
+    if "$" in str(dir):
+        logger.warning("Missing environment variables, can not expand: %s", dir)
+        dir = Path.home() / ".shared_tmp"
+        dir.mkdir(parents=True, exist_ok=True)
+        logger.warning("This value is used instead: %s", dir)
+        logger.warning("Contact the administrator of this installation.")
     tmpdir = tempfile.mkdtemp(dir=dir, prefix=prefix)
     return tmpdir
 
