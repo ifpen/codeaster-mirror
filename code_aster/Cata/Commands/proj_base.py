@@ -33,6 +33,7 @@ def proj_base_prod(
             [None],
             [None, nume_ddl_gene],
             [None, matr_asse_gene_r],
+            [None, matr_asse_gene_c],
             [None, vect_asse_gene],
             [None, tran_gene],
         )
@@ -41,7 +42,16 @@ def proj_base_prod(
         self.type_sdprod(NUME_DDL_GENE, nume_ddl_gene)
     if MATR_ASSE_GENE is not None:
         for m in MATR_ASSE_GENE:
-            self.type_sdprod(m["MATRICE"], matr_asse_gene_r)
+            if m["MATR_ASSE"] is not None:
+                if AsType(m["MATR_ASSE"]) == matr_asse_depl_r:
+                    self.type_sdprod(m["MATRICE"], matr_asse_gene_r)
+                elif AsType(m["MATR_ASSE"]) == matr_asse_depl_c:
+                    self.type_sdprod(m["MATRICE"], matr_asse_gene_c)
+            else:
+                if AsType(m["MATR_ASSE_GENE"]) == matr_asse_gene_r:
+                    self.type_sdprod(m["MATRICE"], matr_asse_gene_r)
+                elif AsType(m["MATR_ASSE_GENE"]) == matr_asse_gene_c:
+                    self.type_sdprod(m["MATRICE"], matr_asse_gene_c)
     if VECT_ASSE_GENE is not None:
         for v in VECT_ASSE_GENE:
             self.type_sdprod(v["VECTEUR"], vect_asse_gene)
@@ -66,8 +76,8 @@ PROJ_BASE = MACRO(
         max="**",
         MATRICE=SIMP(statut="o", typ=CO),
         regles=(UN_PARMI("MATR_ASSE", "MATR_ASSE_GENE"),),
-        MATR_ASSE=SIMP(statut="f", typ=matr_asse_depl_r),
-        MATR_ASSE_GENE=SIMP(statut="f", typ=matr_asse_gene_r),
+        MATR_ASSE=SIMP(statut="f", typ=(matr_asse_depl_r, matr_asse_depl_c)),
+        MATR_ASSE_GENE=SIMP(statut="f", typ=(matr_asse_gene_r, matr_asse_gene_c)),
     ),
     VECT_ASSE_GENE=FACT(
         statut="f",
