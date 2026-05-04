@@ -80,7 +80,6 @@ DEFLIST = DEFI_LIST_INST(
 )
 
 for solver in [STAT_NON_LINE, MECA_NON_LINE]:
-
     resu = solver(
         MODELE=MO,
         CHAM_MATER=CM,
@@ -106,5 +105,35 @@ for solver in [STAT_NON_LINE, MECA_NON_LINE]:
         resu.getAccessParameters()["INST"],
         [0.0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.8125, 0.875, 0.9375, 1.0],
     )
+
+# check for ErrorPosteriori + Interrupt
+inst2 = DEFI_LIST_INST(
+    METHODE="MANUEL",
+    DEFI_LIST=_F(LIST_INST=L_INST),
+    MODELE=MO,
+    ECHEC=(
+        _F(
+            EVENEMENT="DELTA_GRANDEUR",
+            VALE_REF=0.1e-2,
+            NOM_CHAM="VARI_ELGA",
+            NOM_CMP="V1",
+            GROUP_MA="SURFACE",
+            ACTION="ARRET",
+        ),
+    ),
+)
+for solver in [STAT_NON_LINE, MECA_NON_LINE]:
+    with test.assertRaisesRegex(CA.ConvergenceError, "DELTA_GRANDEUR"):
+        solver(
+            MODELE=MO,
+            CHAM_MATER=CM,
+            EXCIT=(_F(CHARGE=LIAISON), _F(CHARGE=CISAIL, FONC_MULT=RAMPE)),
+            COMPORTEMENT=_F(RELATION="VMIS_ECMI_LINE"),
+            INCREMENT=_F(LIST_INST=inst2),
+            NEWTON=_F(MATRICE="TANGENTE", REAC_ITER=1),
+            SOLVEUR=_F(METHODE="PETSC"),
+        )
+
+test.printSummary()
 
 FIN()
