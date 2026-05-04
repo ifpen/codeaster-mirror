@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -77,14 +77,13 @@ subroutine hujci1(mater, deps, sigd, i1f, tract, iret)
     iret = 0
     theta = un
 !
-!
+    trdeps = zero
+    do i = 1, ndi
+        trdeps = trdeps+deps(i)
+    end do
+
 !---> DETERMINATION DU TERME COEF = K0 x DEPS_VOLUMIQUE
     if (mater(17, 1) .eq. un) then
-!
-        trdeps = zero
-        do i = 1, ndi
-            trdeps = trdeps+deps(i)
-        end do
 !
 !        COEF = YOUNG*D13 /(UN-N)/(UN-DEUX*POISSO) * TRDEPS
         coef = young*d13/(un-deux*poisso)*trdeps
