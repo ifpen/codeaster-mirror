@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -2558,18 +2558,24 @@ DEFI_MATERIAU = MACRO(
         fr=tr("Loi pour les discrets avec écrouissage cinématique."),
         regles=(
             NON_VIDE(),
-            PRESENT_PRESENT("LIMY_DX", "KCIN_DX"),
+            ENSEMBLE("LIMY_DX", "KCIN_DX"),
             ENSEMBLE("PUIS_DX", "LIMU_DX"),
-            PRESENT_PRESENT("LIMY_DY", "KCIN_DY"),
+            PRESENT_PRESENT("PUIS_DX", "KCIN_DX"),
+            ENSEMBLE("LIMY_DY", "KCIN_DY"),
             ENSEMBLE("PUIS_DY", "LIMU_DY"),
-            PRESENT_PRESENT("LIMY_DZ", "KCIN_DZ"),
+            PRESENT_PRESENT("PUIS_DY", "KCIN_DY"),
+            ENSEMBLE("LIMY_DZ", "KCIN_DZ"),
             ENSEMBLE("PUIS_DZ", "LIMU_DZ"),
-            PRESENT_PRESENT("LIMY_RX", "KCIN_RX"),
+            PRESENT_PRESENT("PUIS_DZ", "KCIN_DZ"),
+            ENSEMBLE("LIMY_RX", "KCIN_RX"),
             ENSEMBLE("PUIS_RX", "LIMU_RX"),
-            PRESENT_PRESENT("LIMY_RY", "KCIN_RY"),
+            PRESENT_PRESENT("PUIS_RX", "KCIN_RX"),
+            ENSEMBLE("LIMY_RY", "KCIN_RY"),
             ENSEMBLE("PUIS_RY", "LIMU_RY"),
-            PRESENT_PRESENT("LIMY_RZ", "KCIN_RZ"),
+            PRESENT_PRESENT("PUIS_RY", "KCIN_RY"),
+            ENSEMBLE("LIMY_RZ", "KCIN_RZ"),
             ENSEMBLE("PUIS_RZ", "LIMU_RZ"),
+            PRESENT_PRESENT("PUIS_RZ", "KCIN_RZ"),
         ),
         LIMY_DX=SIMP(
             statut="f",
