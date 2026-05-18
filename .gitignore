@@ -24,6 +24,7 @@ devtools
 
 # pixi/uv environments
 .pixi
+.venv
 *.egg-info
 pixi.lock
 uv.lock
