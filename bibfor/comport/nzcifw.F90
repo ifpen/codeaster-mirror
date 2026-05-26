@@ -15,7 +15,7 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-! aslint: disable=C1505
+! aslint: disable=C1505,W1504
 !
 subroutine nzcifw(option, &
                   fami, kpg, ksp, ndim, jvMaterCode, &
@@ -362,7 +362,7 @@ subroutine nzcifw(option, &
             xmoy(i) = 0.d0
             do iPhaseCold = 1, nbPhaseCold
                 xmoy(i) = xmoy(i)+ &
-                          phaseCurr(iPhase)*h(iPhase)*xcinCold(6*(iPhaseCold-1)+i)
+                          phaseCurr(iPhaseCold)*h(iPhaseCold)*xcinCold(6*(iPhaseCold-1)+i)
             end do
             xcinHot(i) = xmoy(i)+ &
                          phaseCurr(iPhaseHot)*h(iPhaseHot)*xcinHotPrev(i)
@@ -385,11 +385,15 @@ subroutine nzcifw(option, &
 ! - Current stress state
     trsigm = (sigm(1)+sigm(2)+sigm(3))/3.d0
     trsigp = troisk*(trepsm+trdeps)-troisk*epsth
+    dvsigm = 0.d0
+    dvdeps = 0.d0
     do i = 1, ndimsi
         dvdeps(i) = deps(i)-trdeps*kron(i)
         dvsigm(i) = sigm(i)-trsigm*kron(i)
     end do
     sieleq = 0.d0
+    sigel = 0.d0
+    sigel2 = 0.d0
     do i = 1, ndimsi
         sigel(i) = deuxmu*dvsigm(i)/deumum+deuxmu*dvdeps(i)
         sigel2(i) = sigel(i)-(1.5d0*deuxmu*trans+1.d0)*xmoy(i)
