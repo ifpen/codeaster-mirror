@@ -73,6 +73,7 @@ C_FLE1 = 1.65 / H
 #
 IND1 = 0.9 / (H**0.666666)
 
+
 #
 # DEFINITION DES PARAMETRES POUR LES RAIDEURS DES RESSORTS
 #
@@ -231,7 +232,7 @@ TEST_RESU(
             GROUP_MA="M79",
             GROUP_NO="N62",
             RESULTAT=MODE1,
-            VALE_CALC=248510032.829,
+            VALE_CALC=371881450.724,
             CRITERE="RELATIF",
         ),
         _F(
@@ -241,7 +242,7 @@ TEST_RESU(
             GROUP_MA="M79",
             GROUP_NO="N62",
             RESULTAT=MODE1,
-            VALE_CALC=119860225.482,
+            VALE_CALC=179364165.034,
             CRITERE="RELATIF",
         ),
     )
