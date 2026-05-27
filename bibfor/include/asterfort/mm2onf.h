@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,17 +15,13 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-!
 !
 interface
-    subroutine mm2onf(ndim, nno, alias, ksi1, ksi2,&
+    subroutine mm2onf(cellDime, cellNbNode, cellCode, ksi1, ksi2, &
                       ddff)
-        integer(kind=8) :: ndim
-        integer(kind=8) :: nno
-        character(len=8) :: alias
-        real(kind=8) :: ksi1
-        real(kind=8) :: ksi2
-        real(kind=8) :: ddff(3, 9)
+        integer(kind=8), intent(in) :: cellDime, cellNbNode
+        character(len=8), intent(in) :: cellCode
+        real(kind=8), intent(in) :: ksi1, ksi2
+        real(kind=8), intent(out) :: ddff(3, 9)
     end subroutine mm2onf
 end interface

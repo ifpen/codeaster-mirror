@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,15 +15,13 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-!
 !
 interface
-    subroutine elrfd2(elrefz, x, dimd, dff2, nno, ndim)
-        character(len=*), intent(in) :: elrefz
-        integer(kind=8), intent(in)          :: dimd
-        real(kind=8), intent(in)     :: x(*)
-        integer(kind=8), intent(out)         :: nno, ndim
-        real(kind=8), intent(out)    :: dff2(3, 3, *)
+    subroutine elrfd2(cellCodeZ, x, dimd, dff2, cellNbNode_, cellDime_)
+        character(len=*), intent(in) :: cellCodeZ
+        integer(kind=8), intent(in) :: dimd
+        real(kind=8), intent(in) :: x(*)
+        real(kind=8), intent(out) :: dff2(3, 3, *)
+        integer(kind=8), optional, intent(out) :: cellNbNode_, cellDime_
     end subroutine elrfd2
 end interface

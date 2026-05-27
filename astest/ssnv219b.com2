@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2023 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -18,6 +18,7 @@
 # --------------------------------------------------------------------
 
 import math
+
 
 # ================================================================================================================================================================================
 def NormeAster(RESULTAT, Depl_Ana, P_ana, MAIL, MODELE, GROUP_MA_VOL, GROUP_MA_SUR):
@@ -593,8 +594,8 @@ TEST_RESU(
         PRECISION=1.0e-10,
         TYPE_TEST="MAX",
         CHAM_GD=dicResu["DIFFUN"],
-        VALE_CALC=4.13935271431e-05,
-        VALE_REFE=4.13935271431e-05,
+        VALE_CALC=4.139350261521749e-05,
+        VALE_REFE=4.139350261521749e-05,
     )
 )
 
@@ -604,7 +605,7 @@ BIDONU = DEFI_FONCTION(NOM_PARA="INST", VALE=(0.0, 1.0, 1.0, PenteL2U))
 
 TEST_FONCTION(
     VALEUR=_F(
-        VALE_CALC=2.986100582660,
+        VALE_CALC=2.986115379082,
         VALE_REFE=3.0,
         VALE_PARA=1.0,
         REFERENCE="ANALYTIQUE",
@@ -622,7 +623,7 @@ BIDONP = DEFI_FONCTION(NOM_PARA="INST", VALE=(0.0, 1.0, 1.0, PenteL2P))
 
 TEST_FONCTION(
     VALEUR=_F(
-        VALE_CALC=2.534001467953,
+        VALE_CALC=2.534025066733,
         VALE_REFE=2.5,
         VALE_PARA=1.0,
         REFERENCE="ANALYTIQUE",
@@ -631,6 +632,6 @@ TEST_FONCTION(
     )
 )
 
-TEST_FONCTION(VALEUR=_F(VALE_CALC=2.534001467953, VALE_PARA=1.0, FONCTION=BIDONP))
+TEST_FONCTION(VALEUR=_F(VALE_CALC=2.534025066733, VALE_PARA=1.0, FONCTION=BIDONP))
 
 FIN()

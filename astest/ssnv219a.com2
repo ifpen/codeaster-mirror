@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2023 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -204,7 +204,7 @@ DIFF = CREA_CHAMP(
 #          Verifications
 # ========================================================================================
 
-TEST_RESU(CHAM_NO=_F(TYPE_TEST="SOMM_ABS", CHAM_GD=DIFF, VALE_CALC=0.0410231853304))
+TEST_RESU(CHAM_NO=_F(TYPE_TEST="SOMM_ABS", CHAM_GD=DIFF, VALE_CALC=0.041021180995797366))
 
 IMPR_RESU(FORMAT="MED", RESU=(_F(CHAM_GD=DIFF), _F(CHAM_GD=Uana), _F(CHAM_GD=Ucalc)))
 

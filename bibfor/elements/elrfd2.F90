@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,8 +15,8 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-subroutine elrfd2(elrefz, x, dimd, dff2, nno, ndim)
+!
+subroutine elrfd2(cellCodeZ, x, dimd, dff2, cellNbNode_, cellDime_)
 !
     implicit none
 !
@@ -24,11 +24,11 @@ subroutine elrfd2(elrefz, x, dimd, dff2, nno, ndim)
 #include "asterfort/assert.h"
 #include "asterfort/elrfno.h"
 !
-    character(len=*), intent(in) :: elrefz
-    integer(kind=8), intent(in)          :: dimd
-    real(kind=8), intent(in)     :: x(*)
-    integer(kind=8), intent(out)         :: nno, ndim
-    real(kind=8), intent(out)    :: dff2(3, 3, *)
+    character(len=*), intent(in) :: cellCodeZ
+    integer(kind=8), intent(in) :: dimd
+    real(kind=8), intent(in) :: x(*)
+    real(kind=8), intent(out) :: dff2(3, 3, *)
+    integer(kind=8), optional, intent(out) :: cellNbNode_, cellDime_
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -50,19 +50,20 @@ subroutine elrfd2(elrefz, x, dimd, dff2, nno, ndim)
     real(kind=8), parameter :: zero = 0.d0, un = 1.d0, deux = 2.d0, trois = 3.0d0, quatre = 4.d0
     real(kind=8), parameter :: six = 6.0d0, sept = 7.0d0, huit = 8.0d0
     real(kind=8), parameter :: undemi = 0.5d0, uns4 = 0.25d0
+    integer(kind=8) :: cellNbNode, cellDime
 !
-    call elrfno(elrefz, nno, ndim=ndim)
-    ASSERT(dimd .ge. (nno*ndim*ndim))
+    call elrfno(cellCodeZ, cellNbNode, ndim=cellDime)
+    ASSERT(dimd .ge. (cellNbNode*cellDime*cellDime))
 !
 !     -- POUR LES ELEMENTS LINEAIRES : C'EST FACILE : 0.
 !     ------------------------------------------------------------------
-    select case (elrefz)
+    select case (cellCodeZ)
     case ('SE2')
-        dff2(1:ndim, 1:ndim, 1:nno) = 0.d0
+        dff2(1:cellDime, 1:cellDime, 1:cellNbNode) = 0.d0
     case ('TR3')
-        dff2(1:ndim, 1:ndim, 1:nno) = 0.d0
+        dff2(1:cellDime, 1:cellDime, 1:cellNbNode) = 0.d0
     case ('TE4')
-        dff2(1:ndim, 1:ndim, 1:nno) = 0.d0
+        dff2(1:cellDime, 1:cellDime, 1:cellNbNode) = 0.d0
     case ('TR6')
         dff2(1, 1, 1) = quatre
         dff2(2, 1, 1) = quatre
@@ -278,9 +279,16 @@ subroutine elrfd2(elrefz, x, dimd, dff2, nno, ndim)
 !         ------------------------------------------------------------------
 !         -- POUR LES ELEREFE NON ENCORE RENSEIGNES, ON REND NDIM=NNO=0
     case default
-        nno = 0
-        ndim = 0
+        cellNbNode = 0
+        cellDime = 0
 !
     end select
+
+    if (present(cellNbNode_)) then
+        cellNbNode_ = cellNbNode
+    end if
+    if (present(cellDime_)) then
+        cellDime_ = cellDime
+    end if
 !
 end subroutine

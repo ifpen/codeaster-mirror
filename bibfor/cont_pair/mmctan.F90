@@ -80,7 +80,7 @@ subroutine mmctan(numema, alias, nno, ndim, coorma, &
         end if
     end if
 !
-    call mmdonf(ndim, nno, alias, ksi(1), ksi(2), dff)
+    call mmdonf(alias, ksi(1), ksi(2), dff)
 !
     tau1 = 0.d0
     tau2 = 0.d0

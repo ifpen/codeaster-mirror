@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -37,7 +37,6 @@ subroutine mmmreg(mesh, ds_contact, v_disp_cumu, nb_dof, &
 #include "asterfort/mminfm.h"
 #include "asterfort/mmnonf.h"
 !
-! person_in_charge: mickael.abbas at edf.fr
 !
     character(len=8), intent(in) :: mesh
     type(NL_DS_Contact), intent(in) :: ds_contact
@@ -155,7 +154,7 @@ subroutine mmmreg(mesh, ds_contact, v_disp_cumu, nb_dof, &
 ! ------------- Slave node displacement
 !
                 call mmelty(mesh, elem_slav_nume, elem_slav_type, elem_slav_nbnode)
-                call mmnonf(model_ndim, elem_slav_nbnode, elem_slav_type, ksipc1, ksipc2, &
+                call mmnonf(elem_slav_type, ksipc1, ksipc2, &
                             ff)
                 disp_slav(1:3) = 0.d0
                 do i_node = 1, elem_slav_nbnode
@@ -171,7 +170,7 @@ subroutine mmmreg(mesh, ds_contact, v_disp_cumu, nb_dof, &
 ! ------------- Master node displacement
 !
                 call mmelty(mesh, elem_mast_nume, elem_mast_type, elem_mast_nbnode)
-                call mmnonf(model_ndim, elem_mast_nbnode, elem_mast_type, ksipr1, ksipr2, &
+                call mmnonf(elem_mast_type, ksipr1, ksipr2, &
                             ff)
                 disp_mast(1:3) = 0.d0
                 do i_node = 1, elem_mast_nbnode

@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -92,10 +92,10 @@ subroutine lctppe(side, l_axis, l_upda_jaco, &
 !
 ! - Get shape functions and first derivative only (for perf)
 !
-    call mmnonf(elem_dime, nb_node, elem_code, &
+    call mmnonf(elem_code, &
                 gauss_coor(1), gauss_coor(2), &
                 shape_func)
-    call mmdonf(elem_dime, nb_node, elem_code, &
+    call mmdonf(elem_code, &
                 gauss_coor(1), gauss_coor(2), &
                 shape_dfunc)
 !

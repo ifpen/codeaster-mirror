@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -43,7 +43,6 @@ subroutine mmeval_prep(mesh, time_curr, model_ndim, ds_contact, &
 #include "asterfort/mmnewj.h"
 #include "asterfort/int_to_char8.h"
 !
-! person_in_charge: ayaovi-dzifa.kudawoo at edf.fr
 ! aslint: disable=W1504
 !
     character(len=8), intent(in) :: mesh
@@ -111,12 +110,12 @@ subroutine mmeval_prep(mesh, time_curr, model_ndim, ds_contact, &
 !
 ! - Coordinates of the contact point
 !
-    call mmvalp(model_ndim, elem_slav_type, elem_slav_nbno, 3, ksipc1, &
+    call mmvalp(elem_slav_type, elem_slav_nbno, ksipc1, &
                 ksipc2, elem_slav_coor, poin_slav_coor)
 !
 ! - Coordinates of the projection of contact point
 !
-    call mcopco(mesh, newgeo, model_ndim, elem_mast_nume, ksipr1, &
+    call mcopco(mesh, newgeo, elem_mast_nume, ksipr1, &
                 ksipr2, poin_proj_coor)
 !
 ! - Local basis on master element
@@ -138,7 +137,7 @@ subroutine mmeval_prep(mesh, time_curr, model_ndim, ds_contact, &
 !
 ! - Interpolate contact pressure (Lagrange) at point
 !
-    call mmvalp_scal(model_ndim, elem_slav_type, elem_slav_nbno, ksipc1, ksipc2, &
+    call mmvalp_scal(elem_slav_type, elem_slav_nbno, ksipc1, ksipc2, &
                      lagr_cont_node, lagr_cont_poin)
 !
 end subroutine

@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,28 +15,28 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-subroutine mm2onf(ndim, nno, alias, ksi1, ksi2, &
+!
+subroutine mm2onf(cellDime, cellNbNode, cellCode, ksi1, ksi2, &
                   ddff)
 !
-! person_in_charge: mickael.abbas at edf.fr
-!
     implicit none
+    !
 #include "asterfort/assert.h"
 #include "asterfort/elrfd2.h"
-    character(len=8) :: alias
-    real(kind=8) :: ksi1, ksi2
-    real(kind=8) :: ddff(3, 9)
-    integer(kind=8) :: nno, ndim
 !
-! ----------------------------------------------------------------------
+    integer(kind=8), intent(in) :: cellDime, cellNbNode
+    character(len=8), intent(in) :: cellCode
+    real(kind=8), intent(in) :: ksi1, ksi2
+    real(kind=8), intent(out) :: ddff(3, 9)
+!
+! --------------------------------------------------------------------------------------------------
 !
 ! ROUTINE CONTACT (TOUTES METHODES - UTILITAIRE)
 !
 ! CALCUL DES DERIVEES SECONDES DES FONCTIONS DE FORME EN UN POINT
 ! DE L'ELEMENT DE REFERENCE
 !
-! ----------------------------------------------------------------------
+! --------------------------------------------------------------------------------------------------
 !
 ! IN  ALIAS  : NOM D'ALIAS DE L'ELEMENT
 ! IN  NNO    : NOMBRE DE NOEUD DE L'ELEMENT
@@ -47,37 +47,20 @@ subroutine mm2onf(ndim, nno, alias, ksi1, ksi2, &
 !               FONCTIONS DE FORME ET LEURS DERIVEES
 ! OUT DDFF   : DERIVEES SECONDES DES FONCTIONS DE FORME EN XI YI
 !
-! ----------------------------------------------------------------------
+! --------------------------------------------------------------------------------------------------
 !
-    integer(kind=8) :: ibid1, ibid2
     real(kind=8) :: ksi(2)
     real(kind=8) :: d2ff(3, 3, 9)
 !
-! ----------------------------------------------------------------------
+! --------------------------------------------------------------------------------------------------
 !
-!
-! --- INITIALISATIONS
-!
-    ddff(:, :) = 0.d0
-    d2ff(:, :, :) = 0.d0
-!
+    ddff = 0.d0
+    d2ff = 0.d0
     ksi(1) = ksi1
     ksi(2) = ksi2
-
-    if ((nno .lt. 1) .or. (nno .gt. 9) .or. (ndim .lt. 1) .or. (ndim .gt. 3)) then
-        ASSERT(.false.)
-    end if
-! --- RECUP DERIVEES SECONDES DES FONCTIONS DE FORME
-!
-    call elrfd2(alias, ksi, nno*ndim*ndim, d2ff, ibid1, &
-                ibid2)
-!
-! --- CONVERSION XI-YI/YI-XI -> KSI1-KSI2
-!
-
+    call elrfd2(cellCode, ksi, cellNbNode*cellDime*cellDime, d2ff)
     ddff(1, :) = d2ff(1, 1, :)
     ddff(2, :) = d2ff(2, 2, :)
     ddff(3, :) = d2ff(1, 2, :)
-
 !
 end subroutine

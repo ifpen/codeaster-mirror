@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -122,7 +122,7 @@ subroutine laElemCont(parameters, geom, coor_qp_sl, hF, &
 !
 ! ----- Evaluate shape function for Lagrange (slave)
 !
-    call shapeFuncLagr(geom%elem_dime, geom%elem_slav_code, coor_qp_sl, &
+    call shapeFuncLagr(geom%elem_slav_code, coor_qp_sl, &
                        shape_func_lagr)
 !
 ! ----- Evaluate Lagr_c and gamma_c at quadrature point

@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,14 +15,11 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-subroutine mcopco(noma, newgeo, ndim, nummai, ksi1, &
+!
+subroutine mcopco(mesh, newgeo, cellNume, ksi1, &
                   ksi2, geom)
 !
-! person_in_charge: mickael.abbas at edf.fr
-!
     implicit none
-#include "jeveux.h"
 !
 #include "asterfort/jedema.h"
 #include "asterfort/jemarq.h"
@@ -30,21 +27,22 @@ subroutine mcopco(noma, newgeo, ndim, nummai, ksi1, &
 #include "asterfort/jexnum.h"
 #include "asterfort/mmelty.h"
 #include "asterfort/mmvalp.h"
-    character(len=8) :: noma
-    character(len=19) :: newgeo
-    integer(kind=8) :: ndim, nummai
-    real(kind=8) :: ksi1, ksi2
-    real(kind=8) :: geom(3)
+#include "jeveux.h"
 !
-! ----------------------------------------------------------------------
+    character(len=8), intent(in) :: mesh
+    character(len=19), intent(in) :: newgeo
+    integer(kind=8), intent(in) :: cellNume
+    real(kind=8), intent(in) :: ksi1, ksi2
+    real(kind=8), intent(out) :: geom(3)
+!
+! --------------------------------------------------------------------------------------------------
 !
 ! ROUTINE CONTACT (METHODE CONTINUE - APPARIEMENT - UTILITAIRE)
 !
 ! CALCUL DES COORDONNEES D'UN NOEUD SUR UNE MAILLE A PARTIR
 ! DE SES COORDONNEES PARAMETRIQUES
 !
-! ----------------------------------------------------------------------
-!
+! --------------------------------------------------------------------------------------------------
 !
 ! IN  NOMA   : NOM DU MAILLAGE
 ! IN  NEWGEO : COORDONNEES DE TOUS LES NOEUDS
@@ -53,50 +51,40 @@ subroutine mcopco(noma, newgeo, ndim, nummai, ksi1, &
 ! IN  KSI2   : COORDONNEE PARAMETRIQUE ETA DU PROJETE
 ! OUT GEOM   : COORDONNEES DU NOEUD
 !
-!
-!
+! --------------------------------------------------------------------------------------------------
 !
     integer(kind=8) ::  jdes
-    integer(kind=8) :: nno, ino, no(9)
-    real(kind=8) :: coor(27)
-    character(len=8) :: alias
+    integer(kind=8) :: cellNbNode, iNode, nodeNume(9)
+    real(kind=8) :: valeCell(27)
+    character(len=8) :: cellCode
     real(kind=8), pointer :: vale(:) => null()
 !
-! ----------------------------------------------------------------------
+! --------------------------------------------------------------------------------------------------
 !
     call jemarq()
-!
-! --- ACCES AUX CHAMPS
-!
+    geom = 0.d0
+
+! - ACCES AUX CHAMPS
     call jeveuo(newgeo(1:19)//'.VALE', 'L', vr=vale)
-    call jeveuo(jexnum(noma//'.CONNEX', nummai), 'L', jdes)
-!
-! --- INITIALISATIONS
-!
-    geom(1:3) = 0.d0
-!
-! --- INFOS SUR LA MAILLE
-!
-    call mmelty(noma, nummai, alias, nno)
-!
-! --- NUMEROS ABSOLUS DES NOEUDS DE LA MAILLE
-!
-    do ino = 1, nno
-        no(ino) = zi(jdes+ino-1)
+    call jeveuo(jexnum(mesh//'.CONNEX', cellNume), 'L', jdes)
+
+! - INFOS SUR LA MAILLE
+    call mmelty(mesh, cellNume, cellCode, cellNbNode)
+
+! - NUMEROS ABSOLUS DES NOEUDS DE LA MAILLE
+    do iNode = 1, cellNbNode
+        nodeNume(iNode) = zi(jdes+iNode-1)
     end do
-!
-! --- COORDONNEES DES NOEUDS DE LA MAILLE
-!
-    do ino = 1, nno
-        coor(3*(ino-1)+1) = vale(1+3*(no(ino)-1))
-        coor(3*(ino-1)+2) = vale(1+3*(no(ino)-1)+1)
-        coor(3*(ino-1)+3) = vale(1+3*(no(ino)-1)+2)
+
+! - COORDONNEES DES NOEUDS DE LA MAILLE
+    do iNode = 1, cellNbNode
+        valeCell(3*(iNode-1)+1) = vale(1+3*(nodeNume(iNode)-1))
+        valeCell(3*(iNode-1)+2) = vale(1+3*(nodeNume(iNode)-1)+1)
+        valeCell(3*(iNode-1)+3) = vale(1+3*(nodeNume(iNode)-1)+2)
     end do
-!
-! --- CALCUL DES COORDONNEES
-!
-    call mmvalp(ndim, alias, nno, 3, ksi1, &
-                ksi2, coor, geom)
+
+! - CALCUL DES COORDONNEES
+    call mmvalp(cellCode, cellNbNode, ksi1, ksi2, valeCell, geom)
 !
     call jedema()
 end subroutine

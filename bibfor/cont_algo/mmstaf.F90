@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -32,7 +32,6 @@ subroutine mmstaf(mesh, ndim, chdepd, coef_frot, &
 #include "asterfort/mmvalp_scal.h"
 #include "asterfort/mm_cycl_laugf.h"
 !
-! person_in_charge: mickael.abbas at edf.fr
 !
     character(len=8), intent(in) :: mesh
     integer(kind=8), intent(in) :: ndim
@@ -122,18 +121,18 @@ subroutine mmstaf(mesh, ndim, chdepd, coef_frot, &
 !
 ! - Lagrange multiplier for friction at current contact point
 !
-    call mmvalp_scal(ndim, aliase, nne, ksipc1, &
+    call mmvalp_scal(aliase, nne, ksipc1, &
                      ksipc2, mult_lagr_f1, dlagrf(1))
     if (ndim .eq. 3) then
-        call mmvalp_scal(ndim, aliase, nne, ksipc1, &
+        call mmvalp_scal(aliase, nne, ksipc1, &
                          ksipc2, mult_lagr_f2, dlagrf(2))
     end if
 !
 ! - Displacement increment
 !
-    call mcopco(mesh, chdepd, ndim, nummae, ksipc1, &
+    call mcopco(mesh, chdepd, nummae, ksipc1, &
                 ksipc2, ddeple)
-    call mcopco(mesh, chdepd, ndim, nummam, ksipr1, &
+    call mcopco(mesh, chdepd, nummam, ksipr1, &
                 ksipr2, ddeplm)
 !
 ! - Gap increment

@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -245,7 +245,7 @@ subroutine mmmres(mesh, time_incr, ds_contact, disp_cumu_inst, &
                 ksipr1 = v_sdcont_tabfin(ztabf*(i_cont_poin-1)+6)
                 ksipr2 = v_sdcont_tabfin(ztabf*(i_cont_poin-1)+7)
                 elem_mast_nume = nint(v_sdcont_tabfin(ztabf*(i_cont_poin-1)+3))
-                call mcopco(mesh, newgeo, model_ndim, elem_mast_nume, ksipr1, &
+                call mcopco(mesh, newgeo, elem_mast_nume, ksipr1, &
                             ksipr2, proj)
 !
 ! ------------- Get information for contact

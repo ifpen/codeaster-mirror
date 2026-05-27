@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,12 +15,11 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
+! aslint: disable=W0413
 !
 module contact_module
 !
     use contact_type
-!     use contact_algebra_module
-!
     implicit none
 !
     private
@@ -385,15 +384,13 @@ contains
 ! --------------------------------------------------------------------------------------------------
 !
         if (present(shape_)) then
-            call mmnonf(elem_dime, elem_nbnode, elem_code, coor_qp(1), coor_qp(2), &
+            call mmnonf(elem_code, coor_qp(1), coor_qp(2), &
                         shape_)
         end if
-!
         if (present(dshape_)) then
-            call mmdonf(elem_dime, elem_nbnode, elem_code, coor_qp(1), coor_qp(2), &
+            call mmdonf(elem_code, coor_qp(1), coor_qp(2), &
                         dshape_)
         end if
-!
         if (present(ddshape_)) then
             call mm2onf(elem_dime, elem_nbnode, elem_code, coor_qp(1), coor_qp(2), &
                         ddshape_)
@@ -492,11 +489,10 @@ contains
 !
 !===================================================================================================
 !
-    subroutine shapeFuncLagr(elem_dime, elem_code, coor_qp, shape_)
+    subroutine shapeFuncLagr(elem_code, coor_qp, shape_)
 !
         implicit none
 !
-        integer(kind=8), intent(in) :: elem_dime
         character(len=8), intent(in) :: elem_code
         real(kind=8), intent(in) :: coor_qp(2)
         real(kind=8), intent(out) :: shape_(4)
@@ -527,7 +523,7 @@ contains
             ASSERT(ASTER_FALSE)
         end if
 !
-        call mmnonf(elem_dime, elem_nbnode_lagr, elem_code_lagr, coor_qp(1), coor_qp(2), &
+        call mmnonf(elem_code_lagr, coor_qp(1), coor_qp(2), &
                     ff)
         shape_(1:4) = ff(1:4)
     end subroutine
