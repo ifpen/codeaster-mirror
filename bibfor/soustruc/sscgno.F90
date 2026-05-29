@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -86,10 +86,11 @@ subroutine sscgno(ma, nbgnin)
     integer(kind=8) :: n2, n3, n4, n5, n6, n6a, n6b
     integer(kind=8) :: n7, n8, n9, nb, nbcol, nbgna2, nbgnaj
     integer(kind=8) :: nbgnin, nbgrmn, nbid, nbis, nbk8, nbline, nbno
-    integer(kind=8) :: nbnot, nbocc, niv, ntrou, num, ier
+    integer(kind=8) :: nbnot, nbocc, niv, ntrou, num, ier, nverif
     aster_logical :: l_write
     aster_logical :: l_parallel_mesh, lcolle
     character(len=24), pointer :: lik8(:) => null()
+    character(len=24), pointer :: lik8_2(:) => null()
     character(len=8), pointer :: l_noeud(:) => null()
     integer(kind=8), pointer :: noeud2(:) => null()
 !-----------------------------------------------------------------------
@@ -301,12 +302,20 @@ subroutine sscgno(ma, nbgnin)
 ! ----- MOT CLEF "DIFFE" :
 !       ------------------
         if (n5 .gt. 0) then
+            AS_ALLOCATE(vk24=lik8_2, size=n5)
+            call getvtx(motfac, 'DIFFE', iocc=iocc, nbval=n5, vect=lik8_2, nbret=nverif)
             AS_ALLOCATE(vk24=lik8, size=n5)
             call getvem(ma, 'GROUP_NO', motfac, 'DIFFE', iocc, &
                         n5, lik8, nbid)
             n5 = nbid
+            if (lik8_2(1) .ne. lik8(1)) then
+                n5 = 0
+            end if
             if (n5 .eq. 0) then
                 AS_DEALLOCATE(vk24=lik8)
+            end if
+            if (nverif .ne. 0) then
+                AS_DEALLOCATE(vk24=lik8_2)
             end if
         end if
         if (n5 .gt. 0) then
