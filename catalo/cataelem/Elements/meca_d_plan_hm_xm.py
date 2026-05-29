@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2024 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
-# person_in_charge: daniele.colombo at ifpen.fr
 # CATALOGUES DES ELEMENTS 2D_DP HM-XFEM MULTI HEAVISIDE SANS CONTACT
 
 
@@ -229,7 +228,6 @@ MMATUNS = ArrayOfComponents(phys=PHY.MDNS_R, locatedComponents=DDL_MECA)
 
 # ------------------------------------------------------------
 class HM_DPTR6_XH1(Element):
-
     """Please document this element"""
 
     meshType = MT.TRIA6
@@ -585,7 +583,10 @@ class HM_DPTR6_XH1(Element):
                 (OP.TOPOSE.PPMILTO, LC.E88NEUTR),
             ),
         ),
-        OP.TOU_INI_ELEM(te=99, para_out=((OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM2D),)),
+        OP.TOU_INI_ELEM(
+            te=99,
+            para_out=((OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM2D), (OP.TOU_INI_ELEM.PTEMP_R, LC.CTEMPER)),
+        ),
         OP.TOU_INI_ELGA(
             te=99,
             para_out=(
@@ -612,7 +613,6 @@ class HM_DPTR6_XH1(Element):
 
 # ------------------------------------------------------------
 class HM_DPTR6_XH2(HM_DPTR6_XH1):
-
     """Please document this element"""
 
     meshType = MT.TRIA6
@@ -631,7 +631,6 @@ class HM_DPTR6_XH2(HM_DPTR6_XH1):
 
 # ------------------------------------------------------------
 class HM_DPTR6_XH3(HM_DPTR6_XH1):
-
     """Please document this element"""
 
     meshType = MT.TRIA6
@@ -650,7 +649,6 @@ class HM_DPTR6_XH3(HM_DPTR6_XH1):
 
 # ------------------------------------------------------------
 class HM_DPQ8_XH1(HM_DPTR6_XH1):
-
     """Please document this element"""
 
     meshType = MT.QUAD8
@@ -668,7 +666,6 @@ class HM_DPQ8_XH1(HM_DPTR6_XH1):
 
 # ------------------------------------------------------------
 class HM_DPQ8_XH2(HM_DPTR6_XH1):
-
     """Please document this element"""
 
     meshType = MT.QUAD8
@@ -686,7 +683,6 @@ class HM_DPQ8_XH2(HM_DPTR6_XH1):
 
 # ------------------------------------------------------------
 class HM_DPQ8_XH3(HM_DPTR6_XH1):
-
     """Please document this element"""
 
     meshType = MT.QUAD8

@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2024 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
-# person_in_charge: sam.cuvilliez at edf.fr
 # CATALOGUES DES ELEMENTS AXIS X-FEM HEAVISIDE DE BORD SANS CONTACT
 
 
@@ -75,7 +74,6 @@ MVECTUR = ArrayOfComponents(phys=PHY.VDEP_R, locatedComponents=DDL_MECA)
 
 # ------------------------------------------------------------
 class MEAXSE2_XH(Element):
-
     """Please document this element"""
 
     meshType = MT.SEG2
@@ -205,7 +203,10 @@ class MEAXSE2_XH(Element):
                 (OP.TOPOSE.PPMILTO, LC.E4NEUTR),
             ),
         ),
-        OP.TOU_INI_ELEM(te=99, para_out=((OP.TOU_INI_ELEM.PPRES_R, CPRES_R),)),
+        OP.TOU_INI_ELEM(
+            te=99,
+            para_out=((OP.TOU_INI_ELEM.PPRES_R, CPRES_R), (OP.TOU_INI_ELEM.PTEMP_R, LC.CTEMPER)),
+        ),
         OP.TOU_INI_ELGA(te=99, para_out=((OP.TOU_INI_ELGA.PGEOM_R, EGEOMER),)),
         OP.TOU_INI_ELNO(
             te=99,
@@ -221,7 +222,6 @@ class MEAXSE2_XH(Element):
 
 # ------------------------------------------------------------
 class MEAXSE3_XH(MEAXSE2_XH):
-
     """Please document this element"""
 
     meshType = MT.SEG3

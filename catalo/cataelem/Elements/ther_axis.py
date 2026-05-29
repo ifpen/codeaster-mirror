@@ -402,7 +402,10 @@ class THAXTR3(Element):
             ),
             para_out=((OP.SOUR_ELGA.PSOUR_R, LC.ESOURCR),),
         ),
-        OP.TOU_INI_ELEM(te=99, para_out=((OP.TOU_INI_ELEM.PSOUR_R, LC.CSOURCR),)),
+        OP.TOU_INI_ELEM(
+            te=99,
+            para_out=((OP.TOU_INI_ELEM.PSOUR_R, LC.CSOURCR), (OP.TOU_INI_ELEM.PTEMP_R, LC.CTEMPER)),
+        ),
         OP.TOU_INI_ELGA(
             te=99,
             para_out=(

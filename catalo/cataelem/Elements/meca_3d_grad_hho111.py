@@ -703,7 +703,10 @@ class MECA3DGVH_HHO111(Element):
             para_in=((OP.SIGM_ELNO.PCONTRR, ESIGMPG),),
             para_out=((SP.PSIEFNOC, ESIGMNC), (OP.SIGM_ELNO.PSIEFNOR, ESIGMNO)),
         ),
-        OP.TOU_INI_ELEM(te=99, para_out=((OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM3D),)),
+        OP.TOU_INI_ELEM(
+            te=99,
+            para_out=((OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM3D), (OP.TOU_INI_ELEM.PTEMP_R, LC.CTEMPER)),
+        ),
         OP.TOU_INI_ELGA(
             te=99,
             para_out=(

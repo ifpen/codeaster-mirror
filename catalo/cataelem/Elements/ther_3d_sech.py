@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -35,6 +35,7 @@ MVECTTR = ArrayOfComponents(phys=PHY.VTEM_R, locatedComponents=DDL_THER)
 MMATTTR = ArrayOfComponents(phys=PHY.MTEM_R, locatedComponents=DDL_THER)
 
 MMATTSR = ArrayOfComponents(phys=PHY.MTNS_R, locatedComponents=DDL_THER)
+
 
 # --------------------------------------------------------------------------------------------------
 class SECH_HEXA20(Element):
@@ -338,6 +339,7 @@ class SECH_HEXA20(Element):
                 (OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM3D),
                 (OP.TOU_INI_ELEM.PCOEH_R, LC.CHECHPR),
                 (OP.TOU_INI_ELEM.PSOUR_R, LC.CSOURCR),
+                (OP.TOU_INI_ELEM.PTEMP_R, LC.CTEMPER),
             ),
         ),
         OP.TOU_INI_ELGA(

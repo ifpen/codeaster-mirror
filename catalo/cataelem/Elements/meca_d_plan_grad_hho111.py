@@ -544,7 +544,11 @@ class MECA_DGVQ_HHO111(Element):
         ),
         OP.TOU_INI_ELEM(
             te=99,
-            para_out=((OP.TOU_INI_ELEM.PERREUR, EERREUR), (OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM2D)),
+            para_out=(
+                (OP.TOU_INI_ELEM.PERREUR, EERREUR),
+                (OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM2D),
+                (OP.TOU_INI_ELEM.PTEMP_R, LC.CTEMPER),
+            ),
         ),
         OP.TOU_INI_ELGA(
             te=99,

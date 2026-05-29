@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -356,7 +356,9 @@ class MESSHELL_SB9(Element):
             para_in=((OP.SIGM_ELNO.PCONTRR, LC.EGIG3DR),),
             para_out=((OP.SIGM_ELNO.PSIEFNOR, LC.ESIG3DR),),
         ),
-        OP.TOU_INI_ELEM(te=99, para_out=((SP.PGEOM_R, LC.CGEOM3D),)),
+        OP.TOU_INI_ELEM(
+            te=99, para_out=((SP.PGEOM_R, LC.CGEOM3D), (OP.TOU_INI_ELEM.PTEMP_R, LC.CTEMPER))
+        ),
         OP.TOU_INI_ELGA(
             te=99,
             para_out=(

@@ -406,6 +406,7 @@ class THER_HEXA8_D(Element):
                 (OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM3D),
                 (OP.TOU_INI_ELEM.PCOEH_R, LC.CHECHPR),
                 (OP.TOU_INI_ELEM.PSOUR_R, LC.CSOURCR),
+                (OP.TOU_INI_ELEM.PTEMP_R, LC.CTEMPER),
             ),
         ),
         OP.TOU_INI_ELGA(
