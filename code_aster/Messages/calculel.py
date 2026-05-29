@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -183,7 +183,7 @@ Erreur d'utilisation (ou de programmation) :
     30: _(
         """
 Erreur utilisateur :
-  Le programme se sait pas interpoler entre deux champs de type "carte".
+  Le programme ne sait pas interpoler entre deux champs de type "carte".
 
 Risques et conseils :
   * Il faut faire en sorte que les champs soient des champs par éléments de type 'ELEM'.

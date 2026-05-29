@@ -58,25 +58,20 @@ carel = AFFE_CARA_ELEM(
 # #########################################################
 TemperRefe = 0.0
 
-TEMP_ELEM = CREA_CHAMP(
+TEMP_0 = CREA_CHAMP(
     TYPE_CHAM="ELEM_TEMP_R",
     OPERATION="AFFE",
     MODELE=modelp,
+    AFFE_SP=_F(CARA_ELEM=carel),
     AFFE=_F(TOUT="OUI", NOM_CMP="TEMP", VALE=TemperRefe),
 )
 
-
-TEMP_0 = CREA_CHAMP(
-    TYPE_CHAM="NOEU_TEMP_R",
-    OPERATION="AFFE",
-    MAILLAGE=mailp,
-    AFFE=_F(TOUT="OUI", NOM_CMP="TEMP", VALE=TemperRefe),
-)
 
 TEMP_1 = CREA_CHAMP(
-    TYPE_CHAM="NOEU_TEMP_R",
+    TYPE_CHAM="ELEM_TEMP_R",
     OPERATION="AFFE",
-    MAILLAGE=mailp,
+    MODELE=modelp,
+    AFFE_SP=_F(CARA_ELEM=carel),
     AFFE=_F(TOUT="OUI", NOM_CMP="TEMP", VALE=400.0),
 )
 
