@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -17,13 +17,16 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
+import inspect
+import os
+import time
+
 import numpy as np
 import scipy.sparse
-import os
-import inspect
-from ..Objects import FieldOnNodesReal
-from ..MacroCommands.macr_lign_coupe_ops import crea_mail_lig_coup
+
 from ..MacroCommands.Fracture.post_endo_fiss_utils import crea_sd_mail
+from ..MacroCommands.macr_lign_coupe_ops import crea_mail_lig_coup
+from ..Objects import FieldOnNodesReal
 
 try:
     import matplotlib
@@ -36,24 +39,22 @@ except ImportError:
     HAS_MATPLOTLIB = False
 
 from ..CodeCommands import (
+    AFFE_CARA_ELEM,
+    AFFE_MODELE,
+    ASSEMBLAGE,
+    CALC_MODES,
+    CO,
     CREA_CHAMP,
-    RESOUDRE,
     CREA_RESU,
     FACTORISER,
-    NUME_DDL_GENE,
-    AFFE_MODELE,
     NUME_DDL,
-    ASSEMBLAGE,
-    CO,
+    NUME_DDL_GENE,
     PROJ_MATR_BASE,
-    AFFE_CARA_ELEM,
-    CALC_MODES,
     PROJ_VECT_BASE,
+    RESOUDRE,
 )
 
 DEBUG = False
-
-import time
 
 
 class Timer:

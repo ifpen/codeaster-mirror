@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
-from token import OP
 import warnings
 from time import time
 
@@ -84,11 +83,11 @@ validStringOptions = {
 
 Cvr_Rs_Dict = {
     3: "CONVERGED_ATOL",
-    4: "CONVERGED_ATOL_NORMAL",
+    # 4: "CONVERGED_ATOL_NORMAL",
     6: "CONVERGED_CG_CONSTRAINED",
     5: "CONVERGED_CG_NEG_CURVE",
     8: "CONVERGED_HAPPY_BREAKDOWN",
-    0: "CONVERGED_ITERATING",
+    # 0: "CONVERGED_ITERATING",
     4: "CONVERGED_ITS",
     2: "CONVERGED_RTOL",
     1: "CONVERGED_RTOL_NORMAL",
@@ -583,7 +582,6 @@ class _RASPENSolver:
                 self.locKsp.setOperators(self.Jloc, self.Jploc)
                 self.Jloc.copy(self.Jloc0)
                 if It == 0 or not self.GCGC.ProlongationIsBuilt:
-                    t_pro = time()
                     prolongBuild = getattr(
                         self.GCGC, "build" + self.coarseSpaceType + "Prolongation"
                     )
@@ -1055,8 +1053,8 @@ class substPrecondCtx:
         # Test local ksp
         try:
             self.Sl.locKsp.solve(self.Sl.Yloc, self.Sl.Yloc)
-        except:
-            raise (RuntimeError("Local snes ksp failed ! "))
+        except Exception:
+            raise RuntimeError("Local snes ksp failed ! ")
 
         # Slicing Local Jacobian only on ghost dofs
         rowsIs = PETSc.IS().createGeneral(np.arange(self.locSize, dtype=np.int32))
@@ -1559,7 +1557,6 @@ class GalerkinCoarseGridCorrection:
         coarseSize = samplMat.getSize()[1]
         intDofs = self.intDofs
         intSize = len(intDofs)
-        maxNNZ = len(NNCols)
         timings["setup_and_parameters"] = time() - start
 
         start = time()
@@ -2211,7 +2208,6 @@ class GalerkinCoarseGridCorrection:
         Performs the coarse correction
         """
         # Build snes if needed
-        tc = time()
         if not self.GCSnes:
             self.GCSnes = self.buildCoarseSnes()
         if Y is None:
@@ -2227,8 +2223,6 @@ class GalerkinCoarseGridCorrection:
         self.coarseProlongation(self.Xc, Y)
         if not reuse:
             return Y
-        # if self.raspen.rank == 0:
-        #     self.corrTime += time()- tc
 
 
 class GalerkinJacCtx:
@@ -2463,13 +2457,12 @@ class RASPENLogger:
 
         inSnes.setMonitor(SnesMonitor)
 
-    def log(self, msg):
-        """
-        Logs monitoring table
-        """
-        tab = tabulate(self.TabData, self.TabHeaders, tablefmt="pretty")
-        self.print_box(msg, extra_content=tab + "\n")
-        return
+    # def log(self, msg):
+    #     """
+    #     Logs monitoring table
+    #     """
+    #     tab = tabulate(self.TabData, self.TabHeaders, tablefmt="pretty")
+    #     self.print_box(msg, extra_content=tab + "\n")
 
     def print_box(self, content, extra_content="", vpad=3, hpad=12, tab=""):
         """
