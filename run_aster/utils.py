@@ -84,18 +84,23 @@ def copy(src, dst, verbose=False):
 
 
 def _copyfile(src, dst):
+    logger.debug("copyfile: %r to %r", src, dst)
     if RUNASTER_COPYMODE != "rsync":
         return shutil.copy2(src, dst)
     _copydir(src, dst, filemode=True)
 
 
 def _copydir(src: Path, dst: Path, filemode: bool = False):
+    logger.debug("copydir (filemode=%r): %r to %r", filemode, src, dst)
     if RUNASTER_COPYMODE != "rsync":
         return shutil.copytree(src, dst)
     if not filemode:
-        dst = str(Path(dst).parent) + "/"
+        # man rsync: "copy to a different name"
+        src = str(src) + "/"
+        dst = str(dst) + "/"
     # TODO check for supported algorithm
     cmd = ["rsync", "-a", "--checksum", str(src), str(dst)]
+    logger.debug("copy: %r", cmd)
     proc = run(cmd)
     iret = proc.returncode
     if iret != 0:

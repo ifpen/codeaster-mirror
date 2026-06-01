@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
-# person_in_charge: mathieu.courtois at edf.fr
 
 """
 Unittests of run_aster package.
@@ -63,17 +62,23 @@ class TestConfig(unittest.TestCase):
         self.assertTrue(CFG.storage.has_param("version_tag"))
         self.assertTrue(CFG.storage.has_param("version_sha1"))
         self.assertTrue(CFG.storage.has_param("tmpdir"))
+        self.assertTrue(CFG.storage.has_param("shared_tmpdir"))
         self.assertTrue(CFG.storage.has_param("addmem"))
         self.assertTrue(CFG.storage.has_param("parallel"))
-        self.assertTrue(CFG.storage.has_param("only-proc0"))
         self.assertTrue(CFG.storage.has_param("python"))
         self.assertTrue(CFG.storage.has_param("python_interactive"))
+        self.assertTrue(CFG.storage.has_param("python_interactive_is_wrapped"))
+        self.assertTrue(CFG.storage.has_param("mpiexec"))
+        self.assertTrue(CFG.storage.has_param("mpi_get_rank"))
+        self.assertTrue(CFG.storage.has_param("require_mpiexec"))
+        self.assertTrue(CFG.storage.has_param("use_srun"))
+        self.assertTrue(CFG.storage.has_param("only-proc0"))
         self.assertTrue(CFG.storage.has_param("FC"))
         self.assertTrue(CFG.storage.has_param("FCFLAGS"))
         self.assertTrue(CFG.storage.has_param("exectool"))
-        self.assertTrue(CFG.storage.has_param("mpiexec"))
-        self.assertTrue(CFG.storage.has_param("mpi_get_rank"))
-        size = 14
+        self.assertTrue(CFG.storage.has_param("use_s3sp"))
+        self.assertTrue(CFG.storage.has_param("copymode"))
+        size = 19
         # may contain user parameters
         self.assertGreaterEqual(len(CFG.storage), size)
 
@@ -698,6 +703,7 @@ class TestUtils(unittest.TestCase):
 
     def test_copy(self):
         previous = os.getcwd()
+        dbg = False
         try:
             with tempfile.TemporaryDirectory() as tmpdir:
                 os.chdir(tmpdir)
@@ -705,28 +711,39 @@ class TestUtils(unittest.TestCase):
                 os.system("mkdir datadir")
                 os.system("echo data2 > datadir/data2")
                 os.system("echo data3 > datadir/data3")
+                if dbg:
+                    os.system("find")
                 copy("data1", "resudir1/resu1", verbose=True)
+                if dbg:
+                    os.system("find")
                 self.assertTrue(osp.isfile(osp.join(tmpdir, "resudir1", "resu1")))
                 copy("data1", "resudir1/resu1.1", verbose=True)
+                if dbg:
+                    os.system("find")
                 self.assertTrue(osp.isfile(osp.join(tmpdir, "resudir1", "resu1.1")))
                 copy("data1", "resudir1", verbose=True)
+                if dbg:
+                    os.system("find")
                 self.assertTrue(osp.isfile(osp.join(tmpdir, "resudir1", "data1")))
 
-                copy("datadir", "resudir2")
+                copy("datadir", "resudir2", verbose=True)
+                if dbg:
+                    os.system("find")
                 self.assertTrue(osp.isdir(osp.join(tmpdir, "resudir2")))
                 self.assertTrue(osp.isfile(osp.join(tmpdir, "resudir2", "data2")))
                 self.assertTrue(osp.isfile(osp.join(tmpdir, "resudir2", "data3")))
                 with open(osp.join(tmpdir, "resudir2", "data3")) as fobj:
                     self.assertTrue("data3" in fobj.read())
                 os.system("echo change3 > datadir/data3")
-                copy("datadir", "resudir2")
+                copy("datadir", "resudir2", verbose=True)
                 self.assertTrue(osp.isdir(osp.join(tmpdir, "resudir2")))
                 self.assertTrue(osp.isfile(osp.join(tmpdir, "resudir2", "data2")))
                 self.assertTrue(osp.isfile(osp.join(tmpdir, "resudir2", "data3")))
                 self.assertFalse(osp.isdir(osp.join(tmpdir, "resudir2", "datadir")))
                 with open(osp.join(tmpdir, "resudir2", "data3")) as fobj:
                     self.assertTrue("change3" in fobj.read())
-                # os.system("find")
+                if dbg:
+                    os.system("find")
         finally:
             os.chdir(previous)
 
