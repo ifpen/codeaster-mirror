@@ -111,13 +111,13 @@ import tempfile
 from pathlib import Path
 from subprocess import run
 
+from .base_params import RUNASTER_PLATFORM, RUNASTER_ROOT
 from .command_files import AUTO_START, NOINIT_START
 from .config import CFG
 from .export import Export, File, split_export
 from .logger import DEBUG, WARNING, logger
 from .run import RunAster, create_temporary_dir, get_procid
 from .status import Status
-from .utils import RUNASTER_PLATFORM, RUNASTER_ROOT
 
 try:
     import debugpy

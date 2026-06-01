@@ -48,10 +48,10 @@ from pathlib import Path
 from subprocess import run
 from typing import Any
 
+from .base_params import RUNASTER_ROOT
 from .config import CFG
 from .export import Export
 from .logger import logger
-from .utils import RUNASTER_ROOT
 
 USAGE = """
     run_sbatch [sbatch-options] FILE.export

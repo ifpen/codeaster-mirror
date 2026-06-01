@@ -41,7 +41,7 @@ The list of the supported *version parameters* are (with their type):
     parallel: bool          - true for a parallel version
     python: str             - Python interpreter
     python_interactive: str - Python interpreter for interactive executions
-    python_interactive_is_wrapped: bool - Tell of Python for interactive sessions is a wrapper.
+    python_interactive_is_wrapped: bool - Tell of Python for interactive sessions is a wrapper
     mpiexec: str            - mpiexec/srun command line with arguments
     mpi_get_rank: str       - command line to get the mpi rank
     only-proc0: bool        - true to limit output to proc #0, false to show all
@@ -51,6 +51,7 @@ The list of the supported *version parameters* are (with their type):
     FCFLAGS: list[str]      - flags for fortran compiler
     exectool: dict[str]     - command lines for execution wrappers
     outputdir: str          - output directory for ``waf test`` and derivated
+    copymode: str           - utility to copy data/results files: 'rsync' or 'shutil'
 
 All these parameters are set during the *configure* step of the installation.
 
@@ -154,7 +155,7 @@ except ImportError:
 
 from .logger import logger
 from .settings import AbstractParameter, Store
-from .utils import RUNASTER_ROOT
+from .base_params import RUNASTER_ROOT
 
 # all parameters must be set by `data/wscript - check_config()`
 VERSION_PARAMS = {
@@ -177,6 +178,7 @@ VERSION_PARAMS = {
     "exectool": "dict[str]",
     "outputdir": "str",
     "use_s3sp": "bool",
+    "copymode": "str",
 }
 
 

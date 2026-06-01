@@ -78,6 +78,7 @@ import os.path as osp
 import platform
 import re
 
+from .base_params import RUNASTER_PLATFORM, RUNASTER_ROOT
 from .logger import logger
 from .settings import (
     DEPRECATED,
@@ -90,7 +91,6 @@ from .settings import (
     Store,
     subst_vars,
 )
-from .utils import RUNASTER_PLATFORM, RUNASTER_ROOT
 
 PARAMS_TYPE = {
     "actions": "list[str]",

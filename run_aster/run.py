@@ -32,6 +32,7 @@ from glob import glob
 from pathlib import Path
 from subprocess import PIPE, run
 
+from .base_params import RUNASTER_PLATFORM, RUNASTER_ROOT
 from .command_files import (
     add_coding_line,
     add_import_commands,
@@ -43,17 +44,7 @@ from .config import CFG
 from .logger import WARNING, logger
 from .status import StateOptions, Status, get_status
 from .timer import Timer
-from .utils import (
-    RUNASTER_PLATFORM,
-    RUNASTER_ROOT,
-    PercTemplate,
-    cmd_abspath,
-    compress,
-    copy,
-    make_writable,
-    run_command,
-    uncompress,
-)
+from .utils import PercTemplate, cmd_abspath, compress, copy, make_writable, run_command, uncompress
 
 EXITCODE_FILE = "_exit_code_"
 TMPMESS = "fort.6"

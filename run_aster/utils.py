@@ -25,6 +25,7 @@ This module provides convenient utilities for files manipulation,
 system command execution, templates...
 """
 
+__all__ = ("RUNASTER_ROOT", "RUNASTER_PLATFORM", "RUNASTER_COPYMODE")
 
 import gzip
 import os
@@ -41,25 +42,11 @@ try:
 except ImportError:
     pass
 
+from .base_params import RUNASTER_PLATFORM, RUNASTER_ROOT
+from .config import CFG
 from .logger import logger
 
-
-# Installation root is defined by launcher script or relatively to this file.
-# It supports lib/pythonX.Y/site-packages or lib/aster installations.
-def _set_root():
-    path = os.environ.get("RUNASTER_ROOT")
-    if path:
-        return path
-    path = Path(__file__).absolute()
-    while path != path.parent and path.name != "lib":
-        path = path.parent
-    return str(path.parent)
-
-
-RUNASTER_ROOT = _set_root()
-RUNASTER_PLATFORM = "linux" if os.name != "nt" else "win"
-# TODO add a configuration option
-RUNASTER_COPYMODE = "rsync" if Path("/usr/bin/rsync").exists() else "shutil"
+RUNASTER_COPYMODE = CFG.get("copymode", "shutil")
 
 
 def copy(src, dst, verbose=False):
