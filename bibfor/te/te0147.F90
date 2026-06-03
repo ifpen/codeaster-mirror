@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -194,8 +194,8 @@ subroutine te0147(option, nomte)
 !
     call jevech('PGEOMER', 'L', igeom)
     call jevech('PDEPLAR', 'L', idepl)
+    call jevech('PMATERC', 'L', imate)
     if (option .eq. 'CALC_K_G' .or. option .eq. 'CALC_K_G_F') then
-        call jevech('PMATERC', 'L', imate)
         call jevech('PBASLOR', 'L', ibalo)
         call jevech('PLSN', 'L', jlsn)
         call jevech('PLST', 'L', jlst)
@@ -509,36 +509,36 @@ subroutine te0147(option, nomte)
         end if
 !
         ! ===========================================
+        !      RECUPERATION DES DONNEES MATERIAU
+        ! ===========================================
+!
+        call rcvad2(fami, kp, 1, '+', zi(imate), 'ELAS', &
+                    3, nomres, valres, devres, icodre)
+!
+        if ((icodre(1) .ne. 0) .or. (icodre(2) .ne. 0)) then
+            call utmess('F', 'RUPTURE1_25')
+        end if
+!
+        e = valres(1)
+        nu = valres(2)
+        mu = e/(2.d0*(1.d0+nu))
+!
+        if (reeldim .eq. 3 .or. lteatt('AXIS', 'OUI') .or. lteatt('D_PLAN', 'OUI')) then
+            ka = 3.d0-4.d0*nu
+            coeff_K1K2 = e/(1.d0-nu*nu)
+            coeff_K3 = 2.d0*mu
+        else
+!----------- Contrainte plane
+            ka = (3.d0-nu)/(1.d0+nu)
+            coeff_K1K2 = e
+        end if
+!
+        ! ===========================================
         !         CALCUL DES SIFS ; OPTION K
         ! ===========================================
 !
         if (option .eq. 'CALC_K_G' .or. option .eq. 'CALC_K_G_F') then
 !
-            ! ===========================================
-            !      RECUPERATION DES DONNEES MATERIAU
-            ! ===========================================
-!
-            call rcvad2(fami, kp, 1, '+', zi(imate), 'ELAS', &
-                        3, nomres, valres, devres, icodre)
-!
-            if ((icodre(1) .ne. 0) .or. (icodre(2) .ne. 0)) then
-                call utmess('F', 'RUPTURE1_25')
-            end if
-!
-            e = valres(1)
-            nu = valres(2)
-            mu = e/(2.d0*(1.d0+nu))
-!
-            if (reeldim .eq. 3 .or. lteatt('AXIS', 'OUI')) then
-                ka = 3.d0-4.d0*nu
-                coeff_K1K2 = e/(1.d0-nu*nu)
-                coeff_K3 = 2.d0*mu
-            else
-!----------- Contrainte plane
-                ka = (3.d0-nu)/(1.d0+nu)
-                coeff_K1K2 = e
-            end if
-
             ! ===========================================
             !      CALCUL DES COORDONNEE CYLINDRIQUE
             ! ===========================================
