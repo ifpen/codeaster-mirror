@@ -17,9 +17,9 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
-from code_aster.CA import MPI
 from code_aster.Commands import *
 from code_aster import CA
+from code_aster.CA import MPI
 
 CA.init("--test", ERREUR=_F(ALARME="EXCEPTION"))
 
