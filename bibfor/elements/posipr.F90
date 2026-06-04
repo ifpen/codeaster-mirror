@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -185,7 +185,7 @@ subroutine posipr(nomte, efge, sipo)
         sipo(11) = efge(11)/xiy2*rz2
         sipo(12) = -efge(12)/xiz2*ry2
     else
-        ASSERT( .false. )
+        ASSERT(.false.)
     end if
 !
 end subroutine
