@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -16,8 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
-
-# person_in_charge: sylvie.granet at edf.fr
 
 
 from cataelem.Tools.base_objects import LocatedComponents, ArrayOfComponents, SetOfNodes, ElrefeLoc
@@ -254,7 +252,6 @@ MMATUNS = ArrayOfComponents(phys=PHY.MDNS_R, locatedComponents=DDL_MECA)
 
 # ------------------------------------------------------------
 class HM_DPQ8(Element):
-
     """Please document this element"""
 
     meshType = MT.QUAD8
@@ -580,7 +577,10 @@ class HM_DPQ8(Element):
                 (OP.TOU_INI_ELGA.PVARI_R, ZVARIPG),
             ),
         ),
-        OP.TOU_INI_ELEM(te=99, para_out=((OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM2D),)),
+        OP.TOU_INI_ELEM(
+            te=99,
+            para_out=((OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM2D), (OP.TOU_INI_ELEM.PTEMP_R, LC.CTEMPER)),
+        ),
         OP.TOU_INI_ELNO(
             te=99,
             para_out=(
@@ -603,7 +603,6 @@ class HM_DPQ8(Element):
 
 # ------------------------------------------------------------
 class HM_DPTR6(HM_DPQ8):
-
     """Please document this element"""
 
     meshType = MT.TRIA6
@@ -621,7 +620,6 @@ class HM_DPTR6(HM_DPQ8):
 
 # ------------------------------------------------------------
 class HM_DPQ8M(HM_DPQ8):
-
     """Please document this element"""
 
     meshType = MT.QUAD8
@@ -639,7 +637,6 @@ class HM_DPQ8M(HM_DPQ8):
 
 # ------------------------------------------------------------
 class HM_DPTR6M(HM_DPQ8):
-
     """Please document this element"""
 
     meshType = MT.TRIA6
@@ -657,7 +654,6 @@ class HM_DPTR6M(HM_DPQ8):
 
 # ------------------------------------------------------------
 class HM_DPQ8D(HM_DPQ8):
-
     """Please document this element"""
 
     meshType = MT.QUAD8
@@ -675,7 +671,6 @@ class HM_DPQ8D(HM_DPQ8):
 
 # ------------------------------------------------------------
 class HM_DPTR6D(HM_DPQ8):
-
     """Please document this element"""
 
     meshType = MT.TRIA6
@@ -693,7 +688,6 @@ class HM_DPTR6D(HM_DPQ8):
 
 # ------------------------------------------------------------
 class HM_DPQ8S(HM_DPQ8):
-
     """Please document this element"""
 
     meshType = MT.QUAD8
@@ -711,7 +705,6 @@ class HM_DPQ8S(HM_DPQ8):
 
 # ------------------------------------------------------------
 class HM_DPTR6S(HM_DPQ8):
-
     """Please document this element"""
 
     meshType = MT.TRIA6

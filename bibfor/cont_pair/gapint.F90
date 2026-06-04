@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -158,10 +158,10 @@ subroutine gapint(elem_dime, l_axis, &
                 gauss_coot(2) = gauss_coor(2, i_gauss)
             end if
 ! --------- Get shape functions and first derivative
-            call mmnonf(elem_dime, elem_slav_nbnode, elem_slav_code, &
+            call mmnonf(elem_slav_code, &
                         gauss_coot(1), gauss_coot(2), &
                         shape_func)
-            call mmdonf(elem_dime, elem_slav_nbnode, elem_slav_code, &
+            call mmdonf(elem_slav_code, &
                         gauss_coot(1), gauss_coot(2), &
                         shape_dfunc)
 ! --------- Transfert Gauss coordinates in real space (new geometry)

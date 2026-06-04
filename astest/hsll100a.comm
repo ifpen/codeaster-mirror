@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -59,16 +59,19 @@ carel = AFFE_CARA_ELEM(
 TemperRefe = 0.0
 
 TEMP_0 = CREA_CHAMP(
-    TYPE_CHAM="NOEU_TEMP_R",
+    TYPE_CHAM="ELEM_TEMP_R",
     OPERATION="AFFE",
-    MAILLAGE=mailp,
+    MODELE=modelp,
+    AFFE_SP=_F(CARA_ELEM=carel),
     AFFE=_F(TOUT="OUI", NOM_CMP="TEMP", VALE=TemperRefe),
 )
 
+
 TEMP_1 = CREA_CHAMP(
-    TYPE_CHAM="NOEU_TEMP_R",
+    TYPE_CHAM="ELEM_TEMP_R",
     OPERATION="AFFE",
-    MAILLAGE=mailp,
+    MODELE=modelp,
+    AFFE_SP=_F(CARA_ELEM=carel),
     AFFE=_F(TOUT="OUI", NOM_CMP="TEMP", VALE=400.0),
 )
 

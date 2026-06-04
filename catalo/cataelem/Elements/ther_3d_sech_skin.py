@@ -224,6 +224,7 @@ class SECH_FACE3(Element):
                 (OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM3D),
                 (OP.TOU_INI_ELEM.PNEU1_R, LC.CNEUTR1),
                 (OP.TOU_INI_ELEM.PCOEH_R, LC.CHECHPR),
+                (OP.TOU_INI_ELEM.PTEMP_R, LC.CTEMPER),
             ),
         ),
         OP.TOU_INI_ELNO(

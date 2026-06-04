@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -251,7 +251,6 @@ MMATUNS = ArrayOfComponents(phys=PHY.MDNS_R, locatedComponents=DDL_MECA)
 
 # ------------------------------------------------------------
 class HH2M_AXIS_QU8D(Element):
-
     """Please document this element"""
 
     meshType = MT.QUAD8
@@ -542,7 +541,10 @@ class HH2M_AXIS_QU8D(Element):
                 (OP.TOU_INI_ELGA.PVARI_R, ZVARIPG),
             ),
         ),
-        OP.TOU_INI_ELEM(te=99, para_out=((OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM2D),)),
+        OP.TOU_INI_ELEM(
+            te=99,
+            para_out=((OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM2D), (OP.TOU_INI_ELEM.PTEMP_R, LC.CTEMPER)),
+        ),
         OP.TOU_INI_ELNO(
             te=99,
             para_out=(
@@ -565,7 +567,6 @@ class HH2M_AXIS_QU8D(Element):
 
 # ------------------------------------------------------------
 class HH2M_AXIS_TR6D(HH2M_AXIS_QU8D):
-
     """Please document this element"""
 
     meshType = MT.TRIA6
@@ -581,7 +582,6 @@ class HH2M_AXIS_TR6D(HH2M_AXIS_QU8D):
 
 # ------------------------------------------------------------
 class HH2M_AXIS_QU8S(HH2M_AXIS_QU8D):
-
     """Please document this element"""
 
     meshType = MT.QUAD8
@@ -599,7 +599,6 @@ class HH2M_AXIS_QU8S(HH2M_AXIS_QU8D):
 
 # ------------------------------------------------------------
 class HH2M_AXIS_TR6S(HH2M_AXIS_QU8D):
-
     """Please document this element"""
 
     meshType = MT.TRIA6

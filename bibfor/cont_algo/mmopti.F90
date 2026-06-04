@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,6 +15,7 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
+! aslint: disable=W0413
 !
 subroutine mmopti(mesh, ds_contact, list_func_acti)
 !
@@ -330,7 +331,7 @@ subroutine mmopti(mesh, ds_contact, list_func_acti)
 !
                 if ((l_auto_seuil) .or. ((l_reuse) .and. (contInit .eq. 2))) then
                     call mmextm(ds_contact%sdcont_defi, cnscon, elem_slav_indx, mlagc)
-                    call mmvalp_scal(model_ndim, elem_slav_type, elem_slav_nbno, ksipr1, ksipr2, &
+                    call mmvalp_scal(elem_slav_type, elem_slav_nbno, ksipr1, ksipr2, &
                                      mlagc, pres_cont)
                     v_sdcont_tabfin(ztabf*(i_cont_poin-1)+17) = pres_cont
                 else

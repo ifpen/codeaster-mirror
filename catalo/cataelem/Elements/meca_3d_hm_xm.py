@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2024 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
-# person_in_charge: daniele.colombo at ifpen.fr
 # CATALOGUE DES ELEMENTS 3D HM-X-FEM MULTI HEAVISIDE SANS CONTACT
 
 
@@ -251,7 +250,6 @@ MMATUNS = ArrayOfComponents(phys=PHY.MDNS_R, locatedComponents=DDL_MECA)
 
 # ------------------------------------------------------------
 class HM_HEXA20_XH1(Element):
-
     """Please document this element"""
 
     meshType = MT.HEXA20
@@ -576,7 +574,10 @@ class HM_HEXA20_XH1(Element):
                 (OP.TOPOSE.PPMILTO, E792NEUT),
             ),
         ),
-        OP.TOU_INI_ELEM(te=99, para_out=((OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM3D),)),
+        OP.TOU_INI_ELEM(
+            te=99,
+            para_out=((OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM3D), (OP.TOU_INI_ELEM.PTEMP_R, LC.CTEMPER)),
+        ),
         OP.TOU_INI_ELGA(
             te=99,
             para_out=(
@@ -602,7 +603,6 @@ class HM_HEXA20_XH1(Element):
 
 # ------------------------------------------------------------
 class HM_PENTA15_XH1(HM_HEXA20_XH1):
-
     """Please document this element"""
 
     meshType = MT.PENTA15
@@ -628,7 +628,6 @@ class HM_PENTA15_XH1(HM_HEXA20_XH1):
 
 # ------------------------------------------------------------
 class HM_PYRAM13_XH1(HM_HEXA20_XH1):
-
     """Please document this element"""
 
     meshType = MT.PYRAM13
@@ -651,7 +650,6 @@ class HM_PYRAM13_XH1(HM_HEXA20_XH1):
 
 # ------------------------------------------------------------
 class HM_TETRA10_XH1(HM_HEXA20_XH1):
-
     """Please document this element"""
 
     meshType = MT.TETRA10
@@ -674,7 +672,6 @@ class HM_TETRA10_XH1(HM_HEXA20_XH1):
 
 # ------------------------------------------------------------
 class HM_HEXA20_XH2(HM_HEXA20_XH1):
-
     """Please document this element"""
 
     meshType = MT.HEXA20
@@ -702,7 +699,6 @@ class HM_HEXA20_XH2(HM_HEXA20_XH1):
 
 # ------------------------------------------------------------
 class HM_PENTA15_XH2(HM_HEXA20_XH1):
-
     """Please document this element"""
 
     meshType = MT.PENTA15
@@ -730,7 +726,6 @@ class HM_PENTA15_XH2(HM_HEXA20_XH1):
 
 # ------------------------------------------------------------
 class HM_PYRAM13_XH2(HM_HEXA20_XH1):
-
     """Please document this element"""
 
     meshType = MT.PYRAM13
@@ -755,7 +750,6 @@ class HM_PYRAM13_XH2(HM_HEXA20_XH1):
 
 # ------------------------------------------------------------
 class HM_TETRA10_XH2(HM_HEXA20_XH1):
-
     """Please document this element"""
 
     meshType = MT.TETRA10
@@ -778,7 +772,6 @@ class HM_TETRA10_XH2(HM_HEXA20_XH1):
 
 # ------------------------------------------------------------
 class HM_HEXA20_XH3(HM_HEXA20_XH1):
-
     """Please document this element"""
 
     meshType = MT.HEXA20
@@ -806,7 +799,6 @@ class HM_HEXA20_XH3(HM_HEXA20_XH1):
 
 # ------------------------------------------------------------
 class HM_PENTA15_XH3(HM_HEXA20_XH1):
-
     """Please document this element"""
 
     meshType = MT.PENTA15
@@ -834,7 +826,6 @@ class HM_PENTA15_XH3(HM_HEXA20_XH1):
 
 # ------------------------------------------------------------
 class HM_PYRAM13_XH3(HM_HEXA20_XH1):
-
     """Please document this element"""
 
     meshType = MT.PYRAM13
@@ -859,7 +850,6 @@ class HM_PYRAM13_XH3(HM_HEXA20_XH1):
 
 # ------------------------------------------------------------
 class HM_TETRA10_XH3(HM_HEXA20_XH1):
-
     """Please document this element"""
 
     meshType = MT.TETRA10

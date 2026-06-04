@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,32 +15,29 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-subroutine mmfonf(ndim, nno, alias, ksi1, ksi2, &
+!
+subroutine mmfonf(cellDime, cellNbNode, cellCode, ksi1, ksi2, &
                   ff, dff, ddff)
 !
-! person_in_charge: mickael.abbas at edf.fr
-!
     implicit none
+!
 #include "asterfort/mm2onf.h"
 #include "asterfort/mmdonf.h"
 #include "asterfort/mmnonf.h"
-    character(len=8) :: alias
-    real(kind=8) :: ksi1, ksi2
-    real(kind=8) :: ff(9)
-    real(kind=8) :: dff(2, 9)
-    real(kind=8) :: ddff(3, 9)
-    integer(kind=8) :: nno, ndim
 !
-! ----------------------------------------------------------------------
+    integer(kind=8), intent(in) :: cellDime, cellNbNode
+    character(len=8), intent(in) :: cellCode
+    real(kind=8), intent(in) :: ksi1, ksi2
+    real(kind=8), intent(out) :: ff(9), dff(2, 9), ddff(3, 9)
+!
+! --------------------------------------------------------------------------------------------------
 !
 ! ROUTINE CONTACT (TOUTES METHODES - UTILITAIRE)
 !
 ! CALCUL DES FONCTIONS DE FORME ET DE LEUR DERIVEES EN UN POINT
 ! DE L'ELEMENT DE REFERENCE
 !
-! ----------------------------------------------------------------------
-!
+! --------------------------------------------------------------------------------------------------
 !
 ! ROUTINE "GLUTE" NECESSAIRE DU FAIT QUE LES FCT. FORME DE LA METHODE
 ! CONTINUE NE SONT PAS CELLES STANDARDS D'ASTER.
@@ -57,17 +54,11 @@ subroutine mmfonf(ndim, nno, alias, ksi1, ksi2, &
 ! OUT DFF    : DERIVEES PREMIERES DES FONCTIONS DE FORME EN XI YI
 ! OUT DDFF   : DERIVEES SECONDES DES FONCTIONS DE FORME EN XI YI
 !
-! ----------------------------------------------------------------------
+! --------------------------------------------------------------------------------------------------
 !
-!
-!
-    call mmnonf(ndim, nno, alias, ksi1, ksi2, &
-                ff)
-!
-    call mmdonf(ndim, nno, alias, ksi1, ksi2, &
-                dff)
-!
-    call mm2onf(ndim, nno, alias, ksi1, ksi2, &
+    call mmnonf(cellCode, ksi1, ksi2, ff)
+    call mmdonf(cellCode, ksi1, ksi2, dff)
+    call mm2onf(cellDime, cellNbNode, cellCode, ksi1, ksi2, &
                 ddff)
 !
 end subroutine

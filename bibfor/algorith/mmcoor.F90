@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -16,60 +16,51 @@
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
 !
-subroutine mmcoor(alias, nno, ndim, coorma, ksi1, &
-                  ksi2, coorpt)
-!
-! person_in_charge: mickael.abbas at edf.fr
+subroutine mmcoor(cellCode, cellNbNode, cellCoor, &
+                  ksi1, ksi2, coorpt)
 !
     implicit none
-#include "asterfort/mmnonf.h"
-    integer(kind=8) :: ndim, nno
-    character(len=8) :: alias
-    real(kind=8) :: ksi1, ksi2
-    real(kind=8) :: coorma(27), coorpt(3)
 !
-! ----------------------------------------------------------------------
+#include "asterfort/mmnonf.h"
+!
+    character(len=8), intent(in) :: cellCode
+    integer(kind=8), intent(in)::  cellNbNode
+    real(kind=8), intent(in) :: ksi1, ksi2
+    real(kind=8), intent(in) :: cellCoor(27)
+    real(kind=8), intent(out) :: coorpt(3)
+!
+! --------------------------------------------------------------------------------------------------
 !
 ! ROUTINE CONTACT (TOUTES METHODES - UTILITAIRE)
 !
 ! CALCUL DES COORDONNEES D'UN POINT SUR UNE MAILLE A PARTIR
 ! DE SES COORDONNEES PARAMETRIQUES
 !
-! ----------------------------------------------------------------------
-!
+! --------------------------------------------------------------------------------------------------
 !
 ! IN  ALIAS  : TYPE DE MAILLE
 ! IN  NNO    : NOMBRE DE NOEUD SUR LA MAILLE
-! IN  NDIM   : DIMENSION DE LA MAILLE (2 OU 3)
 ! IN  COORMA : COORDONNEES DES NOEUDS DE LA MAILLE
 ! IN  KSI1   : COORDONNEE PARAMETRIQUE KSI DU PROJETE
 ! IN  KSI2   : COORDONNEE PARAMETRIQUE ETA DU PROJETE
 ! OUT COORPT : COORDONNEES DU POINT
 !
-!-----------------------------------------------------------------------
+! --------------------------------------------------------------------------------------------------
 !
-    integer(kind=8) :: idim, ino
+    integer(kind=8) :: iDime, iNode
     real(kind=8) :: ff(9)
 !
-!-----------------------------------------------------------------------
+! --------------------------------------------------------------------------------------------------
 !
-!
-! --- INITIALISATIONS
-!
-    do idim = 1, 3
-        coorpt(idim) = 0.d0
-    end do
-!
-! --- FONCTIONS DE FORME
-!
-    call mmnonf(ndim, nno, alias, ksi1, ksi2, &
-                ff)
-!
-! --- COORDONNEES DU POINT
-!
-    do idim = 1, 3
-        do ino = 1, nno
-            coorpt(idim) = ff(ino)*coorma(3*(ino-1)+idim)+coorpt(idim)
+    coorpt = 0.d0
+
+! - FONCTIONS DE FORME
+    call mmnonf(cellCode, ksi1, ksi2, ff)
+
+! - COORDONNEES DU POINT
+    do iDime = 1, 3
+        do iNode = 1, cellNbNode
+            coorpt(iDime) = ff(iNode)*cellCoor(3*(iNode-1)+iDime)+coorpt(iDime)
         end do
     end do
 !

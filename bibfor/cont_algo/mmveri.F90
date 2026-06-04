@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -48,7 +48,6 @@ subroutine mmveri(mesh, ds_contact, time_curr, nt_ncomp_poin, &
 #include "asterfort/utmess.h"
 #include "asterfort/int_to_char8.h"
 !
-! person_in_charge: mickael.abbas at edf.fr
 !
     character(len=8), intent(in) :: mesh
     type(NL_DS_Contact), intent(in) :: ds_contact
@@ -196,7 +195,7 @@ subroutine mmveri(mesh, ds_contact, time_curr, nt_ncomp_poin, &
 !
 ! ------------- Coordinates of projection
 !
-                call mcopco(mesh, newgeo, model_ndim, elem_mast_nume, ksipr1, &
+                call mcopco(mesh, newgeo, elem_mast_nume, ksipr1, &
                             ksipr2, node_coor_proj)
 !
 ! ------------- Contact point name

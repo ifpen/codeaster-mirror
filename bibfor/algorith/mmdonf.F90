@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -16,28 +16,25 @@
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
 !
-! person_in_charge: mickael.abbas at edf.fr
-!
-subroutine mmdonf(ndim, nno, alias, ksi1, ksi2, dff)
+subroutine mmdonf(cellCode, ksi1, ksi2, dff)
 !
     implicit none
 !
 #include "asterfort/assert.h"
 #include "asterfort/elrfdf.h"
 !
-    character(len=8) :: alias
-    real(kind=8) :: ksi1, ksi2
-    real(kind=8) :: dff(2, 9)
-    integer(kind=8) :: nno, ndim
+    character(len=8), intent(in) :: cellCode
+    real(kind=8), intent(in) :: ksi1, ksi2
+    real(kind=8), intent(out) :: dff(2, 9)
 !
-! ----------------------------------------------------------------------
+! --------------------------------------------------------------------------------------------------
 !
 ! ROUTINE CONTACT (TOUTES METHODES - UTILITAIRE)
 !
 ! CALCUL DES DERIVEES PREMIERES DES FONCTIONS DE FORME EN UN POINT
 ! DE L'ELEMENT DE REFERENCE
 !
-! ----------------------------------------------------------------------
+! --------------------------------------------------------------------------------------------------
 !
 ! IN  ALIAS  : NOM D'ALIAS DE L'ELEMENT
 ! IN  NNO    : NOMBRE DE NOEUD DE L'ELEMENT
@@ -48,21 +45,17 @@ subroutine mmdonf(ndim, nno, alias, ksi1, ksi2, dff)
 !               FONCTIONS DE FORME ET LEURS DERIVEES
 ! OUT DFF    : DERIVEES PREMIERES DES FONCTIONS DE FORME EN XI YI
 !
-! ----------------------------------------------------------------------
+! --------------------------------------------------------------------------------------------------
 !
     real(kind=8) :: ksi(2), d2f(3, 9)
 !
-! ----------------------------------------------------------------------
+! --------------------------------------------------------------------------------------------------
 !
-    dff(:, :) = 0.d0
-    d2f(:, :) = 0.d0
+    dff = 0.d0
+    d2f = 0.d0
     ksi(1) = ksi1
     ksi(2) = ksi2
-    ASSERT(nno .ge. 1)
-    ASSERT(nno .le. 9)
-    ASSERT(ndim .ge. 1)
-    ASSERT(ndim .le. 3)
-    call elrfdf(alias, ksi, d2f)
+    call elrfdf(cellCode, ksi, d2f)
     dff(1:2, :) = d2f(1:2, :)
 !
 end subroutine

@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -234,7 +234,6 @@ MMATUNS = ArrayOfComponents(phys=PHY.MDNS_R, locatedComponents=DDL_MECA)
 
 # ------------------------------------------------------------
 class MEDSQU4(Element):
-
     """Mechanics - Plate (DST) - QUAD4"""
 
     meshType = MT.QUAD4
@@ -813,6 +812,7 @@ class MEDSQU4(Element):
                 (OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM3D),
                 (OP.TOU_INI_ELEM.PNBSP_I, ENBSP_I),
                 (OP.TOU_INI_ELEM.PPRES_R, CPRES_R),
+                (OP.TOU_INI_ELEM.PTEMP_R, LC.CTEMPER),
             ),
         ),
         OP.TOU_INI_ELGA(
@@ -850,7 +850,6 @@ class MEDSQU4(Element):
 
 # ------------------------------------------------------------
 class MEDSTR3(MEDSQU4):
-
     """Mechanics - Plate (DST) - TRIA3"""
 
     meshType = MT.TRIA3

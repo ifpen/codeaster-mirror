@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
-# person_in_charge: jacques.pellet at edf.fr
 
 from ..Commons import *
 from ..Language.DataStructure import *
@@ -69,7 +68,7 @@ DEFI_GROUP = OPER(
         MAILLE=SIMP(statut="c", typ=ma, validators=NoRepeat(), max="**"),
         INTERSEC=SIMP(statut="f", typ=grma, validators=NoRepeat(), max="**"),
         UNION=SIMP(statut="f", typ=grma, validators=NoRepeat(), max="**"),
-        DIFFE=SIMP(statut="f", typ=grma, validators=NoRepeat(), max="**"),
+        DIFFE=SIMP(statut="f", typ=grma, validators=NoRepeat(), max="**", min=1),
         TYPE_MAILLE=SIMP(
             statut="f",
             typ="TXM",
@@ -229,7 +228,7 @@ DEFI_GROUP = OPER(
             NOEUD=SIMP(statut="c", typ=no, validators=NoRepeat(), max="**"),
             INTERSEC=SIMP(statut="f", typ=grno, validators=NoRepeat(), max="**"),
             UNION=SIMP(statut="f", typ=grno, validators=NoRepeat(), max="**"),
-            DIFFE=SIMP(statut="f", typ=grno, validators=NoRepeat(), max="**"),
+            DIFFE=SIMP(statut="f", typ=grno, validators=NoRepeat(), max="**", min=1),
             b_nom_group_ma=BLOC(
                 condition="""exists("GROUP_MA")""",
                 NOM=SIMP(statut="f", typ="TXM", validators=NoRepeat(), max="**"),

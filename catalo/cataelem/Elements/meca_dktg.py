@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -152,9 +152,9 @@ MMATUUC = ArrayOfComponents(phys=PHY.MDEP_C, locatedComponents=NDEPLAC)
 
 MMATUUR = ArrayOfComponents(phys=PHY.MDEP_R, locatedComponents=DDL_MECA)
 
+
 # ------------------------------------------------------------
 class MEDKQG4(Element):
-
     """Mechanics - Plate (DKTG) - QUAD4"""
 
     meshType = MT.QUAD4
@@ -719,7 +719,10 @@ class MEDKQG4(Element):
             para_in=((OP.SIEF_ELNO.PCONTRR, LC.EGFG3DR), (OP.SIEF_ELNO.PVARCPR, LC.ZVARCPG)),
             para_out=((SP.PSIEFNOC, EEFGENOC), (OP.SIEF_ELNO.PSIEFNOR, EEFGENOR)),
         ),
-        OP.TOU_INI_ELEM(te=99, para_out=((OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM3D),)),
+        OP.TOU_INI_ELEM(
+            te=99,
+            para_out=((OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM3D), (OP.TOU_INI_ELEM.PTEMP_R, LC.CTEMPER)),
+        ),
         OP.TOU_INI_ELGA(
             te=99,
             para_out=(
@@ -757,7 +760,6 @@ class MEDKQG4(Element):
 
 # ------------------------------------------------------------
 class MEDKTG3(MEDKQG4):
-
     """Mechanics - Plate (DKTG) - TRIA3"""
 
     meshType = MT.TRIA3

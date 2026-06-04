@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -48,7 +48,7 @@ class sd_nume_equa(AsBase):
 
         # nom de la grandeur :
         assert refn[1] != ""
-        sdu_verif_nom_gd(refn[1])
+        assert sdu_verif_nom_gd(refn[1]), refn[1] + " n'est pas un nom de grandeur."
 
         # Cas ELIM_LAGR :
         assert refn[3] in ("", "ELIM_LAGR", "SIMPLE_LAGRANGE")

@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -112,7 +112,7 @@ subroutine aprtpm(pair_tole, elem_dime, &
 !
 ! --------- Compute normal
 !
-        call mmdonf(elem_dime, elem_slav_nbnode, elem_slav_code, &
+        call mmdonf(elem_slav_code, &
                     ksi(1), ksi(2), &
                     dff)
         call mmtang(elem_dime, elem_slav_nbnode, elem_slav_coor, dff, tau1, &
@@ -195,7 +195,7 @@ subroutine aprtpm(pair_tole, elem_dime, &
 ! - Get shape functions and first derivative only (for perf)
 !
 
-            call mmdonf(elem_dime, elem_slav_nbnode, elem_slav_code, &
+            call mmdonf(elem_slav_code, &
                         gauss_coot(1), gauss_coot(2), &
                         shape_dfunc)
 !

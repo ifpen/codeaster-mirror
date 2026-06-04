@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -42,7 +42,6 @@ subroutine mmreas(mesh, ds_contact, hval_incr)
 #include "asterfort/nmchex.h"
 #include "asterfort/nmdebg.h"
 !
-! person_in_charge: mickael.abbas at edf.fr
 !
     character(len=8), intent(in) :: mesh
     type(NL_DS_Contact), intent(in) :: ds_contact
@@ -160,7 +159,7 @@ subroutine mmreas(mesh, ds_contact, hval_incr)
 !
 ! --------- MULTIPLICATEUR DE LAGRANGE DE CONTACT DU POINT
 !
-                call mmvalp_scal(ndimg, aliase, nne, ksipc1, &
+                call mmvalp_scal(aliase, nne, ksipc1, &
                                  ksipc2, mlagc, lambdc)
 !
 ! --------- SAUVEGARDE

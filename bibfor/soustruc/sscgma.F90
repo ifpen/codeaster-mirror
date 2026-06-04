@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -81,11 +81,12 @@ subroutine sscgma(ma, nbgmp, nbgmin)
     integer(kind=8) :: n2, n3, n4, n5, n6, n6a, n6b
     integer(kind=8) :: n7, n8, nalar, nb, nbcol
     integer(kind=8) :: nbgnaj, nbgrmn, nbid, nbis, nbk8, nbline, nbma
-    integer(kind=8) :: nbmat, niv, ntrou, ntyp, num
+    integer(kind=8) :: nbmat, niv, ntrou, ntyp, num, nverif
     aster_logical :: l_parallel_mesh, l_added_grpma, lcolle
     character(len=24), pointer :: lik8(:) => null()
     character(len=8), pointer :: l_maille(:) => null()
     integer(kind=8), pointer :: maille2(:) => null()
+    character(len=24), pointer :: lik8_2(:) => null()
 !-----------------------------------------------------------------------
     call jemarq()
 !
@@ -389,10 +390,18 @@ subroutine sscgma(ma, nbgmp, nbgmin)
 !       -- MOT CLEF DIFFE:
 !       -------------------
         if (n5 .gt. 0) then
+            AS_ALLOCATE(vk24=lik8_2, size=n5)
+            call getvtx('CREA_GROUP_MA', 'DIFFE', iocc=iocc, nbval=n5, vect=lik8_2, nbret=nverif)
             AS_ALLOCATE(vk24=lik8, size=n5)
             call getvem(ma, 'GROUP_MA', 'CREA_GROUP_MA', 'DIFFE', iocc, &
                         n5, lik8, nbid)
             n5 = nbid
+            if (lik8_2(1) .ne. lik8(1)) then
+                n5 = 0
+            end if
+            if (nverif .ne. 0) then
+                AS_DEALLOCATE(vk24=lik8_2)
+            end if
             do igm = 1, n5
                 call jenonu(jexnom(ma//'.GROUPEMA', lik8(igm)), igm2)
                 if (igm2 .eq. 0) then

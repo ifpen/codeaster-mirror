@@ -540,6 +540,9 @@ def check_config(self):
         "valgrind": "valgrind --tool=memcheck --leak-check=full --error-limit=no --track-origins=yes",
         "gdb": osp.join(self.env.ASTERDATADIR, "exectool", "gdb_wrapper"),
     }
+    # rsync available?
+    _check_prog(self, "RSYNC", ["rsync"], mandatory=False, var_prefix="")
+    cfg["copymode"] = "rsync" if self.env.RSYNC else "shutil"
     # slurm plugin
     cfg["use_s3sp"] = 0
     from_env = self.env["CONFIG_PARAMETERS"]

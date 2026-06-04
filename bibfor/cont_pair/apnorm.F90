@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -62,7 +62,7 @@ subroutine apnorm(elem_nbnode, elem_code, elem_dime, elem_coor, &
     tau1(1:3) = 0.d0
     tau2(1:3) = 0.d0
 !
-    call mmdonf(elem_dime, elem_nbnode, elem_code, ksi1, ksi2, &
+    call mmdonf(elem_code, ksi1, ksi2, &
                 dff)
     call mmtang(elem_dime, elem_nbnode, elem_coor, dff, tau1, &
                 tau2)

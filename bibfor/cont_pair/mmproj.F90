@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -16,32 +16,31 @@
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
 
-subroutine mmproj(alias, nno, ndim, coorma, coorpt, &
-                  itemax, epsmax, toleou, dirapp, dir, &
+subroutine mmproj(cellCode, cellNbNode, cellDime, cellCoor, poinCoor, &
+                  projtIterMaxi, projToleMaxi, toleou, dirapp, dir, &
                   ksi1, ksi2, tau1, tau2, iproj, &
-                  niverr)
+                  projError)
 !
-! person_in_charge: mickael.abbas at edf.fr
 !
     implicit none
 #include "asterf_types.h"
 #include "asterfort/mmnewd.h"
-#include "asterfort/mmnewt.h"
+#include "asterfort/projOrthoNewton.h"
 #include "asterfort/mmtole.h"
-    character(len=8) :: alias
-    integer(kind=8) :: ndim
-    integer(kind=8) :: nno
-    real(kind=8) :: coorma(27)
-    real(kind=8) :: coorpt(3)
+    character(len=8) :: cellCode
+    integer(kind=8) :: cellDime
+    integer(kind=8) :: cellNbNode
+    real(kind=8) :: cellCoor(27)
+    real(kind=8) :: poinCoor(3)
     aster_logical :: dirapp
     real(kind=8) :: dir(3)
     real(kind=8) :: ksi1, ksi2
     real(kind=8) :: tau1(3), tau2(3)
     real(kind=8) :: toleou
     integer(kind=8) :: iproj
-    integer(kind=8) :: niverr
-    integer(kind=8) :: itemax
-    real(kind=8) :: epsmax
+    integer(kind=8) :: projError
+    integer(kind=8) :: projtIterMaxi
+    real(kind=8) :: projToleMaxi
 !
 ! ----------------------------------------------------------------------
 !
@@ -76,26 +75,28 @@ subroutine mmproj(alias, nno, ndim, coorma, coorpt, &
 !
 ! ----------------------------------------------------------------------
 !
-    niverr = 0
+    projError = 0
 !
 ! --- ALGO DE NEWTON POUR LA PROJECTION SUIVANT UNE DIRECTION DONNEE
 !
     if (dirapp) then
-        call mmnewd(alias, nno, ndim, coorma, coorpt, &
-                    itemax, epsmax, dir, ksi1, ksi2, &
-                    tau1, tau2, niverr)
+        call mmnewd(cellCode, cellNbNode, cellDime, cellCoor, poinCoor, &
+                    projtIterMaxi, projToleMaxi, dir, ksi1, ksi2, &
+                    tau1, tau2, projError)
     else
-        call mmnewt(alias, nno, ndim, coorma, coorpt, &
-                    itemax, epsmax, ksi1, ksi2, tau1, &
-                    tau2, niverr)
+        call projOrthoNewton(cellCode, cellNbNode, cellDime, cellCoor, poinCoor, &
+                             projtIterMaxi, projToleMaxi, &
+                             ksi1, ksi2, &
+                             tau1, tau2, &
+                             projError)
     end if
-    if (niverr .gt. 0) then
+    if (projError .gt. 0) then
         goto 999
     end if
 !
 ! --- AJUSTEMENT PROJECTION HORS ZONE
 !
-    call mmtole(alias, nno, ndim, coorma, toleou, &
+    call mmtole(cellCode, cellNbNode, cellDime, cellCoor, toleou, &
                 ksi1, ksi2, tau1, tau2, iproj)
 !
 999 continue

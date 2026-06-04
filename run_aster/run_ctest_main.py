@@ -77,10 +77,10 @@ from math import ceil
 from pathlib import Path
 from subprocess import run
 
+from .base_params import RUNASTER_PLATFORM, RUNASTER_ROOT
 from .config import CFG
 from .ctest2junit import XUnitReport
 from .run import get_nbcores
-from .utils import RUNASTER_PLATFORM, RUNASTER_ROOT
 
 USAGE = """
     run_ctest [options] [ctest-options] [other arguments...]

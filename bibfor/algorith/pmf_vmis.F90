@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -162,7 +162,7 @@ subroutine pmf_vmis(for_pmf, nf, nbvalc, &
                 ivari = nbvalc*(fib-1)+1
                 ksp = debsp-1+fib
                 depsm = ddefp(fib)
-                call nm1dci('RIGI', kpg, fib, icdmat, em, &
+                call nm1dci('RIGI', kpg, ksp, icdmat, em, &
                             ep, contm(fib), depsm, varim(ivari), option, &
                             materi, sigf(fib), varip(ivari), modf(fib))
             end do
@@ -173,7 +173,7 @@ subroutine pmf_vmis(for_pmf, nf, nbvalc, &
                 ksp = debsp-1+fib
                 call paeldt(kpg, ksp, fami, 'T', icdmat, materi, em, ep, nu, depsth)
                 depsm = ddefp(fib)-depsth
-                call nm1dci('RIGI', kpg, fib, icdmat, em, &
+                call nm1dci('RIGI', kpg, ksp, icdmat, em, &
                             ep, contm(fib), depsm, varim(ivari), option, &
                             materi, sigf(fib), varip(ivari), modf(fib))
             end do
@@ -194,7 +194,7 @@ subroutine pmf_vmis(for_pmf, nf, nbvalc, &
                 ivari = nbvalc*(fib-1)+1
                 ksp = debsp-1+fib
                 depsm = ddefp(fib)
-                call nm1dis('RIGI', kpg, fib, icdmat, em, &
+                call nm1dis('RIGI', kpg, ksp, icdmat, em, &
                             ep, contm(fib), depsm, varim(ivari), option, &
                             rela_comp, materi, sigf(fib), varip(ivari), modf(fib))
             end do
@@ -205,7 +205,7 @@ subroutine pmf_vmis(for_pmf, nf, nbvalc, &
                 ksp = debsp-1+fib
                 call paeldt(kpg, ksp, fami, 'T', icdmat, materi, em, ep, nu, depsth)
                 depsm = ddefp(fib)-depsth
-                call nm1dis('RIGI', kpg, fib, icdmat, em, &
+                call nm1dis('RIGI', kpg, ksp, icdmat, em, &
                             ep, contm(fib), depsm, varim(ivari), option, &
                             rela_comp, materi, sigf(fib), varip(ivari), modf(fib))
             end do

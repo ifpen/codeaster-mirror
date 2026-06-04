@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -19,7 +19,6 @@
 subroutine mmtole(alias, nno, ndim, coorma, toleou, &
                   ksi1, ksi2, tau1, tau2, iproj)
 !
-! person_in_charge: mickael.abbas at edf.fr
 !
     implicit none
 #include "asterfort/cfadju.h"
@@ -69,8 +68,7 @@ subroutine mmtole(alias, nno, ndim, coorma, toleou, &
 !
 ! --- CALCUL DES DERIVEES DES FONCTIONS DE FORME
 !
-    call mmdonf(ndim, nno, alias, ksi1, ksi2, &
-                dff)
+    call mmdonf(alias, ksi1, ksi2, dff)
 !
 ! --- RE-CALCUL DES TANGENTES APRES AJUSTEMENT
 !

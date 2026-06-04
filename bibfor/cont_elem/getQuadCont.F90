@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -136,10 +136,10 @@ subroutine getQuadCont(elem_dime, &
 
             if (present(weight_qp_)) then
 ! ------------- Get shape functions and first derivative only (for perf)
-                call mmnonf(elem_dime, nb_node_slav_, elem_slav_code, &
+                call mmnonf(elem_slav_code, &
                             gausCoorSlav(1, iGauss), gausCoorSlav(2, iGauss), &
                             shape_func)
-                call mmdonf(elem_dime, nb_node_slav_, elem_slav_code, &
+                call mmdonf(elem_slav_code, &
                             gausCoorSlav(1, iGauss), gausCoorSlav(2, iGauss), &
                             shape_dfunc)
 

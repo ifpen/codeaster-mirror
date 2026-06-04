@@ -25,6 +25,7 @@ This module provides convenient utilities for files manipulation,
 system command execution, templates...
 """
 
+__all__ = ("RUNASTER_ROOT", "RUNASTER_PLATFORM", "RUNASTER_COPYMODE")
 
 import gzip
 import os
@@ -34,29 +35,18 @@ import stat
 from glob import glob
 from pathlib import Path
 from string import Template
+from subprocess import run
 
 try:
     from os import waitstatus_to_exitcode
 except ImportError:
     pass
 
+from .base_params import RUNASTER_PLATFORM, RUNASTER_ROOT
+from .config import CFG
 from .logger import logger
 
-
-# Installation root is defined by launcher script or relatively to this file.
-# It supports lib/pythonX.Y/site-packages or lib/aster installations.
-def _set_root():
-    path = os.environ.get("RUNASTER_ROOT")
-    if path:
-        return path
-    path = Path(__file__).absolute()
-    while path != path.parent and path.name != "lib":
-        path = path.parent
-    return str(path.parent)
-
-
-RUNASTER_ROOT = _set_root()
-RUNASTER_PLATFORM = "linux" if os.name != "nt" else "win"
+RUNASTER_COPYMODE = CFG.get("copymode", "shutil")
 
 
 def copy(src, dst, verbose=False):
@@ -76,21 +66,45 @@ def copy(src, dst, verbose=False):
         verbose (bool): Verbosity.
     """
     if verbose:
-        logger.info("copying %r to %r...", src, dst)
+        logger.info("copying (%s) %r to %r...", RUNASTER_COPYMODE, src, dst)
     pardst = osp.dirname(osp.abspath(dst))
     if not osp.exists(pardst):
         os.makedirs(pardst)
     if osp.isfile(src):
-        shutil.copy2(src, dst)
+        _copyfile(src, dst)
     else:
         if not osp.isdir(dst):
-            shutil.copytree(src, dst)
+            _copydir(src, dst)
         else:
             for fname in os.listdir(src):
                 if osp.isdir(osp.join(src, fname)):
                     copy(osp.join(src, fname), osp.join(dst, osp.basename(fname)), verbose=verbose)
                 else:
                     copy(osp.join(src, fname), dst, verbose=verbose)
+
+
+def _copyfile(src, dst):
+    logger.debug("copyfile: %r to %r", src, dst)
+    if RUNASTER_COPYMODE != "rsync":
+        return shutil.copy2(src, dst)
+    _copydir(src, dst, filemode=True)
+
+
+def _copydir(src: Path, dst: Path, filemode: bool = False):
+    logger.debug("copydir (filemode=%r): %r to %r", filemode, src, dst)
+    if RUNASTER_COPYMODE != "rsync":
+        return shutil.copytree(src, dst)
+    if not filemode:
+        # man rsync: "copy to a different name"
+        src = str(src) + "/"
+        dst = str(dst) + "/"
+    # TODO check for supported algorithm
+    cmd = ["rsync", "-a", "--checksum", str(src), str(dst)]
+    logger.debug("copy: %r", cmd)
+    proc = run(cmd)
+    iret = proc.returncode
+    if iret != 0:
+        logger.error("%s exited with code %d", RUNASTER_COPYMODE, iret)
 
 
 def compress(path, verbose=False):
@@ -135,7 +149,8 @@ def uncompress(path, verbose=False):
             tail = fname if len(fname) < 60 else "[...]" + fname[-60:]
             logger.info("decompressing %r...", tail)
         with gzip.open(fname, "rb") as f_in:
-            with open(fname.rstrip(".gz"), "wb") as f_out:
+            ungz = fname[:-3] if fname.endswith(".gz") else fname
+            with open(ungz, "wb") as f_out:
                 shutil.copyfileobj(f_in, f_out)
         os.remove(fname)
     return dest

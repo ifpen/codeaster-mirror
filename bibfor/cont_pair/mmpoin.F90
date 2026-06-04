@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,7 +15,6 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-! person_in_charge: mickael.abbas at edf.fr
 !
 subroutine mmpoin(mesh, ds_contact)
 !
@@ -150,7 +149,7 @@ subroutine mmpoin(mesh, ds_contact)
 !
 ! ------------- Coordinates of contact point
 !
-                call mmvalp(model_ndim, elem_slav_type, elem_slav_nbnode, 3, &
+                call mmvalp(elem_slav_type, elem_slav_nbnode, &
                             ksi1, ksi2, elem_slav_coor, poin_coor)
                 v_sdappa_poin(3*(i_poin-1)+1) = poin_coor(1)
                 v_sdappa_poin(3*(i_poin-1)+2) = poin_coor(2)

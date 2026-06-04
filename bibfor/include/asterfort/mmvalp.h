@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,19 +15,13 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-!
 !
 interface
-    subroutine mmvalp(nb_dim, elem_type, elem_nbno, nb_cmp, ksi1,&
-                      ksi2  , vale_node, vale_poin)
-        integer(kind=8), intent(in) :: nb_dim
-        character(len=8), intent(in) :: elem_type
-        integer(kind=8), intent(in) :: elem_nbno
-        integer(kind=8), intent(in) :: nb_cmp
-        real(kind=8), intent(in) :: ksi1
-        real(kind=8), intent(in) :: ksi2
-        real(kind=8), intent(in) :: vale_node(*)
-        real(kind=8), intent(out) :: vale_poin(*)
+    subroutine mmvalp(cellCode, cellNbNode, ksi1, ksi2, valeCell, valePoin)
+        character(len=8), intent(in) :: cellCode
+        integer(kind=8), intent(in) :: cellNbNode
+        real(kind=8), intent(in) :: ksi1, ksi2
+        real(kind=8), intent(in) :: valeCell(*)
+        real(kind=8), intent(out) :: valePoin(3)
     end subroutine mmvalp
 end interface

@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -35,6 +35,16 @@ from string import Template
 from .logger import logger
 
 DEPRECATED = "__DEPRECATED__"
+
+
+def subst_vars(value: str) -> str:
+    """Return the string after substituting environment vars."""
+    if "$" in value:
+        try:
+            value = Template(value).substitute(os.environ)
+        except (KeyError, ValueError):
+            pass
+    return value
 
 
 class AbstractParameter:
@@ -120,13 +130,7 @@ class ParameterStr(AbstractParameter):
             value = " ".join([str(i) for i in value])
         if not value:
             return value
-        value = str(value)
-        if "$" in value:
-            try:
-                value = Template(value).substitute(os.environ)
-            except (KeyError, ValueError):
-                pass
-        return value
+        return subst_vars(str(value))
 
 
 class VarMixin:
