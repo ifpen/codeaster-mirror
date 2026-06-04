@@ -253,7 +253,7 @@ class Config:
                     content = json.load(fcfg)
         except FileNotFoundError:
             if main:
-                logger.error("file not found: %s", cfgfile)
+                logger.warning("file not found: %s", cfgfile)
             logger.debug("file not found: %s", cfgfile)
             return
         self.import_dict(content, with_sections=not main)
