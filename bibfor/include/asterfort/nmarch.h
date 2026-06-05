@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -17,10 +17,10 @@
 ! --------------------------------------------------------------------
 !
 interface
-    subroutine nmarch(numins    , modele       , ds_material, carele, fonact   ,&
-                      ds_print  , sddisc       , sdcrit     ,&
-                      ds_measure, sderro       , sddyna     , sdpilo, ds_energy,&
-                      ds_inout  , ds_errorindic, ds_algorom_, lStoringInitState_)
+    subroutine nmarch(numins, modele, ds_material, carele, fonact, &
+                      ds_print, sddisc, sdcrit, &
+                      ds_measure, sderro, sddyna, sdpilo, ds_energy, &
+                      ds_inout, ds_errorindic, ds_algorom_, lStoreInitState_)
         use NonLin_Datastructure_type
         use Rom_Datastructure_type
         integer(kind=8) :: numins
@@ -39,6 +39,6 @@ interface
         type(NL_DS_InOut), intent(in) :: ds_inout
         type(NL_DS_ErrorIndic), intent(in) :: ds_errorindic
         type(ROM_DS_AlgoPara), optional, intent(in) :: ds_algorom_
-        aster_logical, intent(in), optional :: lStoringInitState_
+        aster_logical, intent(in), optional :: lStoreInitState_
     end subroutine nmarch
 end interface

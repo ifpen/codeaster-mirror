@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,13 +15,11 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-subroutine nmcrpx(motfaz, motpaz, iocc, nomsd, base)
 !
-! person_in_charge: mickael.abbas at edf.fr
+subroutine nmcrpx(factorKeywordZ, stepKeywordZ, iFactorKeyword, stepSlct, jvBase)
 !
     implicit none
-#include "jeveux.h"
+!
 #include "asterfort/assert.h"
 #include "asterfort/getvis.h"
 #include "asterfort/jedema.h"
@@ -29,122 +27,85 @@ subroutine nmcrpx(motfaz, motpaz, iocc, nomsd, base)
 #include "asterfort/nmcrpa.h"
 #include "asterfort/nmcrpp.h"
 #include "asterfort/wkvect.h"
-    character(len=*) :: motfaz, motpaz
-    character(len=1) :: base
-    integer(kind=8) :: iocc
-    character(len=19) :: nomsd
+#include "jeveux.h"
 !
-! ----------------------------------------------------------------------
+    character(len=*), intent(in) :: factorKeywordZ, stepKeywordZ
+    integer(kind=8), intent(in) :: iFactorKeyword
+    character(len=19), intent(in) :: stepSlct
+    character(len=1), intent(in) :: jvBase
 !
-! ROUTINE *_NON_LINE (UTILITAIRE - SELEC. INST.)
+! --------------------------------------------------------------------------------------------------
 !
-! LECTURE DES INFORMATIONS DANS CATAPY POUR LES MOTS-CLEFS
-! DE TYPE SELECTION D'INSTANTS
+! *_NON_LINE - Time selector management
 !
-! ----------------------------------------------------------------------
+! Read parameters from user and create datastructure for time selector
 !
+! --------------------------------------------------------------------------------------------------
 !
-! CETTE ROUTINE LIT DES ARGUMENTS DE TYPE SELECTION D'INSTANTS
-!  L'UTILISATEUR DONNE SES INSTANTS DE TROIS MANIERES DIFFERENTES
+! In  factorKeyword    : factor keyword to read
+! In  stepKeyword      : keyword for step
+! In  iFactorKeyword   : index of factor keyword
+! In  stepSlct         : name of object to time selector
+! In  jvBase           : JEVEUX base to create object
 !
-!    1/ LISTE D'INSTANTS DONNEE PAR MOT-CLEF <LIST_INST>
-!         LA LISTE AYANT ETE CREEE PAR DEFI_LIST_REEL
-!    2/ LISTE D'INSTANTS DONNEE PAR MOT-CLEF <LIST>
-!         LA LISTE AYANT ETE CREEE PAR UNE LISTE PYTHON (LIST_R8)
-!    3/ FREQUENCE DES INSTANTS DONNEE PAR MOT-CLEF <PAS_*>
-!         LA LISTE AYANT ETE CREEE PAR UNE LISTE PYTHON (LIST_R8)
+! --------------------------------------------------------------------------------------------------
 !
-! NB: SI PAS DE LISTE NI DE FREQUENCE DONNEES, PAR DEFAUT, PAS = 1
+    character(len=16) :: factorKeyword, stepKeyword
+    real(kind=8) :: stepSlctMini, stepSlctTole
+    integer(kind=8) :: nbStepSlct, n1, stepSlctFreq
+    character(len=24) :: stepSlctListJv, stepSlctInflJv
+    real(kind=8), pointer :: stepSlctInfl(:) => null()
 !
-!
-! IN  MOTFAC : MOT-FACTEUR POUR LIRE <LIST_INST/INST>
-!               SI MOTFAC= ' ' -> ON NE LIT RIEN ET ON PREND DES
-!               VALEURS PAR DEFAUT
-!               FREQ = 1
-! IN  MOTPAS : MOT-FACTEUR POUR LIRE <PAS>
-! IN  IOCC   : OCCURRENCE DU MOT-CLEF FACTEUR MOTFAC
-! IN  NOMSD  : NOM DE LA STRUCTURE DE DONNEES PRODUITE
-!     ON VA CREER DEUX OBJETS :
-!         NOMSD(1:19)//'.INFL' -  VECTEUR DE R8 DE LONGUEUR 4
-!            1 - FREQUENCE (0 SI LISTE)
-!            2 - TOLERANCE RECHERCHE (<0 SI ABSOLU,
-!                                     >0 SI RELATIF)
-!            3 - NOMBRE D'INSTANTS DE LA LISTE (NBINST)
-!            4 - VALEUR MINI. ENTRE DEUX INSTANTS
-!         NOMSD(1:19)//'.LIST' - VECTEUR DE R8 DE LONGUEUR NBINST
-!            LISTE DES INSTANTS
-! IN  BASE   : NOM DE LA BASE POUR LA CREATION SD
-!
-!
-!
-!
-    character(len=16) :: motfac, motpas
-    character(len=8) :: criter
-    real(kind=8) :: prec, dtmin, tole
-    integer(kind=8) :: nbinst, n1, freq
-    character(len=24) :: sdlist, sdinfl
-    integer(kind=8) :: jinfl
-!
-! ----------------------------------------------------------------------
+! --------------------------------------------------------------------------------------------------
 !
     call jemarq()
-!
-! --- INITIALISATIONS
-!
-    motfac = motfaz
-    motpas = motpaz
-    nbinst = 0
-    freq = 0
-!
-! --- NOM DES SDS
-!
-    sdlist = nomsd(1:19)//'.LIST'
-    sdinfl = nomsd(1:19)//'.INFL'
-!
-! --- L'OPERATEUR N'UTILISE PAS LIST_INST
-!
-    if (motfac .eq. ' ') then
-        freq = 1
-        criter = 'RELATIF'
-        tole = 0.d0
-        nbinst = 0
-        dtmin = 0.d0
-        goto 99
-    end if
-!
-! --- LECTURE PRECISION
-!
-    call nmcrpp(motfac, iocc, prec, criter, tole)
-!
-! --- LECTURE LISTE INSTANTS
-!
-    call nmcrpa(motfac, iocc, sdlist, base, nbinst, &
-                dtmin)
-!
-! --- LECTURE PAS
-!
-    n1 = 0
-    if (nbinst .eq. 0) then
-        call getvis(motfac, motpas, iocc=iocc, scal=freq, nbret=n1)
-        if (n1 .ne. 0) then
-            ASSERT(freq .ge. 0)
+
+! - INITIALISATIONS
+    factorKeyword = factorKeywordZ
+    stepKeyword = stepKeywordZ
+    nbStepSlct = 0
+    stepSlctFreq = 0
+
+! - Names of datastructure: list of time step and object for parameters of list management
+    stepSlctListJv = stepSlct(1:19)//'.LIST'
+    stepSlctInflJv = stepSlct(1:19)//'.INFL'
+    call wkvect(stepSlctInflJv, jvBase//' V R', 4, vr=stepSlctInfl)
+
+! - Get parameters from user
+    if (factorKeyword .eq. ' ') then
+        stepSlctFreq = 1
+        stepSlctTole = 0.d0
+        nbStepSlct = 0
+        stepSlctMini = 0.d0
+    else
+! ----- Get tolerance to select one time step
+        call nmcrpp(factorKeyword, iFactorKeyword, stepSlctTole)
+
+! ----- Get list of time step to select
+        call nmcrpa(factorKeyword, iFactorKeyword, stepSlctListJv, jvBase, &
+                    nbStepSlct, stepSlctMini)
+
+! ----- Get frequency step
+        n1 = 0
+        if (nbStepSlct .eq. 0) then
+            call getvis(factorKeyword, stepKeyword, iocc=iFactorKeyword, &
+                        scal=stepSlctFreq, nbret=n1)
+            if (n1 .ne. 0) then
+                ASSERT(stepSlctFreq .ge. 0)
+            end if
         end if
+
+! ----- AUCUN MOT-CLE : PAS  = 1
+        if (n1+nbStepSlct .eq. 0) then
+            stepSlctFreq = 1
+        end if
+
     end if
-!
-! --- AUCUN MOT-CLE : PAS  = 1
-!
-    if (n1+nbinst .eq. 0) then
-        freq = 1
-    end if
-!
-! --- SAUVEGARDE INFORMATIONS
-!
-99  continue
-    call wkvect(sdinfl, base//' V R', 4, jinfl)
-    zr(jinfl-1+1) = freq
-    zr(jinfl-1+2) = tole
-    zr(jinfl-1+3) = nbinst
-    zr(jinfl-1+4) = dtmin
+
+    stepSlctInfl(1) = stepSlctFreq
+    stepSlctInfl(2) = stepSlctTole
+    stepSlctInfl(3) = nbStepSlct
+    stepSlctInfl(4) = stepSlctMini
 !
     call jedema()
 !

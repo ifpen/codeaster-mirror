@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -32,7 +32,6 @@ subroutine ntnoli(model, mate, cara_elem, l_stat, l_evol, &
 #include "asterfort/rsrusd.h"
 #include "asterfort/utmess.h"
 !
-! person_in_charge: mickael.abbas at edf.fr
 !
     character(len=24), intent(in) :: model
     character(len=24), intent(in) :: mate
@@ -68,7 +67,7 @@ subroutine ntnoli(model, mate, cara_elem, l_stat, l_evol, &
     character(len=19) :: sdarch
     character(len=24) :: sdarchAinfJv
     integer(kind=8), pointer :: sdarchAinf(:) => null()
-    integer(kind=8) :: nume_store, nume_inst
+    integer(kind=8) :: numeStore, nume_inst
     aster_logical :: force, lreuse
     character(len=8) :: result
 !
@@ -97,20 +96,19 @@ subroutine ntnoli(model, mate, cara_elem, l_stat, l_evol, &
 ! - Current storing index
 !
     call jeveuo(sdarchAinfJv, 'L', vi=sdarchAinf)
-    nume_store = sdarchAinf(1)
+    numeStore = sdarchAinf(1)
 !
 ! --- CREATION DE LA SD EVOL_THER OU NETTOYAGE DES ANCIENS NUMEROS
 !
     if (lreuse) then
-        ASSERT(nume_store .ne. 0)
-        call rsrusd(result, nume_store)
+        ASSERT(numeStore .ne. 0)
+        call rsrusd(result, numeStore)
     else
-        ASSERT(nume_store .eq. 0)
+        ASSERT(numeStore .eq. 0)
         call rscrsd('G', result, 'EVOL_THER', 100)
     end if
-!
-! - Stroing initial state
-!
+
+! - Storing initial state
     if ((.not. lreuse) .and. (.not. l_stat) .and. l_evol) then
         call utmess('I', 'ARCHIVAGE_4')
         call ntarch(nume_inst, model, mate, cara_elem, para, &

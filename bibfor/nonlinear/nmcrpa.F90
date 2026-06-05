@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -16,13 +16,11 @@
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
 !
-subroutine nmcrpa(motfaz, iocc, sdlist, base, nbinst, &
-                  dtmin)
-!
-! person_in_charge: mickael.abbas at edf.fr
+subroutine nmcrpa(factorKeywordZ, iFactorKeyword, stepSlctListJv, jvBase, &
+                  nbStepSlct, stepSlctMini)
 !
     implicit none
-#include "jeveux.h"
+!
 #include "asterfort/assert.h"
 #include "asterfort/getvid.h"
 #include "asterfort/getvr8.h"
@@ -32,90 +30,79 @@ subroutine nmcrpa(motfaz, iocc, sdlist, base, nbinst, &
 #include "asterfort/jeveuo.h"
 #include "asterfort/nmcrpm.h"
 #include "asterfort/wkvect.h"
-    character(len=24) :: sdlist
-    character(len=*) :: motfaz
-    character(len=1) :: base
-    integer(kind=8) :: iocc
-    real(kind=8) :: dtmin
-    integer(kind=8) :: nbinst
+#include "jeveux.h"
 !
-! ----------------------------------------------------------------------
+    character(len=*), intent(in) :: factorKeywordZ
+    integer(kind=8), intent(in) :: iFactorKeyword
+    character(len=24), intent(in) :: stepSlctListJv
+    character(len=1), intent(in) :: jvBase
+    integer(kind=8), intent(out) :: nbStepSlct
+    real(kind=8), intent(out) :: stepSlctMini
 !
-! ROUTINE *_NON_LINE (UTILITAIRE - SELEC. INST.)
+! --------------------------------------------------------------------------------------------------
 !
-! LECTURE LISTE INSTANTS
+! *_NON_LINE - Time selector management
 !
-! ----------------------------------------------------------------------
+! Get list of time step
 !
+! --------------------------------------------------------------------------------------------------
 !
-! IN  SDLIST : NOM DE LA SD DANS LAQUELLE ON CONSERVERA LA LISTE
-!               ON CREE UN VECTEUR DE LONGUEUR NBINST SUR BASE
-! NB: LA LISTE N'EST PAS FORCEMENT CROISSANTE
-! IN  BASE   : NOM DE LA BASE POUR CREATION SD
-! IN  MOTFAC : MOT-FACTEUR POUR LIRE (LIST_INST/INST)
-! IN  IOCC   : OCCURRENCE DU MOT-CLEF FACTEUR MOTFAC
-! OUT NBINST : NOMBRE D'INSTANTS DANS LA LISTE
-! OUT DTMIN  : INCREMENT DE TEMPS MINIMUM DANS LA LISTE
+! In  factorKeyword    : factor keyword to read
+! In  iFactorKeyword   : index of factor keyword
+! In  stepSlctListJv   : name of object for list of time step
+! In  jvBase           : JEVEUX base to create objects
+! Out nbStepSlct       : number of step in list of time step
+! Out stepSlctMini     : minimum length of time step in list of time step
 !
+! --------------------------------------------------------------------------------------------------
 !
-!
-!
-    integer(kind=8) :: n2, n3, i, iret
+    integer(kind=8) :: n2, n3, iret
     character(len=19) :: list
-    integer(kind=8) :: jslist
-    character(len=16) :: motfac
+    character(len=16) :: factorKeyword
     real(kind=8), pointer :: vale(:) => null()
+    real(kind=8), pointer :: stepSlctList(:) => null()
 !
-! ----------------------------------------------------------------------
+! --------------------------------------------------------------------------------------------------
 !
     call jemarq()
-!
-! --- INITIALISATIONS
-!
-    nbinst = 0
-    motfac = motfaz
-    dtmin = 0.d0
-!
-! --- CREATION ET INITIALISATION SD
-!
-    call getvid(motfac, 'LIST_INST', iocc=iocc, scal=list, nbret=n2)
-    call getvr8(motfac, 'INST', iocc=iocc, nbval=0, nbret=n3)
+
+! - Initializations
+    nbStepSlct = 0
+    factorKeyword = factorKeywordZ
+    stepSlctMini = 0.d0
+
+! - CREATION ET INITIALISATION SD
+    call getvid(factorKeyword, 'LIST_INST', iocc=iFactorKeyword, scal=list, nbret=n2)
+    call getvr8(factorKeyword, 'INST', iocc=iFactorKeyword, nbval=0, nbret=n3)
     n3 = -n3
-!
-! --- RECUPERATION DU NOMBRE D'INSTANTS
-!
+
+! - Get number of time step
     if ((n2 .ge. 1) .and. (n3 .ge. 1)) then
-        ASSERT(.false.)
+        ASSERT(ASTER_FALSE)
     end if
-!
     if (n3 .ge. 1) then
-        nbinst = n3
+        nbStepSlct = n3
     else if (n2 .ge. 1) then
-        call jelira(list//'.VALE', 'LONMAX', ival=nbinst)
+        call jelira(list//'.VALE', 'LONMAX', ival=nbStepSlct)
     else
-        nbinst = 0
+        nbStepSlct = 0
         goto 99
     end if
-!
-! --- CREATION DE LA LISTE
-!
-    call wkvect(sdlist, base//' V R', nbinst, jslist)
-!
-! --- REMPLISSAGE DE LA LISTE
-!
+
+! - Create object for list
+    call wkvect(stepSlctListJv, jvBase//' V R', nbStepSlct, vr=stepSlctList)
+
+! - Set list
     if (n3 .ge. 1) then
-        call getvr8(motfac, 'INST', iocc=iocc, nbval=nbinst, vect=zr(jslist), &
-                    nbret=iret)
+        call getvr8(factorKeyword, 'INST', iocc=iFactorKeyword, nbval=nbStepSlct, &
+                    vect=stepSlctList, nbret=iret)
     else
         call jeveuo(list//'.VALE', 'L', vr=vale)
-        do i = 1, nbinst
-            zr(jslist+i-1) = vale(i)
-        end do
+        stepSlctList(1:nbStepSlct) = vale(1:nbStepSlct)
     end if
-!
-! --- CALCUL DU DELTA MINIMUM DE LA LISTE
-!
-    call nmcrpm(zr(jslist), nbinst, dtmin)
+
+! - Get minimum length of time step in list
+    call nmcrpm(stepSlctList, nbStepSlct, stepSlctMini)
 !
 99  continue
 !

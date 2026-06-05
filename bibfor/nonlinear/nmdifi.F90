@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,8 +15,8 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-subroutine nmdifi(keywf, list_inst, tole, nb_inst, nume_end)
+!
+subroutine nmdifi(factorKeyword, listInstJv, tole, nbInst, numeInstEnd)
 !
     implicit none
 !
@@ -26,57 +26,52 @@ subroutine nmdifi(keywf, list_inst, tole, nb_inst, nume_end)
 #include "asterfort/utacli.h"
 #include "asterfort/utmess.h"
 !
-! person_in_charge: mickael.abbas at edf.fr
-!
-    character(len=16), intent(in) :: keywf
-    character(len=19), intent(in) :: list_inst
+    character(len=16), intent(in) :: factorKeyword
+    character(len=19), intent(in) :: listInstJv
     real(kind=8), intent(in) :: tole
-    integer(kind=8), intent(in) :: nb_inst
-    integer(kind=8), intent(out) :: nume_end
+    integer(kind=8), intent(in) :: nbInst
+    integer(kind=8), intent(out) :: numeInstEnd
 !
 ! --------------------------------------------------------------------------------------------------
 !
 ! *_NON_LINE - Time discretization datastructure
 !
-! Index of final time
+! Index of final time in list of times
 !
 ! --------------------------------------------------------------------------------------------------
 !
-! In  keywf            : factor keyword
-! In  list_inst        : list of times from INCREMENT/LIST_INST
+! In  factorKeyword    : factor keyword
+! In  listInstJv       : name of JEVEUX object for list of times from INCREMENT/LIST_INST
 ! In  tole             : tolerance to search time
-! In  nb_inst          : number of time steps in list
-! Out nume_end         : index of final time
+! In  nbInst           : number of time steps in list
+! Out numeInstEnd      : index of final time in list of times
 !
 ! --------------------------------------------------------------------------------------------------
 !
     integer(kind=8) :: n1, n2
-    real(kind=8) :: inst
-    real(kind=8), pointer :: v_list_inst(:) => null()
+    real(kind=8) :: instEnd
+    real(kind=8), pointer :: listInst(:) => null()
 !
 ! --------------------------------------------------------------------------------------------------
 !
-    nume_end = 0
-!
-! - Acces to list of times
-!
-    call jeveuo(list_inst, 'L', vr=v_list_inst)
-!
+    numeInstEnd = 0
+
+! - Acces to list of time steps
+    call jeveuo(listInstJv, 'L', vr=listInst)
+
 ! - Get keywords
-!
-    call getvis(keywf, 'NUME_INST_FIN', iocc=1, scal=nume_end, nbret=n1)
-    call getvr8(keywf, 'INST_FIN', iocc=1, scal=inst, nbret=n2)
-!
-! - No NUME_INST_FIN/INST_FIN
-!
+    call getvis(factorKeyword, 'NUME_INST_FIN', iocc=1, scal=numeInstEnd, nbret=n1)
+    call getvr8(factorKeyword, 'INST_FIN', iocc=1, scal=instEnd, nbret=n2)
+
+! - Find index of final time step
     if (n1+n2 .eq. 0) then
-        nume_end = nb_inst-1
+        numeInstEnd = nbInst-1
     else if (n1 .eq. 0) then
-        call utacli(inst, v_list_inst, nb_inst, tole, nume_end)
+        call utacli(instEnd, listInst, nbInst, tole, numeInstEnd)
     end if
 
 ! - Checks
-    if (nume_end .lt. 0 .or. nume_end .gt. (nb_inst-1)) then
+    if (numeInstEnd .lt. 0 .or. numeInstEnd .gt. (nbInst-1)) then
         call utmess('F', 'DISCRETISATION_94')
     end if
 !

@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,19 +15,16 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-!
-!
 #include "asterf_types.h"
 !
 interface
-    subroutine nmarpr(result, sddisc, lreuse, numder, insder,&
-                      numarc)
-        character(len=8) :: result
-        character(len=19) :: sddisc
-        aster_logical :: lreuse
-        integer(kind=8) :: numder
-        real(kind=8) :: insder
-        integer(kind=8) :: numarc
+    subroutine nmarpr(result, sddisc, lReuse, numeInstEnd, timeEnd, &
+                      numeStoring)
+        character(len=8), intent(in) :: result
+        character(len=19), intent(in) :: sddisc
+        aster_logical, intent(in) :: lReuse
+        integer(kind=8), intent(in) :: numeInstEnd
+        real(kind=8), intent(in) :: timeEnd
+        integer(kind=8), intent(out) :: numeStoring
     end subroutine nmarpr
 end interface

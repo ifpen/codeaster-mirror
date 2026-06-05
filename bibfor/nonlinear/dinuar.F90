@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,30 +15,29 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-subroutine dinuar(result, sddisc, numeInst, force, &
-                  numeStoring, nume_reuse_, lStoringInitState_)
+!
+subroutine dinuar(result, sddisc, numeInst, lForceStore, &
+                  numeStore, numeReuseCalc_, lStoreInitState_)
 !
     use NonLin_Datastructure_type
-!
     implicit none
 !
 #include "asterf_types.h"
-#include "jeveux.h"
 #include "asterfort/diinst.h"
 #include "asterfort/jedema.h"
 #include "asterfort/jemarq.h"
 #include "asterfort/jeveuo.h"
 #include "asterfort/nmcrpo.h"
 #include "asterfort/rsadpa.h"
+#include "jeveux.h"
 !
     character(len=8), intent(in) :: result
     character(len=19), intent(in) :: sddisc
     integer(kind=8), intent(in) :: numeInst
-    aster_logical, intent(in) :: force
-    integer(kind=8), intent(out) :: numeStoring
-    integer(kind=8), optional, intent(out) :: nume_reuse_
-    aster_logical, intent(in), optional :: lStoringInitState_
+    aster_logical, intent(in) :: lForceStore
+    integer(kind=8), intent(out) :: numeStore
+    integer(kind=8), optional, intent(out) :: numeReuseCalc_
+    aster_logical, intent(in), optional :: lStoreInitState_
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -51,17 +50,18 @@ subroutine dinuar(result, sddisc, numeInst, force, &
 ! In  result           : name of datastructure for results
 ! In  sddisc           : datastructure for time discretization
 ! In  numeInst         : index of current time step
-! In  force            : to "force" storing (ex.: error)
-! Out numeStoring      : index to store in results
+! In  lForceStore      : to force storage (ex.: error)
+! Out numeStore        : index to store in results
 ! Out numeReuseCalc    : index for reuse rsults datastructure
+! In  lStoreInitState  : flag to store initial state
 !
 ! --------------------------------------------------------------------------------------------------
 !
     character(len=24) :: sdarchAinfJv
     integer(kind=8), pointer :: sdarchAinf(:) => null()
-    integer(kind=8) :: numeReuseCalc, jv_para
-    real(kind=8) :: time_curr, time_prev
-    aster_logical :: l_store, lStoringInitState
+    integer(kind=8) :: numeReuseCalc, jvPara
+    real(kind=8) :: timeCurr, timePrev
+    aster_logical :: l_store, lStoreInitState
     character(len=19) :: sdarch
 !
 ! --------------------------------------------------------------------------------------------------
@@ -70,11 +70,11 @@ subroutine dinuar(result, sddisc, numeInst, force, &
 
 ! - Initializations
     l_store = ASTER_FALSE
-    lStoringInitState = ASTER_FALSE
-    if (present(lStoringInitState_)) then
-        lStoringInitState = lStoringInitState_
+    lStoreInitState = ASTER_FALSE
+    if (present(lStoreInitState_)) then
+        lStoreInitState = lStoreInitState_
     end if
-    numeStoring = -1
+    numeStore = -1
     numeReuseCalc = -1
 
 ! - Acces to storing objects
@@ -82,54 +82,59 @@ subroutine dinuar(result, sddisc, numeInst, force, &
     sdarchAinfJv = sdarch(1:19)//'.AINF'
     call jeveuo(sdarchAinfJv, 'E', vi=sdarchAinf)
 
-! - Initial storing => already save
-    if (numeInst .eq. 0) then
-        l_store = ASTER_TRUE
-    end if
-
-! - Other time step => to save or not ?
+! - Current time step
+    timeCurr = 0.d0
     if (numeInst .ne. 0) then
-        time_curr = diinst(sddisc, numeInst)
-        call nmcrpo(sdarch, numeInst, time_curr, l_store)
+        timeCurr = diinst(sddisc, numeInst)
     end if
 
-! - "forced" storing
-    if (force) then
-        l_store = .true.
-    end if
+! - Store or not ?
+    if (lForceStore) then
+        l_store = ASTER_TRUE
 
-! - Storing index
-    if (l_store) then
-        numeStoring = sdarchAinf(1)
     else
-        numeStoring = -1
+        if (numeInst .eq. 0) then
+! --------- Initial state: always
+            l_store = ASTER_TRUE
+        else
+! --------- Other: depends on ARCHIVAGE keywords
+            call nmcrpo(sdarch, numeInst, timeCurr, l_store)
+        end if
+
+    end if
+
+! - Get storing index
+    if (l_store) then
+        numeStore = sdarchAinf(1)
+    else
+        numeStore = -1
     end if
 
 ! - REUSE for PARA_CALC table
     numeReuseCalc = sdarchAinf(3)
 
 ! - Already stored ?
-    if (numeStoring .ge. 2) then
-        call rsadpa(result, 'L', 1, 'INST', numeStoring-1, 0, sjv=jv_para)
-        time_prev = zr(jv_para)
-        if (time_curr .le. time_prev) then
-            numeStoring = -1
-            l_store = .false._1
+    if (numeStore .ge. 2) then
+        call rsadpa(result, 'L', 1, 'INST', numeStore-1, 0, sjv=jvPara)
+        timePrev = zr(jvPara)
+        if (timeCurr .le. timePrev) then
+            numeStore = -1
+            l_store = ASTER_FALSE
         end if
     end if
 
 ! - Increase storing index
     if (l_store) then
         sdarchAinf(1) = sdarchAinf(1)+1
-        if (lStoringInitState) then
+        if (lStoreInitState) then
             sdarchAinf(4) = 0
         else
             sdarchAinf(4) = sdarchAinf(4)+1
         end if
     end if
 !
-    if (present(nume_reuse_)) then
-        nume_reuse_ = numeReuseCalc
+    if (present(numeReuseCalc_)) then
+        numeReuseCalc_ = numeReuseCalc
     end if
 !
     call jedema()

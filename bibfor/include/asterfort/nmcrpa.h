@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,17 +15,15 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-!
 !
 interface
-    subroutine nmcrpa(motfaz, iocc, sdlist, base, nbinst,&
-                      dtmin)
-        character(len=*) :: motfaz
-        integer(kind=8) :: iocc
-        character(len=24) :: sdlist
-        character(len=1) :: base
-        integer(kind=8) :: nbinst
-        real(kind=8) :: dtmin
+    subroutine nmcrpa(factorKeywordZ, iFactorKeyword, jvStepSlctList, jvBase, &
+                      nbStepSlct, stepSlctMini)
+        character(len=*), intent(in) :: factorKeywordZ
+        integer(kind=8), intent(in) :: iFactorKeyword
+        character(len=24), intent(in) :: jvStepSlctList
+        character(len=1), intent(in) :: jvBase
+        integer(kind=8), intent(out) :: nbStepSlct
+        real(kind=8), intent(out) :: stepSlctMini
     end subroutine nmcrpa
 end interface
