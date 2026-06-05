@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -31,6 +31,7 @@ subroutine posipr(nomte, efge, sipo)
     character(len=*) :: nomte
 !
 #include "jeveux.h"
+#include "asterfort/assert.h"
 #include "asterfort/poutre_modloc.h"
 #include "asterfort/get_value_mode_local.h"
 !
@@ -183,14 +184,8 @@ subroutine posipr(nomte, efge, sipo)
         sipo(6) = efge(6)/xiz*ry
         sipo(11) = efge(11)/xiy2*rz2
         sipo(12) = -efge(12)/xiz2*ry2
+    else
+        ASSERT(.false.)
     end if
-!
-!   On doit corriger dans le cas du coude, si pas de coude les coeffs sont =1
-    xxy = xsiy/xfly
-    xxz = xsiz/xflz
-    sipo(5) = sipo(5)*xxy
-    sipo(6) = sipo(6)*xxz
-    sipo(11) = sipo(11)*xxy
-    sipo(12) = sipo(12)*xxz
 !
 end subroutine
