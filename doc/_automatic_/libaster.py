@@ -7525,10 +7525,17 @@ class BaseAssemblyMatrix(DataStructure):
         """Make the assembly matrix symmetric in place"""
 
     def transpose(self):
-        pass
+        """Return the transpose of the matrix in place."""
 
     def updateDOFNumbering(self):
         pass
+
+    def zeroDirichletBCDOFs(self, arg0):
+        """Zero the Dirichlet BC DOFs in the given field
+
+        Arguments:
+            field (FieldOnNodesReal): the field to modify
+        """
 
 
 # class AssemblyMatrixDisplacementReal in libaster
