@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -88,6 +88,7 @@ subroutine pj4dco(typeSelect, &
     character(len=8) :: mesh1, mesh2, nodeName2
     character(len=14), parameter :: boite = '&&PJ4DCO.BOITE'
     character(len=16), parameter :: corrMeshTemp = '&&PJ4DCO.CORRESP'
+    character(len=16) :: listInterc
     integer(kind=8) :: nbCellType
     integer(kind=8) :: cellListType(MT_NTYMAX)
     character(len=8) :: cellListCode(MT_NTYMAX)
@@ -97,7 +98,7 @@ subroutine pj4dco(typeSelect, &
     integer(kind=8) :: iacoo1, iacoo2, ino
     integer(kind=8) :: iabtco, jxxk1, iaconu, iacocf, iacotr
     integer(kind=8) :: ilcnx1
-    integer(kind=8) :: iaconb, cellTypeNume, idecal, cellLink1, nbtrou
+    integer(kind=8) :: iaconb, cellTypeNume, idecal, cellLink1, nbtrou, nbInterc
     aster_logical :: loin, loin2
     real(kind=8) :: dmin, cobary(3)
     integer(kind=8), parameter :: nbmax = 5
@@ -326,16 +327,26 @@ subroutine pj4dco(typeSelect, &
         idecal = idecal+zi(iaconb-1+iNode2)
     end do
 
-! - Alarm
-    if (loin2) then
-        call pjloin(nbnod, nbnodm, mesh2, zr(iacoo2), nbmax, tino2m, tdmin2, lino_loin)
-    end if
+! - For alarm, see ticket 16186
 
 ! - Transform corrMeshTemp in corrMesh (real cells)
-    call pj2dtr(corrMeshTemp, corrMesh, &
-                cellListType, cellListCode, &
-                zr(iacoo1), zr(iacoo2), &
-                spacedim, dala)
+    if (present(listInterc_)) then
+        ASSERT(present(nbInterc_))
+        listInterc = listInterc_
+        nbInterc = nbInterc_
+        call pj2dtr(corrMeshTemp, corrMesh, &
+                    cellListType, cellListCode, &
+                    zr(iacoo1), zr(iacoo2), &
+                    spacedim, dala, &
+                    listInterc, nbInterc)
+    else
+        listInterc = ' '
+        nbInterc = 0
+        call pj2dtr(corrMeshTemp, corrMesh, &
+                    cellListType, cellListCode, &
+                    zr(iacoo1), zr(iacoo2), &
+                    spacedim, dala)
+    end if
 
 ! - Debug
     if (dbg) then
