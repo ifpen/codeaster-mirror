@@ -36,6 +36,7 @@ subroutine dichoc_endo_pena(for_discret, iret)
 #include "asterf_types.h"
 #include "jeveux.h"
 #include "asterfort/diraidklv.h"
+#include "asterfort/diklvraid.h"
 #include "asterfort/infdis.h"
 #include "asterfort/jevech.h"
 #include "asterfort/rcvala.h"
@@ -252,11 +253,11 @@ subroutine dichoc_endo_pena(for_discret, iret)
     rignor = valres(2)
     amornor_in = 0.0
     amornor_out = 0.0
-    if (tecro2 .eq. 1) then
-        amornor_in = valres(3)
-    else if (tecro2 .eq. 2) then
-        amornor_out = valres(3)
-    end if
+    ! if (tecro2 .eq. 1) then
+    !     amornor_in = valres(3)
+    !     else if (tecro2 .eq. 2) then
+    !         amornor_out = valres(3)
+    ! end if
 !
 !   indic_charge [0, 1, 2] : [pas de contact, contact élastique, sur le seuil]
     force(:) = 0.0
@@ -277,14 +278,19 @@ subroutine dichoc_endo_pena(for_discret, iret)
         if (abs(ftry) .ge. seuil) then
             force(1) = -seuil+amornor_out*vitesse
             indic_charge = 2.0
-        else if (ftry+amornor_out*vitesse .gt. 0.d0) then
+            raide(1) = rignor
+        else if (ftry+amornor_out*vitesse-amornor_in*vitesse .gt. 0.d0) then
             force(1) = 0.0
             indic_charge = 0.0
         else
-            force(1) = ftry+amornor_out*vitesse
+            force(1) = ftry+amornor_out*vitesse-amornor_in*vitesse
             indic_charge = 1.0
+            raide(1) = rignor
         end if
     end if
+! Actualisation de la matrice de raideur
+    call diklvraid(for_discret%nomte, klv, raide)
+    write (6, *) 'force', force(1)
     !
 ! stockage des contraintes
     if (for_discret%lSigm) then
@@ -335,6 +341,7 @@ subroutine dichoc_endo_pena(for_discret, iret)
 ! stockage variables internes
     if (for_discret%lVari) then
         varpl(1) = enfoncement_max
+        write (6, *) '[CHOC_ENDO_PENA] enfoncement_max', enfoncement_max
         varpl(2) = enfoncement_resi
         varpl(3) = indic_charge
         call jevech('PVARIPR', 'E', ivarip)

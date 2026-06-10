@@ -132,6 +132,7 @@ class MECA_DIS_T_L(Element):
                 (OP.AMOR_MECA.PVARCPR, LC.ZVARCPG),
                 (OP.AMOR_MECA.PCOMPOR, LC.CCOMPOR),
                 (SP.PNONLIN, LC.ENONLIN),
+                (SP.PVARIPG, ZVARIPG),
             ),
             para_out=((SP.PMATUNS, MMATUNS), (SP.PMATUUR, MMATUUR)),
         ),

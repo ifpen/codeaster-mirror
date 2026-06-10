@@ -160,12 +160,12 @@ DEPLACE2 = CALC_FONC_INTERP(
 # MATERIAU
 
 
-ldepla = np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0])
-lforce = np.array([1.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 9.9]) * 5.0e7
+ldepla = np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]) * 1000
+lforce = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]) * 5.0e10
 # Raideur constante
 lraide = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]) * 5.0e7
 # Amortissement nul
-lamort = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]) * 0.0
+lamort = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]) * 5.0e4
 
 
 fctfx = DEFI_FONCTION(
@@ -181,7 +181,7 @@ fctam = DEFI_FONCTION(
 MATCHO = DEFI_MATERIAU(
     INFO=1,
     DIS_CHOC_ENDO=_F(
-        FX=fctfx, RIGI_NOR=fctrd, AMOR_NOR=fctam, DIST_1=0.0, DIST_2=0.0, CRIT_AMOR="INCLUS"
+        FX=fctfx, RIGI_NOR=fctrd, AMOR_NOR=fctam, DIST_1=0.0, DIST_2=0.0, CRIT_AMOR="EXCLUS"
     ),
 )
 
@@ -335,6 +335,8 @@ frefe = np.array(tabrefe["FORC"])[INSTS_CHOC]
 insts = DEPL.Absc()[INSTS_CHOC]
 dcalc = DEPL.Ordo()[INSTS_CHOC]
 fcalc = FORC.Ordo()[INSTS_CHOC]
+
+exit(0)
 
 delta_depl = np.abs((dcalc - drefe) / drefe)
 delta_force = np.abs((fcalc - frefe) / frefe)
