@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -344,7 +344,7 @@ ResuIntgr = {
     ),
     468: (
         9.360e00,
-        -2.1923242176e01,
+        -21.92326483309587,
         2.1959773618e02,
         -6.7181616084e-02,
         3.1761898411e-01,
@@ -453,7 +453,7 @@ ResuIntgr = {
     861: (
         1.722e01,
         2.9872371214e02,
-        9.3716379796e00,
+        9.371623945339751,
         4.8525893309e-01,
         2.9752110048e-01,
         2.9682854007e03,

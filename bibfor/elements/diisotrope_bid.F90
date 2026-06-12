@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -124,128 +124,133 @@ subroutine diisotrope_bid(for_discret, iret, ipi, jmat, ivarim, icontm, klv, rai
                 if (abs(zr(ivarim-1+16)) .gt. r8miem()) then
                     raide(2) = zr(ivarim-1+16)
                 end if
-                if (abs(zr(ivarim-1+16)) .gt. r8miem()) then
-                    raide(3) = zr(ivarim-1+16)
+                if (abs(zr(ivarim-1+17)) .gt. r8miem()) then
+                    raide(3) = zr(ivarim-1+17)
                 end if
             end if
             resu(1) = zr(icontm)
             resu(2) = zr(icontm+1)
             resu(3) = zr(icontm+2)
-            goto 800
         end if
         !     !
         ! loi de comportement non-linéaire : récupération du temps + et - , calcul de dt
-        call jevech('PINSTPR', 'L', jtp)
-        call jevech('PINSTMR', 'L', jtm)
-        temps0 = zr(jtm)
-        temps1 = zr(jtp)
-        dtemps = temps1-temps0
-        ! contrôle de rk5 : découpage successif, erreur maximale
-        call jevech('PCARCRI', 'L', icarcr)
-        ! nombre d'itérations maxi (ITER_INTE_MAXI=-20 par défaut)
-        nbdecp = abs(nint(zr(icarcr)))
 
-        ! tolérance de convergence (RESI_INTE)
-        errmax = zr(icarcr+2)
-        ! équations du système :
-!              1 2 3       4 5 6  7      8         9 10 11  12 13 14
+        if (.not. for_discret%lMatrPred) then
+
+            call jevech('PINSTPR', 'L', jtp)
+            call jevech('PINSTMR', 'L', jtm)
+            temps0 = zr(jtm)
+            temps1 = zr(jtp)
+            dtemps = temps1-temps0
+            ! contrôle de rk5 : découpage successif, erreur maximale
+            call jevech('PCARCRI', 'L', icarcr)
+            ! nombre d'itérations maxi (ITER_INTE_MAXI=-20 par défaut)
+            nbdecp = abs(nint(zr(icarcr)))
+
+            ! tolérance de convergence (RESI_INTE)
+            errmax = zr(icarcr+2)
+            ! équations du système :
+!                  1 2 3       4 5 6  7      8         9 10 11  12 13 14
 ! y0   : force(x,y,z) depl(x,y,z) Dissip pcum deplp(x,y,z)  X(x,y,z) 15 16 17         18   19
 ! vari : force(x,y,z) depl(x,y,z) Dissip pcum deplp(x,y,z) dX(x,y,z) tangente(x,y,z) Disp_T pcum_T
-        y0(:) = 0.0d0
-        dy0(:) = 0.0d0
-        if (iloi == 1) then
-            ! Déplacements précédent + incréments
-            if (for_discret%nno == 1) then
-                y0(4) = for_discret%ulm(1)
-                dy0(4) = for_discret%dul(1)/dtemps
+            y0(:) = 0.0d0
+            dy0(:) = 0.0d0
+            if (iloi == 1) then
+                ! Déplacements précédent + incréments
+                if (for_discret%nno == 1) then
+                    y0(4) = for_discret%ulm(1)
+                    dy0(4) = for_discret%dul(1)/dtemps
+                else
+                    y0(4) = (for_discret%ulm(1+for_discret%nc)-for_discret%ulm(1))
+                    dy0(4) = (for_discret%dul(1+for_discret%nc)-for_discret%dul(1))/dtemps
+                end if
+                ! Efforts précédents
+                y0(1) = zr(icontm)
             else
-                y0(4) = (for_discret%ulm(1+for_discret%nc)-for_discret%ulm(1))
-                dy0(4) = (for_discret%dul(1+for_discret%nc)-for_discret%dul(1))/dtemps
+                ! Déplacements précédent + incréments
+                if (for_discret%nno == 1) then
+                    y0(5) = for_discret%ulm(2)
+                    dy0(5) = for_discret%dul(2)/dtemps
+                    y0(6) = for_discret%ulm(3)
+                    dy0(6) = for_discret%dul(3)/dtemps
+                else
+                    y0(5) = (for_discret%ulm(2+for_discret%nc)-for_discret%ulm(2))
+                    dy0(5) = (for_discret%dul(2+for_discret%nc)-for_discret%dul(2))/dtemps
+                    y0(6) = (for_discret%ulm(3+for_discret%nc)-for_discret%ulm(3))
+                    dy0(6) = (for_discret%dul(3+for_discret%nc)-for_discret%dul(3))/dtemps
+                end if
+                ! Efforts précédents
+                y0(2) = zr(icontm+1)
+                y0(3) = zr(icontm+2)
             end if
-            ! Efforts précédents
-            y0(1) = zr(icontm)
-        else
-            ! Déplacements précédent + incréments
-            if (for_discret%nno == 1) then
-                y0(5) = for_discret%ulm(2)
-                dy0(5) = for_discret%dul(2)/dtemps
-                y0(6) = for_discret%ulm(3)
-                dy0(6) = for_discret%dul(3)/dtemps
+            ! Récupération des variables internes
+            if (iloi == 1) then
+                y0(7:8) = zr(ivarim-1+7:ivarim-1+8)
             else
-                y0(5) = (for_discret%ulm(2+for_discret%nc)-for_discret%ulm(2))
-                dy0(5) = (for_discret%dul(2+for_discret%nc)-for_discret%dul(2))/dtemps
-                y0(6) = (for_discret%ulm(3+for_discret%nc)-for_discret%ulm(3))
-                dy0(6) = (for_discret%dul(3+for_discret%nc)-for_discret%dul(3))/dtemps
+                y0(7:8) = zr(ivarim-1+18:ivarim-1+19)
             end if
-            ! Efforts précédents
-            y0(2) = zr(icontm+1)
-            y0(3) = zr(icontm+2)
-        end if
-        ! Récupération des variables internes
-        if (iloi == 1) then
-            y0(7:8) = zr(ivarim-1+7:ivarim-1+8)
-        else
-            y0(7:8) = zr(ivarim-1+18:ivarim-1+19)
-        end if
 
-        y0(9:14) = zr(ivarim-1+9:ivarim-1+14)
-        ! Le seuil élastique et le déplacement correspondant
-        ldcpar(1) = zr(jvale+nbvale+1)
-        ldcpar(2) = zr(jvale+1)
+            y0(9:14) = zr(ivarim-1+9:ivarim-1+14)
+            ! Le seuil élastique et le déplacement correspondant
+            ldcpar(1) = zr(jvale+nbvale+1)
+            ldcpar(2) = zr(jvale+1)
 
-        ! Norme pour le critère d'erreur
-        ynorme(1:3) = ldcpar(1)/10.0d0
-        ynorme(4:6) = ldcpar(2)/10.0d0
-        ynorme(7) = ldcpar(1)*ldcpar(2)/100.0d0
-        ynorme(8:11) = ldcpar(2)/10.0d0
-        ynorme(12:14) = ldcpar(1)/100.0d0
+            ! Norme pour le critère d'erreur
+            ynorme(1:3) = ldcpar(1)/10.0d0
+            ynorme(4:6) = ldcpar(2)/10.0d0
+            ynorme(7) = ldcpar(1)*ldcpar(2)/100.0d0
+            ynorme(8:11) = ldcpar(2)/10.0d0
+            ynorme(12:14) = ldcpar(1)/100.0d0
 
 ! calcul de la tangente au comportement
 ! resu(1:nbeq)            : variables intégrées
 ! resu(nbeq+1:2*nbeq)     : d(resu)/d(t) a t+dt
 !              1 2 3       4 5 6  7      8         9 10 11  12 13 14
 ! y0   : force(x,y,z) depl(x,y,z) Dissip pcum deplp(x,y,z)  X(x,y,z)
-        if (iloi == 1) then
-            call rk5adp(nbequa, ldcpar, ldcfct, ldccar, temps0, &
-     &                  dtemps, nbdecp, errmax, y0, dy0, &
-     &                  disc_isotr, resu_x, iret, ynorme)
+            if (iloi == 1) then
+                call rk5adp(nbequa, ldcpar, ldcfct, ldccar, temps0, &
+     &                      dtemps, nbdecp, errmax, y0, dy0, &
+     &                      disc_isotr, resu_x, iret, ynorme)
 ! La tangente est initiée par la pente initiale (axial)
-            raide(1) = ldcpar(1)/ldcpar(2)
-        else
-            call rk5adp(nbequa, ldcpar, ldcfct, ldccar, temps0, &
-            &                  dtemps, nbdecp, errmax, y0, dy0, &
-            &                  disc_isotr, resu_t, iret, ynorme)
+                raide(1) = ldcpar(1)/ldcpar(2)
+            else
+                call rk5adp(nbequa, ldcpar, ldcfct, ldccar, temps0, &
+                &                  dtemps, nbdecp, errmax, y0, dy0, &
+                &                  disc_isotr, resu_t, iret, ynorme)
 ! La tangente est initiée par la pente initiale (tangentiel)
-            raide(2) = ldcpar(1)/ldcpar(2)
-            raide(3) = raide(2)
+                raide(2) = ldcpar(1)/ldcpar(2)
+                raide(3) = raide(2)
+            end if
+            if (iret .ne. 0) goto 999
         end if
     end do
 
-    resu = resu_t
-    do kk = 1, nbequa*2
-        if (ANY([1, 4, 7, 8, 9] == kk)) then
-            resu(kk) = resu_x(kk)
-        else if (ANY([1, 4, 7, 8, 9] == kk-nbequa)) then
-            resu(kk) = resu_x(kk)
+    if (.not. for_discret%lMatrPred) then
+
+        resu = resu_t
+        do kk = 1, nbequa*2
+            if (ANY([1, 4, 7, 8, 9] == kk)) then
+                resu(kk) = resu_x(kk)
+            else if (ANY([1, 4, 7, 8, 9] == kk-nbequa)) then
+                resu(kk) = resu_x(kk)
+            end if
+        end do
+
+        !
+        ! calcul de la tangente au comportement
+        if (abs(resu(nbequa+4)) .gt. precis) then
+            raide(1) = resu(nbequa+1)/resu(nbequa+4)
         end if
-    end do
 
-    if (iret .ne. 0) goto 999
-    !
-! calcul de la tangente au comportement
-    if (abs(resu(nbequa+4)) .gt. precis) then
-        raide(1) = resu(nbequa+1)/resu(nbequa+4)
+        if (abs(resu(nbequa+5)) .gt. precis) then
+            raide(2) = resu(nbequa+2)/resu(nbequa+5)
+        end if
+        if (abs(resu(nbequa+6)) .gt. precis) then
+            raide(3) = resu(nbequa+3)/resu(nbequa+6)
+        end if
     end if
-
-    if (abs(resu(nbequa+5)) .gt. precis) then
-        raide(2) = resu(nbequa+2)/resu(nbequa+5)
-    end if
-    if (abs(resu(nbequa+6)) .gt. precis) then
-        raide(3) = resu(nbequa+3)/resu(nbequa+6)
-    end if
-
 ! actualisation de la matrice quasi-tangente
-800 continue
+
     !
 ! Actualisation des termes diagonaux
     call diklvraid(for_discret%nomte, klv, raide)
