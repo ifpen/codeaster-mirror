@@ -6,7 +6,7 @@
  * @brief Fichier entete de la classe AssemblyMatrix
  * @author Nicolas Sellenet
  * @section LICENCE
- *   Copyright (C) 1991 - 2025  EDF R&D                www.code-aster.org
+ *   Copyright (C) 1991 - 2026  EDF www.code-aster.org
  *
  *   This file is part of Code_Aster.
  *
@@ -23,8 +23,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Code_Aster.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* person_in_charge: nicolas.sellenet at edf.fr */
 
 #include "astercxx.h"
 
@@ -290,6 +288,23 @@ class BaseAssemblyMatrix : public DataStructure {
         } else {
             ASTERINTEGER shape = _dofNum->getNumberOfDOFs( true );
             return VectorLong( shape + 1, 0 );
+        }
+    }
+
+    /**
+     * @brief Zero the Dirichlet BC DOFs in the given field
+     */
+    void zeroDirichletBCDOFs( FieldOnNodesReal &field ) const {
+        if ( !_ccid.exists() )
+            return; // No Dirichlet BCs to apply
+        VectorLong dirBC = getDirichletBCDOFs();
+        if ( dirBC.size() != field.size() + 1 )
+            raiseAsterError( "Field has incompatible size" );
+        field.updateValuePointers();
+        for ( auto i = 0; i < field.size(); i++ ) {
+            if ( dirBC[i] == 1 ) {
+                field[i] = 0.;
+            }
         }
     }
 

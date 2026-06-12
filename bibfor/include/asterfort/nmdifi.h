@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,15 +15,13 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-!
 !
 interface
-    subroutine nmdifi(keywf, list_inst, tole, nb_inst, nume_end)
-        character(len=16), intent(in) :: keywf
-        character(len=19), intent(in) :: list_inst
+    subroutine nmdifi(factorKeyword, listInstJv, tole, nbInst, numeInstEnd)
+        character(len=16), intent(in) :: factorKeyword
+        character(len=19), intent(in) :: listInstJv
         real(kind=8), intent(in) :: tole
-        integer(kind=8), intent(in) :: nb_inst
-        integer(kind=8), intent(out) :: nume_end
+        integer(kind=8), intent(in) :: nbInst
+        integer(kind=8), intent(out) :: numeInstEnd
     end subroutine nmdifi
 end interface

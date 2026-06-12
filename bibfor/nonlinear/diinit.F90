@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -69,15 +69,18 @@ subroutine diinit(mesh_, model_, ds_inout, mate, mateco, cara_elem, &
 !
 ! --------------------------------------------------------------------------------------------------
 !
+    character(len=16), parameter :: factorKeyword = "INCREMENT"
     aster_logical :: l_expl, l_implex
-    character(len=19) :: listInst
+    character(len=19) :: listInst, sdarch
     character(len=8) :: model, mesh, result
 !
 ! --------------------------------------------------------------------------------------------------
 !
-    call getvid('INCREMENT', 'LIST_INST', iocc=1, scal=listInst)
     model = model_
     mesh = mesh_
+
+! - Get object for time list from user
+    call getvid(factorKeyword, 'LIST_INST', iocc=1, scal=listInst)
 
 ! - Get parameters
     result = ds_inout%result
@@ -94,8 +97,9 @@ subroutine diinit(mesh_, model_, ds_inout, mate, mateco, cara_elem, &
         call ndxcfl(mate, mateco, cara_elem, sddyna, sddisc)
     end if
 
-! - Create storing datastructure
-    call nmcrar(result, sddisc, list_func_acti)
+! - Create storing objects
+    sdarch = sddisc(1:14)//'.ARCH'
+    call nmcrar(result, sddisc, sdarch, list_func_acti)
 
 ! - Automatic management of time stepping
     call nmcrsu(sddisc, listInst, ds_conv, ds_algopara, l_implex, &

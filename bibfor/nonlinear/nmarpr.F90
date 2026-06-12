@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,35 +15,35 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-subroutine nmarpr(result, sddisc, lreuse, numder, insder, &
-                  numarc)
 !
-! person_in_charge: mickael.abbas at edf.fr
+subroutine nmarpr(result, sddisc, lReuse, numeInstEnd, timeEnd, &
+                  numeStore)
 !
     implicit none
+!
 #include "asterf_types.h"
-#include "jeveux.h"
 #include "asterfort/assert.h"
 #include "asterfort/jedema.h"
 #include "asterfort/jemarq.h"
 #include "asterfort/jeveuo.h"
 #include "asterfort/nmttch.h"
 #include "asterfort/utmess.h"
-    real(kind=8) :: insder
-    aster_logical :: lreuse
-    integer(kind=8) :: numder, numarc
-    character(len=19) :: sddisc
-    character(len=8) :: result
+#include "jeveux.h"
 !
-! ----------------------------------------------------------------------
+    character(len=8), intent(in) :: result
+    character(len=19), intent(in) :: sddisc
+    aster_logical, intent(in) :: lReuse
+    integer(kind=8), intent(in) :: numeInstEnd
+    real(kind=8), intent(in) :: timeEnd
+    integer(kind=8), intent(out) :: numeStore
+!
+! --------------------------------------------------------------------------------------------------
 !
 ! ROUTINE *_NON_LINE (ARCHIVAGE)
 !
 ! PREMIER NUMERO A ARCHIVER
 !
-! ----------------------------------------------------------------------
-!
+! --------------------------------------------------------------------------------------------------
 !
 ! IN  RESULT : NOM DE LA SD RESULTAT
 ! IN  SDDISC : SD DISCRETISATION
@@ -54,43 +54,33 @@ subroutine nmarpr(result, sddisc, lreuse, numder, insder, &
 ! IN  LREUSE : .TRUE. SI CONCEPT REENTRANT
 ! OUT NUMARC : NUMERO DU PREMIER PAS A ARCHIVER
 !
+! --------------------------------------------------------------------------------------------------
 !
+    character(len=24) :: sddiscDitrJv
+    real(kind=8) :: timeNext
+    real(kind=8), pointer :: sddiscDitr(:) => null()
 !
-!
-    character(len=24) :: tpsdit
-    integer(kind=8) :: jtemps
-    real(kind=8) :: valr(2), inst2
-!
-! ----------------------------------------------------------------------
+! --------------------------------------------------------------------------------------------------
 !
     call jemarq()
+
+! - Access to list of time
+    sddiscDitrJv = sddisc(1:19)//'.DITR'
+    call jeveuo(sddiscDitrJv, 'L', vr=sddiscDitr)
 !
-! --- NOM SD_DISC
-!
-    tpsdit = sddisc(1:19)//'.DITR'
-    call jeveuo(tpsdit, 'L', jtemps)
-!
-    if (lreuse) then
-!
-! ----- FUTUR INSTANT A ARCHIVER
-!
-        inst2 = zr(jtemps+2-1)
-!
-! ----- L'INSTANT INITIAL EST-IL SUPERIEUR AU DERNIER INSTANT ?
-!
-        if (inst2 .le. insder) then
-            valr(1) = insder
-            valr(2) = inst2
-            call utmess('I', 'ARCHIVAGE_1', nr=2, valr=valr)
-            call nmttch(result, inst2, numder)
-            numarc = numder
+    if (lReuse) then
+        timeNext = sddiscDitr(2)
+        if (timeNext .le. timeEnd) then
+            call utmess('I', 'ARCHIVAGE_1', nr=2, valr=[timeEnd, timeNext])
+            call nmttch(result, timeNext, numeInstEnd)
+            numeStore = numeInstEnd
         else
-            numarc = numder+1
+            numeStore = numeInstEnd+1
         end if
 !
     else
-        ASSERT(numder .eq. 0)
-        numarc = 0
+        ASSERT(numeInstEnd .eq. 0)
+        numeStore = 0
     end if
 !
     call jedema()

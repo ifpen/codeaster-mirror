@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -20,27 +20,26 @@ subroutine ntcrli(listInst, sddisc, lostat)
 !
     implicit none
 !
-#include "asterf_types.h"
-#include "asterfort/gettco.h"
 #include "asterc/r8prem.h"
+#include "asterf_types.h"
 #include "asterfort/assert.h"
 #include "asterfort/diinst.h"
+#include "asterfort/gettco.h"
 #include "asterfort/getvr8.h"
 #include "asterfort/infniv.h"
 #include "asterfort/jedetr.h"
 #include "asterfort/jedup1.h"
 #include "asterfort/jedupo.h"
 #include "asterfort/jeveuo.h"
-#include "asterfort/ntcrlm.h"
 #include "asterfort/nmcrls.h"
 #include "asterfort/nmdifi.h"
 #include "asterfort/nmdini.h"
+#include "asterfort/ntcrlm.h"
 #include "asterfort/utdidt.h"
 #include "asterfort/utmess.h"
 #include "asterfort/wkvect.h"
 !
-    character(len=19), intent(in) :: sddisc
-    character(len=19), intent(in) :: listInst
+    character(len=19), intent(in) :: sddisc, listInst
     aster_logical, intent(in) :: lostat
 !
 ! --------------------------------------------------------------------------------------------------
@@ -51,21 +50,20 @@ subroutine ntcrli(listInst, sddisc, lostat)
 !
 ! --------------------------------------------------------------------------------------------------
 !
-! In  sddisc           : datastructure for time discretization
-! In  listInst         : list of times from INCREMENT/LIST_INST
-! In  lostat           : .true. for initial stationnary computation
+! In  sddisc          : datastructure for time discretization
+! In  listInst        : list of times from INCREMENT/LIST_INST
+! In  lostat          : .true. for initial stationnary computation
 !
 ! --------------------------------------------------------------------------------------------------
 !
     character(len=16), parameter :: factorKeyword = 'INCREMENT'
     character(len=19), parameter :: listInstWorkJv = '&&NMCRLI.PROVLI'
     integer(kind=8) :: ifm, niv
-    integer(kind=8) :: numeInit, numeEnd
+    integer(kind=8) :: numeInstInit, numeInstEnd
     integer(kind=8) :: nbInstNew, nbInst, nbret
-    real(kind=8) :: tole, dtmin, dt0, instInit
-    character(len=24) :: list_inst_info
-    character(len=24) :: list_inst_ditr
-    character(len=16) :: list_inst_type
+    real(kind=8) :: tole, timeIncrMini, timeIncrPrev
+    character(len=24) :: listInstInfor, listInstDitr
+    character(len=16) :: listInstType
     character(len=24) :: sddisc_bcle
     integer(kind=8), pointer :: v_sddisc_bcle(:) => null()
     real(kind=8), pointer :: listInstWork(:) => null()
@@ -73,7 +71,7 @@ subroutine ntcrli(listInst, sddisc, lostat)
     integer(kind=8), pointer :: v_sddisc_dini(:) => null()
     character(len=24) :: sddisc_lipo
     character(len=24) :: sddisc_ditr
-    character(len=24) :: sddisc_linf
+    character(len=24) :: sddiscLinfJv
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -90,22 +88,22 @@ subroutine ntcrli(listInst, sddisc, lostat)
     call wkvect(sddisc_bcle, 'V V I', 3, vi=v_sddisc_bcle)
 
 ! - Type of listInst
-    call gettco(listInst, list_inst_type)
-    ASSERT(list_inst_type .ne. ' ')
+    call gettco(listInst, listInstType)
+    ASSERT(listInstType .ne. ' ')
 
 ! - Create list of times and information vector
-    if (list_inst_type .eq. 'LISTR8_SDASTER') then
+    if (listInstType .eq. 'LISTR8_SDASTER') then
         call ntcrlm(listInst, sddisc, listInstWorkJv)
-    else if (list_inst_type .eq. 'LIST_INST') then
-        sddisc_linf = sddisc(1:19)//'.LINF'
-        list_inst_info = listInst(1:8)//'.LIST.INFOR'
-        list_inst_ditr = listInst(1:8)//'.LIST.DITR'
-        call jedup1(list_inst_ditr, 'V', listInstWorkJv)
-        call jedup1(list_inst_info, 'V', sddisc_linf)
+    else if (listInstType .eq. 'LIST_INST') then
+        sddiscLinfJv = sddisc(1:19)//'.LINF'
+        listInstInfor = listInst(1:8)//'.LIST.INFOR'
+        listInstDitr = listInst(1:8)//'.LIST.DITR'
+        call jedup1(listInstDitr, 'V', listInstWorkJv)
+        call jedup1(listInstInfor, 'V', sddiscLinfJv)
     end if
 
 ! - Get parameters
-    call utdidt('L', sddisc, 'LIST', 'DTMIN', valr_=dtmin)
+    call utdidt('L', sddisc, 'LIST', 'DTMIN', valr_=timeIncrMini)
     call utdidt('L', sddisc, 'LIST', 'NBINST', vali_=nbInst)
 
 ! - At least one step
@@ -114,39 +112,34 @@ subroutine ntcrli(listInst, sddisc, lostat)
     end if
 
 ! - List must increase
-    if (dtmin .le. r8prem()) then
+    if (timeIncrMini .le. r8prem()) then
         call utmess('F', 'DISCRETISATION_87')
     end if
 
 ! - Acces to list of times
     call jeveuo(listInstWorkJv, 'L', vr=listInstWork)
-!
+
 ! - Get parameters
-!
     call getvr8(factorKeyword, 'PRECISION', iocc=1, scal=tole, nbret=nbret)
     if (nbret == 0) then
         tole = 1d-6
     end if
-    tole = abs(dtmin)*tole
-!
-! - Index of initial time
-!
-    call nmdini(factorKeyword, listInstWorkJv, tole, &
-                nbInst, numeInit, instInit)
-!
-! - Index of final time
-!
-    call nmdifi(factorKeyword, listInstWorkJv, tole, nbInst, numeEnd)
-!
+    tole = abs(timeIncrMini)*tole
+
+! - Index of initial time in list of times
+    call nmdini(factorKeyword, listInstWorkJv, tole, nbInst, numeInstInit)
+
+! - Index of final time in list of times
+    call nmdifi(factorKeyword, listInstWorkJv, tole, nbInst, numeInstEnd)
+
 ! - Check
-!
-    if (numeInit .ge. numeEnd .and. .not. lostat) then
+    if (numeInstInit .ge. numeInstEnd .and. .not. lostat) then
         call utmess('F', 'DISCRETISATION_92')
     end if
 
 ! - Resize list of times
-    call nmcrls(sddisc, listInstWorkJv, numeInit, numeEnd, &
-                nbInstNew, dtmin)
+    call nmcrls(sddisc, listInstWorkJv, numeInstInit, numeInstEnd, &
+                nbInstNew, timeIncrMini)
 
 ! - Create object for subdividing time steps
     sddisc_dini = sddisc(1:19)//'.DINI'
@@ -154,10 +147,10 @@ subroutine ntcrli(listInst, sddisc, lostat)
     v_sddisc_dini(1:nbInstNew) = 1
 
 ! - Save parameters
-    dt0 = diinst(sddisc, 1)-diinst(sddisc, 0)
-    call utdidt('E', sddisc, 'LIST', 'DT-', valr_=dt0)
+    timeIncrPrev = diinst(sddisc, 1)-diinst(sddisc, 0)
+    call utdidt('E', sddisc, 'LIST', 'DT-', valr_=timeIncrPrev)
     call utdidt('E', sddisc, 'LIST', 'NBINST', vali_=nbInstNew)
-    call utdidt('E', sddisc, 'LIST', 'DTMIN', valr_=dtmin)
+    call utdidt('E', sddisc, 'LIST', 'DTMIN', valr_=timeIncrMini)
 
 ! - Save object of time steps
     sddisc_ditr = sddisc(1:19)//'.DITR'

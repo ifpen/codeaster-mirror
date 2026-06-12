@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,26 +15,23 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-! person_in_charge: mickael.abbas at edf.fr
 !
-subroutine nmcrlm(listr8_sdaster, sddisc, list_inst_work)
+subroutine nmcrlm(listRealJv, sddisc, listInstWorkJv)
 !
     implicit none
 !
-#include "asterf_types.h"
-#include "event_def.h"
 #include "asterc/r8maem.h"
 #include "asterc/r8prem.h"
+#include "asterf_types.h"
 #include "asterfort/jedup1.h"
 #include "asterfort/jelira.h"
 #include "asterfort/jeveuo.h"
 #include "asterfort/utdidt.h"
 #include "asterfort/utmess.h"
 #include "asterfort/wkvect.h"
+#include "event_def.h"
 !
-    character(len=19), intent(in) :: list_inst_work
-    character(len=19), intent(in) :: sddisc
-    character(len=19), intent(in) :: listr8_sdaster
+    character(len=19), intent(in) :: listRealJv, sddisc, listInstWorkJv
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -45,63 +42,53 @@ subroutine nmcrlm(listr8_sdaster, sddisc, list_inst_work)
 ! --------------------------------------------------------------------------------------------------
 !
 ! In  sddisc           : datastructure for time discretization
-! In  listr8_sdaster   : list of reals (listr8_sdaster)
-! In  list_inst_work   : name of working list of time
+! In  listRealJv       : name of object for list of reals
+! In  listInstWorkJv   : name of working list of time
 !
 ! --------------------------------------------------------------------------------------------------
 !
-    integer(kind=8) :: nb_inst, i_inst
-    real(kind=8) :: dtmin, deltat
-    character(len=8) :: list_method
-    character(len=24) :: sddisc_linf
-    real(kind=8), pointer :: v_sddisc_linf(:) => null()
-    real(kind=8), pointer :: v_vale(:) => null()
+    character(len=8) :: timeListMethod
+    integer(kind=8) :: nbReal, iReal
+    real(kind=8) :: timeIncrMini, timeIncr
+    character(len=24) :: sddiscLinfJv
+    real(kind=8), pointer :: sddiscLinf(:) => null()
+    real(kind=8), pointer :: listRealVale(:) => null()
 !
 ! --------------------------------------------------------------------------------------------------
 !
-    sddisc_linf = sddisc(1:19)//'.LINF'
-    dtmin = r8maem()
-!
-! - Access to list of times
-!
-    call jeveuo(listr8_sdaster//'.VALE', 'L', vr=v_vale)
-    call jelira(listr8_sdaster//'.VALE', 'LONMAX', nb_inst)
-!
+    sddiscLinfJv = sddisc(1:19)//'.LINF'
+    timeIncrMini = r8maem()
+
+! - Access to object
+    call jeveuo(listRealJv//'.VALE', 'L', vr=listRealVale)
+    call jelira(listRealJv//'.VALE', 'LONMAX', nbReal)
+
 ! - At least one step
-!
-    if (nb_inst .lt. 2) then
+    if (nbReal .lt. 2) then
         call utmess('F', 'DISCRETISATION_95')
     end if
-!
+
 ! - Minimum time between two steps
-!
-    do i_inst = 1, nb_inst-1
-        deltat = v_vale(1+i_inst)-v_vale(i_inst)
-        dtmin = min(deltat, dtmin)
+    do iReal = 1, nbReal-1
+        timeIncr = listRealVale(iReal+1)-listRealVale(iReal)
+        timeIncrMini = min(timeIncr, timeIncrMini)
     end do
-!
+
 ! - List must increase
-!
-    if (dtmin .le. r8prem()) then
+    if (timeIncrMini .le. r8prem()) then
         call utmess('F', 'DISCRETISATION_87')
     end if
-!
-! - Copy listr8sdaster in list of times
-!
-    call jedup1(listr8_sdaster(1:19)//'.VALE', 'V', list_inst_work)
-!
+
+! - Copy list of reals in list of times
+    call jedup1(listRealJv(1:19)//'.VALE', 'V', listInstWorkJv)
+
 ! - Create information vector
-!
-    call wkvect(sddisc_linf, 'V V R', SIZE_LLINR, vr=v_sddisc_linf)
-!
+    call wkvect(sddiscLinfJv, 'V V R', SIZE_LLINR, vr=sddiscLinf)
+
 ! - Update information vector
-!
-    list_method = 'MANUEL'
-    call utdidt('E', sddisc, 'LIST', 'METHODE', &
-                valk_=list_method)
-    call utdidt('E', sddisc, 'LIST', 'DTMIN', &
-                valr_=dtmin)
-    call utdidt('E', sddisc, 'LIST', 'NBINST', &
-                vali_=nb_inst)
+    timeListMethod = 'MANUEL'
+    call utdidt('E', sddisc, 'LIST', 'METHODE', valk_=timeListMethod)
+    call utdidt('E', sddisc, 'LIST', 'DTMIN', valr_=timeIncrMini)
+    call utdidt('E', sddisc, 'LIST', 'NBINST', vali_=nbReal)
 !
 end subroutine

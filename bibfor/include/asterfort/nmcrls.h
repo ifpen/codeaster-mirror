@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -18,11 +18,11 @@
 #include "asterf_types.h"
 !
 interface
-    subroutine nmcrls(sddisc, listInstJv, numeInit, numeEnd, &
-                      nbInstNew, dtmin)
+    subroutine nmcrls(sddisc, listInstJv, numeInstInit, numeInstEnd, &
+                      nbInstNew, timeIncrMini)
         character(len=19), intent(in) :: sddisc, listInstJv
-        integer(kind=8), intent(in) :: numeInit, numeEnd
+        integer(kind=8), intent(in) :: numeInstInit, numeInstEnd
         integer(kind=8), intent(out) :: nbInstNew
-        real(kind=8), intent(out) :: dtmin
+        real(kind=8), intent(out) :: timeIncrMini
     end subroutine nmcrls
 end interface

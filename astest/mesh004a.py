@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -22,7 +22,6 @@ from code_aster.Commands import *
 from code_aster import CA
 from code_aster.Utilities import petscInitialize
 from code_aster.CA import MPI
-
 
 CA.init("--test", ERREUR=_F(ALARME="EXCEPTION"))
 
@@ -71,7 +70,16 @@ charCine.build()
 
 study = CA.PhysicalProblem(model, affectMat)
 study.addDirichletBC(charCine)
-study.computeDOFNumbering()
+nume = NUME_DDL(MODELE=model)
+study.setDOFNumbering(nume)
+# Without calling computeListOfLoads, the Dirichlet BC DOFs should still be available
+if rank == 0 or rank == 1:
+    test.assertTrue(1 in study.getDirichletBCDOFs(), "No Dirichlet BC DOFs found")
+# Calling computeListOfLoads should not affect the availability of Dirichlet BC DOFs
+if rank == 0 or rank == 1:
+    study.computeListOfLoads()
+    test.assertTrue(1 in study.getDirichletBCDOFs(), "No Dirichlet BC DOFs found")
+#
 dComputation = CA.DiscreteComputation(study)
 matr_elem = dComputation.getElasticStiffnessMatrix()
 
@@ -94,6 +102,9 @@ test.assertEqual(len(ccid), numeDDL.getNumberOfDOFs(local=True) + 1)
 vec = CA.FieldOnNodesReal(model)
 vec.setValues(1.0)
 study.zeroDirichletBCDOFs(vec)
+test.assertEqual(sum(vec.getValues()), numeDDL.getNumberOfDOFs(local=True) - sum(ccid[:-1]))
+vec.setValues(1.0)
+matrAsse.zeroDirichletBCDOFs(vec)
 test.assertEqual(sum(vec.getValues()), numeDDL.getNumberOfDOFs(local=True) - sum(ccid[:-1]))
 
 retour = matrAsse.getDOFNumbering()

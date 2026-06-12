@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,12 +15,11 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-subroutine nmcrpp(motfaz, iocc, prec, criter, tole)
 !
-! person_in_charge: mickael.abbas at edf.fr
+subroutine nmcrpp(factorKeywordZ, iFactorKeyword, stepSlctTole)
 !
     implicit none
+!
 #include "asterc/r8prem.h"
 #include "asterfort/assert.h"
 #include "asterfort/getvid.h"
@@ -30,54 +29,50 @@ subroutine nmcrpp(motfaz, iocc, prec, criter, tole)
 #include "asterfort/jemarq.h"
 #include "asterfort/utmess.h"
 #include "jeveux.h"
-    character(len=*) :: motfaz
-    integer(kind=8) :: iocc
-    character(len=8) :: criter
-    real(kind=8) :: prec, tole
 !
-! ----------------------------------------------------------------------
+    character(len=*), intent(in) :: factorKeywordZ
+    integer(kind=8), intent(in) :: iFactorKeyword
+    real(kind=8), intent(out) :: stepSlctTole
 !
-! ROUTINE *_NON_LINE (UTILITAIRE - SELEC. INST.)
+! --------------------------------------------------------------------------------------------------
 !
-! LECTURE PRECISION/CRITERE
+! *_NON_LINE - Time selector management
 !
-! ----------------------------------------------------------------------
+! Get tolerance to select one time step
 !
-! NB: SI LE CRITERE EST RELATIF MAIS QUE _PRECISION_ N'EST PAS
-!     PRECISEE, ALORS PRECISION VAUT PREDEF
+! --------------------------------------------------------------------------------------------------
 !
-! IN  MOTFAC : MOT-FACTEUR POUR LIRE (LIST_INST/INST)
-! IN  IOCC   : OCCURRENCE DU MOT-CLEF FACTEUR MOTFAC
-! OUT PREC   : PRECISION DE RECHERCHE
-! OUT CRITER : CRITERE DE SELECTION (RELATIF/ABSOLU)
-! OUT TOLE   : TOLERANCE
-!                +PREC POUR RELATIF
-!                -PREC POUR ABSOLU
-
+! In  factorKeyword    : factor keyword to read
+! In  iFactorKeyword   : index of factor keyword
+! Out stepSlctTole     : tolerance to select one time step
+!
+! --------------------------------------------------------------------------------------------------
+!
     integer(kind=8) :: n0, n1, n2
-    character(len=16) :: motfac
+    character(len=16) :: factorKeyword
     real(kind=8) :: predef
+    character(len=8) :: criter
+    real(kind=8) :: prec
 !
-! ----------------------------------------------------------------------
+! --------------------------------------------------------------------------------------------------
 !
     call jemarq()
 
+! - Initializations
     prec = 0.d0
-    tole = 0.d0
-    criter = 'RELATIF'
-    motfac = motfaz
+    stepSlctTole = 0.d0
+    factorKeyword = factorKeywordZ
     predef = 1.d-6
 
 !   CRITERE/PRECISION are only needed if INST or LIST_INST exist
-    call getvr8(motfac, 'INST', iocc=iocc, nbret=n0)
+    call getvr8(factorKeyword, 'INST', iocc=iFactorKeyword, nbret=n0)
     if (n0 .eq. 0) then
-        call getvid(motfac, 'LIST_INST', iocc=iocc, nbret=n0)
+        call getvid(factorKeyword, 'LIST_INST', iocc=iFactorKeyword, nbret=n0)
     end if
 
     if (n0 .ne. 0) then
-!       reading keywords
-        call getvr8(motfac, 'PRECISION', iocc=iocc, scal=prec, nbret=n1)
-        call getvtx(motfac, 'CRITERE', iocc=iocc, scal=criter, nbret=n2)
+        call getvr8(factorKeyword, 'PRECISION', iocc=iFactorKeyword, scal=prec, nbret=n1)
+        call getvtx(factorKeyword, 'CRITERE', iocc=iFactorKeyword, scal=criter, nbret=n2)
         if (criter .eq. 'ABSOLU') then
             if (n1 .eq. 0) then
                 call utmess('F', 'LISTINST_1')
@@ -88,24 +83,19 @@ subroutine nmcrpp(motfaz, iocc, prec, criter, tole)
                 call utmess('A', 'LISTINST_2', sr=predef)
             end if
         else
-            ASSERT(.false.)
+            ASSERT(ASTER_FALSE)
         end if
-
         if (prec .le. r8prem()) then
             call utmess('F', 'LISTINST_3')
         end if
-
-!       setting 'tole'
         if (criter .eq. 'RELATIF') then
-            tole = prec
+            stepSlctTole = prec
         else if (criter .eq. 'ABSOLU') then
-            tole = -prec
+            stepSlctTole = -prec
         else
-            ASSERT(.false.)
+            ASSERT(ASTER_FALSE)
         end if
-
     end if
-
     call jedema()
-
+!
 end subroutine

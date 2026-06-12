@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,54 +15,59 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-subroutine ntcra0(sddisc)
 !
+subroutine ntcra0(sdarchZ)
 !
     implicit none
-#include "jeveux.h"
+!
 #include "asterfort/jedema.h"
 #include "asterfort/jemarq.h"
 #include "asterfort/nmcrpx.h"
 #include "asterfort/wkvect.h"
-    character(len=19) :: sddisc
+#include "jeveux.h"
 !
-! ----------------------------------------------------------------------
+    character(len=*), intent(in) :: sdarchZ
 !
-! ROUTINE THER_* (STRUCTURES DE DONNES)
+! --------------------------------------------------------------------------------------------------
 !
-! CREATION SD ARCHIVAGE SPECIAL SI CALCUL NON TRANSITOIRE
+! THER_* - Storing management
 !
-! ----------------------------------------------------------------------
+! Create storing objects for transient computation
 !
+! --------------------------------------------------------------------------------------------------
 !
-! IN  SDDISC : SD DISCRETISATION TEMPORELLE
+! In  sdarch           : datastructure for storing
 !
-! ----------------------------------------------------------------------
+! --------------------------------------------------------------------------------------------------
 !
     integer(kind=8), parameter :: iocc = 0
-    character(len=16), parameter :: factorKeyword = ' ', keywStep = ' '
-    character(len=1), parameter :: base = 'V'
+    character(len=16), parameter :: factorKeyword = ' ', stepKeyword = ' '
+    character(len=1), parameter :: jvBase = 'V'
     character(len=19) :: sdarch
-    character(len=24) :: sdarchAinfJv, sdarchAexcJv
+    character(len=24) :: sdarchAinfJv, sdarchAexcJv, sdarchLastJv
     integer(kind=8), pointer :: sdarchAinf(:) => null()
     character(len=16), pointer :: sdarchAexc(:) => null()
+    real(kind=8), pointer :: sdarchLast(:) => null()
 !
-! ----------------------------------------------------------------------
+! --------------------------------------------------------------------------------------------------
 !
     call jemarq()
-
-! - Name of datastructures to store
-    sdarch = sddisc(1:14)//'.ARCH'
-    sdarchAinfJv = sdarch(1:19)//'.AINF'
-    sdarchAexcJv = sdarch(1:19)//'.AEXC'
+    sdarch = sdarchZ
 
 ! - Create datastructures
+    sdarchAinfJv = sdarch(1:19)//'.AINF'
+    sdarchAexcJv = sdarch(1:19)//'.AEXC'
+    sdarchLastJv = sdarch(1:19)//'.LAST'
     call wkvect(sdarchAexcJv, 'V V K16', 1, vk16=sdarchAexc)
     call wkvect(sdarchAinfJv, 'V V I', 4, vi=sdarchAinf)
+    call wkvect(sdarchLastJv, 'V V R', 2, vr=sdarchLast)
 
 ! - Get parameters from ARCHIVAGE
-    call nmcrpx(factorKeyword, keywStep, iocc, sdarch, base)
+    call nmcrpx(factorKeyword, stepKeyword, iocc, sdarch, jvBase)
+
+! - Save
+    sdarchLast(1) = -1.d0
+    sdarchLast(2) = -1.d0
 !
     call jedema()
 !

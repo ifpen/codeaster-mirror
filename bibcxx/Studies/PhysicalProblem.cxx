@@ -2,7 +2,7 @@
  * @file PhysicalProblem.cxx
  * @brief Implementation of class PhysicalProblem
  * @section LICENCE
- *   Copyright (C) 1991 - 2025  EDF R&D                www.code-aster.org
+ *   Copyright (C) 1991 - 2026  EDF www.code-aster.org
  *
  *   This file is part of Code_Aster.
  *
@@ -109,6 +109,7 @@ void PhysicalProblem::setDOFNumbering( const BaseDOFNumberingPtr dofNume ) {
     if ( dofNume ) {
         _dofNume = dofNume;
     }
+    computeListOfLoads( "" );
 };
 
 void PhysicalProblem::computeBehaviourProperty( py::object &keywords,

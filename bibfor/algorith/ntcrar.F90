@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -16,12 +16,12 @@
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
 !
-subroutine ntcrar(result, sddisc, lReuse)
+subroutine ntcrar(resultZ, sddiscZ, sdarchZ, lReuse)
 !
     implicit none
 !
-#include "asterf_types.h"
 #include "asterc/getfac.h"
+#include "asterf_types.h"
 #include "asterfort/assert.h"
 #include "asterfort/infniv.h"
 #include "asterfort/jedema.h"
@@ -33,36 +33,39 @@ subroutine ntcrar(result, sddisc, lReuse)
 #include "asterfort/nmdide.h"
 #include "asterfort/wkvect.h"
 !
-    character(len=19), intent(in) :: sddisc
-    character(len=8), intent(in) :: result
+    character(len=*), intent(in) :: resultZ, sddiscZ, sdarchZ
     aster_logical, intent(in) :: lReuse
 !
 ! --------------------------------------------------------------------------------------------------
 !
-! THER_NON_LINE - Input/output datastructure
+! THER_NON_LINE - Storing management
 !
-! Create datastructures for storing management
+! Create storing objects
 !
 ! --------------------------------------------------------------------------------------------------
 !
 ! In  result           : name of datastructure for results
 ! In  sddisc           : datastructure for time discretization
+! In  sdarch           : datastructure for storing
+! In  l_reuse          : .true. if reuse results datastructure
 !
-! ----------------------------------------------------------------------
+! --------------------------------------------------------------------------------------------------
 !
     integer(kind=8) :: ifm, niv
     integer(kind=8), parameter :: iocc = 1
     character(len=16), parameter :: factorKeyword = 'ARCHIVAGE', keywStep = 'PAS_ARCH'
-    character(len=1), parameter :: base = 'V'
+    character(len=1), parameter :: jvBase = 'V'
+    character(len=19) :: sddisc, sdarch
+    character(len=8) :: result
     integer(kind=8) :: nbFactorKeyword
     integer(kind=8) :: lastIndex, numeReuseCalc, numeReuse
     integer(kind=8) :: numeStoring
-    character(len=19) :: sdarch
-    character(len=24) :: sdarchAinfJv
+    character(len=24) :: sdarchAinfJv, sdarchLastJv
     integer(kind=8), pointer :: sdarchAinf(:) => null()
+    real(kind=8), pointer :: sdarchLast(:) => null()
     real(kind=8) :: lastTime
 !
-! ----------------------------------------------------------------------
+! --------------------------------------------------------------------------------------------------
 !
     call jemarq()
     call infniv(ifm, niv)
@@ -71,21 +74,20 @@ subroutine ntcrar(result, sddisc, lReuse)
     end if
 
 ! - Initializations
+    result = resultZ
+    sdarch = sdarchZ
+    sddisc = sddiscZ
     numeStoring = -1
     numeReuse = -1
     numeReuseCalc = -1
     call getfac(factorKeyword, nbFactorKeyword)
     ASSERT(nbFactorKeyword .le. 1)
 
-! - Name of datastructures to store
-    sdarch = sddisc(1:14)//'.ARCH'
-    sdarchAinfJv = sdarch(1:19)//'.AINF'
-
 ! - Get last time in result datastructure if initial state given
     call nmdide(lReuse, result, lastIndex, lastTime)
 
 ! - Get parameters from ARCHIVAGE
-    call nmcrpx(factorKeyword, keywStep, iocc, sdarch, base)
+    call nmcrpx(factorKeyword, keywStep, iocc, sdarch, jvBase)
 
 ! - List of CHAM_EXCLU
     call nmarex(factorKeyword, sdarch)
@@ -96,8 +98,11 @@ subroutine ntcrar(result, sddisc, lReuse)
 ! - Get reuse index from TABLE OBSERVATION
     call nmarnr(result, 'OBSERVATION', numeReuse)
 
-! - Create datastructure
+! - Create datastructures
+    sdarchAinfJv = sdarch(1:19)//'.AINF'
+    sdarchLastJv = sdarch(1:19)//'.LAST'
     call wkvect(sdarchAinfJv, 'V V I', 4, vi=sdarchAinf)
+    call wkvect(sdarchLastJv, 'V V R', 2, vr=sdarchLast)
 
 ! - Save
     ASSERT(numeStoring .ge. 0)
@@ -106,6 +111,8 @@ subroutine ntcrar(result, sddisc, lReuse)
     sdarchAinf(2) = numeReuse
     sdarchAinf(3) = numeReuseCalc
     sdarchAinf(4) = -1
+    sdarchLast(1) = -1.d0
+    sdarchLast(2) = -1.d0
 !
     call jedema()
 !
