@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -56,7 +56,12 @@ MAT1 = DEFI_MATERIAU(ELAS=_F(E=72739.0, NU=0.32, ALPHA=0.0), TRACTION=_F(SIGM=TR
 MAT2 = DEFI_MATERIAU(ELAS=_F(E=809748.0, NU=0.3, ALPHA=0.0))
 
 CHMAT = AFFE_MATERIAU(
-    MAILLAGE=MA, AFFE=(_F(GROUP_MA="EPROUVET", MATER=MAT1), _F(GROUP_MA="PORTEPRO", MATER=MAT2))
+    MAILLAGE=MA,
+    AFFE=(
+        _F(TOUT="OUI", MATER=MAT1),
+        _F(GROUP_MA="EPROUVET", MATER=MAT1),
+        _F(GROUP_MA="PORTEPRO", MATER=MAT2),
+    ),
 )
 
 # CONDITIONS AUX LIMITES FIXES
