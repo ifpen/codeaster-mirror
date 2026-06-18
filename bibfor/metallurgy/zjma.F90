@@ -89,11 +89,11 @@ subroutine zjma(metaSteelPara, &
     ZMartTotaPrev = ZMartRevePrev+ZMartBrut
     ZTildeMartPrev = 0.d0
     if (abs(ZMartTotaPrev) .ge. r8prem()) then
-        ZTildeMartPrev = ZMartRevePrev/ZMartTotaPrev
+        ZTildeMartPrev = ZMartRevePrev/ZMartBrut
     end if
     ZTildeBainPrev = 0.d0
     if (abs(ZBainTotaPrev) .ge. r8prem()) then
-        ZTildeBainPrev = ZBainRevePrev/ZBainTotaPrev
+        ZTildeBainPrev = ZBainRevePrev/ZBainBrut
     end if
 
 ! - Get material parameters
