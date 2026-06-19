@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -22,6 +22,9 @@ from ..Utilities import _
 cata_msg = {
     1: _("""Les comportements MFront ne fonctionnent qu'en déformation mécanique."""),
     2: _("""On ne peut pas utiliser de matériau anisotrope avec la modélisation %(k1)s."""),
+    3: _(
+        """Attention, la loi de comportement META_LEMA_ANI utilise les déformations totales et non pas les déformations mécaniques comme variables d'entrée dans MFront. Le calcul en post-traitement des grandeurs de déformation EPVC_* et EPME_* est donc faux."""
+    ),
     19: _(
         """Le nom de la variable interne %(k1)s est trop long, il va être tronqué en %(k2)s. Il faudra vérifier qu'il n'y a pas de risque de confusion avec d'autres variables internes."""
     ),

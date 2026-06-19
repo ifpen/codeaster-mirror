@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -74,7 +74,6 @@ subroutine te0028(option, nomte)
     character(len=4) :: fami
     integer(kind=8) :: ndim, nno, igeom, imate, i, j
     integer(kind=8), parameter :: size_fenicsx = 42*42, size_aster = 30*30
-
     real(c_double) :: cst(4), coor(27), kappa, cdofs_f(12)
     ! NOTICE: see the size of the arrays in the C file: c_interface_plaq_mitc_j
     real(c_double), dimension(size_fenicsx) :: A0, A1, A2, A3, A4
@@ -88,7 +87,8 @@ subroutine te0028(option, nomte)
     real(kind=8) :: signs(size_mat)
     real(c_double) :: w_0(size_mat)
     real(kind=8), dimension(size_mat, size_mat) :: bint, bf
-    real(kind=8) :: e, nu, epais, rho
+    real(kind=8) :: e, nu, e_, nu_, epais, rho, tiny
+    parameter(tiny=1.d-8)
     integer(kind=8) :: elas_id, igau, ipoids, npg1
     integer(kind=8) :: nnos, ivf, idfde
     character(len=16) :: elas_keyword
@@ -157,15 +157,20 @@ subroutine te0028(option, nomte)
 !
     call jevech('PMATERC', 'L', imate)
 
-    do igau = 1, npg1
 ! ----- Get elastic parameters (only isotropic elasticity)
+! FIXME: for instance E and NU are supposed to be equal for all quadpoints
 !
+    call get_elas_id(zi(imate), elas_id, elas_keyword)
+    call get_elas_para(fami, zi(imate), '+', 1, 1, &
+                       elas_id, elas_keyword, &
+                       e_=e, nu_=nu)
+
+    do igau = 2, npg1
         call get_elas_id(zi(imate), elas_id, elas_keyword)
         call get_elas_para(fami, zi(imate), '+', igau, 1, &
                            elas_id, elas_keyword, &
-                           e_=e, nu_=nu)
-! ----- Fill integration weight vector (Divided by 4 for FEniCS)
-!
+                           e_=e_, nu_=nu_)
+        ASSERT(abs(e-e_) .le. tiny .and. abs(nu-nu_) .le. tiny)
     end do
 
     call dxroep(rho, epais)

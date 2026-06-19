@@ -64,7 +64,7 @@ subroutine projOrthoNewton(cellCode, cellNbNode, cellDime, cellCoor, poinCoor, &
 !
 ! --------------------------------------------------------------------------------------------------
 !
-    integer(kind=8) :: cellLineNbNode, nbNode, nbNodeS
+    integer(kind=8) :: cellLineNbNode, nbNode, nbNodeS, projErrorLocal
     aster_logical :: lLineSearch, lPrintDbg, lReproject, lCurvature
     character(len=8) :: cellLineCode
 !
@@ -76,7 +76,7 @@ subroutine projOrthoNewton(cellCode, cellNbNode, cellDime, cellCoor, poinCoor, &
         lLineSearch = lLineSearch_
     end if
     call elrfno(cellCode, nbNode, nbNodeS)
-    lReproject = nbNode .ne. nbNodeS
+    lReproject = nbNode .ne. nbNodeS .or. cellCode(1:2) .eq. "QU"
 
     lPrintDbg = ASTER_TRUE
     if (lReproject) then
@@ -86,15 +86,17 @@ subroutine projOrthoNewton(cellCode, cellNbNode, cellDime, cellCoor, poinCoor, &
                 newtIterMaxi, newtToleMaxi, &
                 ksi1, ksi2, &
                 tang_1, tang_2, &
-                projError, lLineSearch, lPrintDbg)
-    if (lReproject .and. projError .ne. 0) then
+                projErrorLocal, lLineSearch, lPrintDbg)
+    if (lReproject .and. projErrorLocal .ne. 0) then
         lPrintDbg = ASTER_TRUE
         lCurvature = ASTER_FALSE
         call mmnewt(cellCode, cellNbNode, cellDime, cellCoor, poinCoor, &
                     newtIterMaxi, newtToleMaxi, &
                     ksi1, ksi2, &
                     tang_1, tang_2, &
-                    projError, lLineSearch, lPrintDbg, lCurvature)
+                    projErrorLocal, lLineSearch, lPrintDbg, lCurvature)
     end if
+
+    projError = projErrorLocal
 !
 end subroutine

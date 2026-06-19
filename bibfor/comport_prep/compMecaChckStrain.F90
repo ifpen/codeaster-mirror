@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,7 +15,6 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-! person_in_charge: mickael.abbas at edf.fr
 !
 subroutine compMecaChckStrain(iComp, &
                               model, fullElemField, &
@@ -123,9 +122,13 @@ subroutine compMecaChckStrain(iComp, &
         call utmess('F', 'COMPOR1_44', nk=2, valk=[defoComp, relaComp])
     end if
 
-! - Only mechanical strains with MFront
-    if (lMFront .and. lTotalStrain .and. relaComp .ne. "META_LEMA_ANI") then
-        call utmess('F', 'MGIS1_1')
+! - Only mechanical strains with MFront, except META_LEMA_ANI
+    if (lMFront .and. lTotalStrain) then
+        if (relaComp .eq. "META_LEMA_ANI") then
+            call utmess('A', 'MGIS1_3')
+        else
+            call utmess('F', 'MGIS1_1')
+        end if
     end if
 
 ! - Loop on elements

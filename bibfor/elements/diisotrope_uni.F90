@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -129,8 +129,8 @@ subroutine diisotrope_uni(for_discret, iret, ipi, jmat, ivarim, icontm, klv, rai
             if (abs(zr(ivarim-1+16)) .gt. r8miem()) then
                 raide(2) = zr(ivarim-1+16)
             end if
-            if (abs(zr(ivarim-1+16)) .gt. r8miem()) then
-                raide(3) = zr(ivarim-1+16)
+            if (abs(zr(ivarim-1+17)) .gt. r8miem()) then
+                raide(3) = zr(ivarim-1+17)
             end if
         end if
         resu(1) = zr(icontm)
