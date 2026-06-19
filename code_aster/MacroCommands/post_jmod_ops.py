@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -1920,26 +1920,30 @@ def list_inst_calc(self, dico, NUME_ORDRE, INST, PRECISION):
     """
 
     lInst = list(dico["INST"])
+    lOrd = list(dico["NUME_ORDRE"])
 
     if (NUME_ORDRE is not None) and (INST is None):
-        for iord in dico["NUME_ORDRE"]:
-            if iord not in NUME_ORDRE:
-                lInst.remove(lInst[dico["NUME_ORDRE"].index(iord)])
+
+        lInstc_comp = list(dico["INST"])
+        lInst = [lInstc_comp[dico["NUME_ORDRE"].index(iord)] for iord in NUME_ORDRE]
+        lOrd = dico["NUME_ORDRE"]
 
         if lInst == []:
             UTMESS("F", "RUPTURE4_5")
 
     elif (NUME_ORDRE is None) and (INST is not None):
         lInst = []
-        for iinst in dico["INST"]:
+        lOrd = []
+        for ii, iinst in enumerate(dico["INST"]):
             for jinst in INST:
                 if abs(iinst - jinst) <= PRECISION:
                     lInst.append(iinst)
+                    lOrd.append(dico["NUME_ORDRE"][ii])
 
         if lInst == []:
             UTMESS("F", "RUPTURE4_6")
 
-    return lInst
+    return (lOrd, lInst)
 
 
 # -----------------------------------------------------------------------------
@@ -2608,37 +2612,23 @@ def post_jmod_ops(
         # GET INSTANTS
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-        if PropadirSup is not None:
-            tinst = __ncoorfisSup.EXTR_TABLE().NUME_ORDRE == dicLPfissSup["NUME_ORDRE"]
-            tinst = tinst["INST"].values()["INST"]
-            l_inst = [tinst[i] for i in range(len(tinst)) if tinst[i] not in tinst[:i]]
+        # if PropadirSup is not None:
+        #     tinst = __ncoorfisSup.EXTR_TABLE().NUME_ORDRE == dicLPfissSup["NUME_ORDRE"]
+        #     tinst = tinst["INST"].values()["INST"]
+        #     l_inst = [tinst[i] for i in range(len(tinst)) if tinst[i] not in tinst[:i]]
 
-        if (PropadirSup is None) and (PropadirInf is not None):
-            tinst = __ncoorfisInf.EXTR_TABLE().NUME_ORDRE == dicLPfissInf["NUME_ORDRE"]
-            tinst = tinst["INST"].values()["INST"]
-            l_inst = [tinst[i] for i in range(len(tinst)) if tinst[i] not in tinst[:i]]
+        # if (PropadirSup is None) and (PropadirInf is not None):
+        #     tinst = __ncoorfisInf.EXTR_TABLE().NUME_ORDRE == dicLPfissInf["NUME_ORDRE"]
+        #     tinst = tinst["INST"].values()["INST"]
+        #     l_inst = [tinst[i] for i in range(len(tinst)) if tinst[i] not in tinst[:i]]
 
-        liord = []
-        linst = []
+        dico = __RESU.getAccessParameters()
 
-        if NUME_ORDRE is None:
-            for iordre, iinst in enumerate(l_inst):
-                liord.append(iordre)
-                linst.append(iinst)
-
-            if (len(linst) == 1) and (linst[0] == 0.0):
-                liord[0] = 1
-
+        if INST is not None:
+            PRECISION = args["PRECISION"]
         else:
-            for iordre, iinst in enumerate(l_inst):
-                for inume in range(len(NUME_ORDRE)):
-                    if iordre == NUME_ORDRE[inume]:
-                        liord.append(iordre)
-                        linst.append(iinst)
-
-            if len(linst) == 0:
-                liord.append(1)
-                linst.append(0.0)
+            PRECISION = None
+        (liord, linst) = list_inst_calc(self, dico, NUME_ORDRE, INST, PRECISION)
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # LOOP ON THE INSTANTS
@@ -5315,7 +5305,7 @@ def post_jmod_ops(
         else:
             PRECISION = None
 
-        lInst = list_inst_calc(self, dico, NUME_ORDRE, INST, PRECISION)
+        (lOrd, lInst) = list_inst_calc(self, dico, NUME_ORDRE, INST, PRECISION)
 
         #   --------------------------------------------------------------------------
         #   GET CALCULATED NODES OF CRACK FRONT
