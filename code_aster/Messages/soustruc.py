@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -399,6 +399,11 @@ Il y a trop de cas de charges par rapport à la définition du macro-élément.
     71: _(
         """
  nombre de noeuds internes : 0
+"""
+    ),
+    72: _(
+        """
+Les chargements traités en simples Lagrange ne sont pas acceptés dans MACR_ELEM_STAT.
 """
     ),
     73: _(
