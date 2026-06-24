@@ -38,7 +38,6 @@ from ..CodeCommands import (
     POST_RELEVE_T,
 )
 
-
 # Define global variable to unit test all functions that have been used
 # Help with NON-REGRESSION
 # Analytic Test
@@ -1923,7 +1922,6 @@ def list_inst_calc(self, dico, NUME_ORDRE, INST, PRECISION):
     lOrd = list(dico["NUME_ORDRE"])
 
     if (NUME_ORDRE is not None) and (INST is None):
-
         lInstc_comp = list(dico["INST"])
         lInst = [lInstc_comp[dico["NUME_ORDRE"].index(iord)] for iord in NUME_ORDRE]
         lOrd = dico["NUME_ORDRE"]
@@ -2612,23 +2610,13 @@ def post_jmod_ops(
         # GET INSTANTS
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-        # if PropadirSup is not None:
-        #     tinst = __ncoorfisSup.EXTR_TABLE().NUME_ORDRE == dicLPfissSup["NUME_ORDRE"]
-        #     tinst = tinst["INST"].values()["INST"]
-        #     l_inst = [tinst[i] for i in range(len(tinst)) if tinst[i] not in tinst[:i]]
-
-        # if (PropadirSup is None) and (PropadirInf is not None):
-        #     tinst = __ncoorfisInf.EXTR_TABLE().NUME_ORDRE == dicLPfissInf["NUME_ORDRE"]
-        #     tinst = tinst["INST"].values()["INST"]
-        #     l_inst = [tinst[i] for i in range(len(tinst)) if tinst[i] not in tinst[:i]]
-
         dico = __RESU.getAccessParameters()
 
         if INST is not None:
             PRECISION = args["PRECISION"]
         else:
             PRECISION = None
-        (liord, linst) = list_inst_calc(self, dico, NUME_ORDRE, INST, PRECISION)
+        liord, linst = list_inst_calc(self, dico, NUME_ORDRE, INST, PRECISION)
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # LOOP ON THE INSTANTS
@@ -5305,7 +5293,7 @@ def post_jmod_ops(
         else:
             PRECISION = None
 
-        (lOrd, lInst) = list_inst_calc(self, dico, NUME_ORDRE, INST, PRECISION)
+        lOrd, lInst = list_inst_calc(self, dico, NUME_ORDRE, INST, PRECISION)
 
         #   --------------------------------------------------------------------------
         #   GET CALCULATED NODES OF CRACK FRONT
