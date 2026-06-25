@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
-# person_in_charge: matthieu.le-cren at edf.fr
 
 from cataelem.Tools.base_objects import InputParameter, OutputParameter, Option, CondCalcul
 import cataelem.Commons.physical_quantities as PHY
@@ -60,6 +59,9 @@ PCER = InputParameter(phys=PHY.NEUT_R)
 
 PELI = InputParameter(phys=PHY.NEUT_R)
 
+
+ISCPLAN = InputParameter(phys=PHY.NEUT_I)
+
 CALC_K_G = Option(
     para_in=(
         PBASLOR,
@@ -88,6 +90,7 @@ CALC_K_G = Option(
         PLAG,
         PCER,
         PELI,
+        ISCPLAN,
     ),
     para_out=(SP.PGTHETA,),
     condition=(
