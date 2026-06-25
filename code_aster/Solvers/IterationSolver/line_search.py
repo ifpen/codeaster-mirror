@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -228,6 +228,8 @@ class SecantLineSearch(BaseLineSearch):
         rho1 = 1.0
         f0 = self.compute_f(rho0, solution)
         fcvg = abs(self._get("RESI_LINE_RELA") * f0)
+        if fcvg <= self._tiny:
+            return solution
 
         # Best values and updates during line search
         best_options = (-1, rho1, np.finfo("float64").max)
