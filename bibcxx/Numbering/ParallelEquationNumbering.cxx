@@ -3,7 +3,7 @@
  * @brief Implementation de DOFNumbering
  * @author Nicolas Sellenet
  * @section LICENCE
- *   Copyright (C) 1991 - 2025  EDF R&D                www.code-aster.org
+ *   Copyright (C) 1991 - 2026  EDF www.code-aster.org
  *
  *   This file is part of Code_Aster.
  *
@@ -427,6 +427,8 @@ ParallelEquationNumbering::getDOFsWithDescription( const VectorString &cmps,
     VectorLong nodes;
     if ( groupNames.size() == 0 ) {
         nodes = _mesh->getNodes( std::string(), local, same_rank );
+        // pour les MPC
+        nodes.push_back( -1 );
     } else {
         nodes = _mesh->getNodes( groupNames, local, same_rank );
     }

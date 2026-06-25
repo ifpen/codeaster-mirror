@@ -3,7 +3,7 @@
  * @brief Implementation de EquationNumbering
  * @author Nicolas Sellenet
  * @section LICENCE
- *   Copyright (C) 1991 - 2025  EDF R&D                www.code-aster.org
+ *   Copyright (C) 1991 - 2026  EDF www.code-aster.org
  *
  *   This file is part of Code_Aster.
  *
@@ -523,6 +523,8 @@ EquationNumbering::getDOFsWithDescription( const VectorString &cmps, const Vecto
     VectorLong nodes;
     if ( groupNames.size() == 0 ) {
         nodes = _mesh->getNodes( "", true );
+        // pour les MPC
+        nodes.push_back( -1 );
     } else {
         nodes = _mesh->getNodes( groupNames, true );
     }
