@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -1552,6 +1552,10 @@ contains
 
 ! ----- Evaluation of  components of lineic force in global base
         if (typeScal .eq. 'R') then
+            lGlob = zr(jvLoad+6) .eq. 0.d0
+            if (.not. lGlob) then
+                call utmess('F', 'PIPE1_45')
+            end if
             lCplxRealPart = ASTER_TRUE
             call evalLineLoad(typeScal, lCplxRealPart, lGravity, &
                               jvLoad, jvTime, jvGeom, &
@@ -1564,6 +1568,10 @@ contains
 ! ----- Complex algebra case
         nbComp = 1
         if (typeScal .eq. 'C') then
+            lGlob = zc(jvLoad+6) .eq. 0.d0
+            if (.not. lGlob) then
+                call utmess('F', 'PIPE1_45')
+            end if
             nbComp = 2
         end if
 
