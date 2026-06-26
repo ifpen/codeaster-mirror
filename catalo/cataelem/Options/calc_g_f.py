@@ -18,7 +18,6 @@
 # --------------------------------------------------------------------
 
 
-
 from cataelem.Tools.base_objects import InputParameter, OutputParameter, Option, CondCalcul
 import cataelem.Commons.physical_quantities as PHY
 import cataelem.Commons.parameters as SP
