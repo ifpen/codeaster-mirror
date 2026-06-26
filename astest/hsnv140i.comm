@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -330,7 +330,7 @@ TEST_RESU(
             NOM_CHAM="VARI_NOEU",
             GROUP_NO="NO1",
             NOM_CMP="V1",
-            VALE_CALC=0.0033662168619710267,
+            VALE_CALC=0.0,
             VALE_REFE=0.00044,
             REFERENCE="SOURCE_EXTERNE",
             PRECISION=67.0,
@@ -341,7 +341,7 @@ TEST_RESU(
             NOM_CHAM="SIEF_NOEU",
             GROUP_NO="NO1",
             NOM_CMP="SIYY",
-            VALE_CALC=326295230.5881684,
+            VALE_CALC=314572490.2408235,
             VALE_REFE=303.0e06,
             REFERENCE="SOURCE_EXTERNE",
             PRECISION=0.25,
@@ -352,7 +352,7 @@ TEST_RESU(
             NOM_CHAM="SIEF_NOEU",
             GROUP_NO="NO1",
             NOM_CMP="SIYY",
-            VALE_CALC=346756531.5164973,
+            VALE_CALC=341884517.7279597,
             VALE_REFE=316.0e06,
             REFERENCE="SOURCE_EXTERNE",
             PRECISION=0.25,
@@ -363,7 +363,7 @@ TEST_RESU(
             NOM_CHAM="SIEF_NOEU",
             GROUP_NO="NO1",
             NOM_CMP="SIYY",
-            VALE_CALC=379903456.821507,
+            VALE_CALC=375699595.9134247,
             VALE_REFE=325.0e06,
             REFERENCE="SOURCE_EXTERNE",
             PRECISION=0.25,
@@ -374,7 +374,7 @@ TEST_RESU(
             NOM_CHAM="SIEF_NOEU",
             GROUP_NO="NO1",
             NOM_CMP="SIYY",
-            VALE_CALC=401523178.43030477,
+            VALE_CALC=397540621.6323251,
             VALE_REFE=327.0e06,
             REFERENCE="SOURCE_EXTERNE",
             PRECISION=0.25,
