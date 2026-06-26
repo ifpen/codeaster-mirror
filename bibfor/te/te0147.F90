@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -68,7 +68,7 @@ subroutine te0147(option, nomte)
     integer(kind=8)           :: ithet, igthet, igeom, idepl
     integer(kind=8)           :: ipref, itemps, iforf, ipres, iforc
     integer(kind=8)           :: icode, imate, jlsn, jlst, ibalo, ideg, ilag
-    integer(kind=8)           :: nbpara, reeldim, icodre(3)
+    integer(kind=8)           :: nbpara, reeldim, icodre(3), iiscplan
     real(kind=8)      :: xno1, xno2, yno1, yno2, d1, d2
     real(kind=8)      :: epsi, valpar(4), coor(18)
     real(kind=8)      :: a1(3), a2(3), a3(3), i1(3), i2(3), depl(3)
@@ -86,7 +86,7 @@ subroutine te0147(option, nomte)
     character(len=8)  :: nompar(4), discr
     character(len=16) :: option, nomte, nomres(3)
 !
-    aster_logical :: axi, fonc, l_not_zero
+    aster_logical :: axi, fonc, l_not_zero, iscplan
 !
     real(kind=8), pointer :: presn(:) => null()
     real(kind=8), pointer :: forcn(:) => null()
@@ -192,15 +192,25 @@ subroutine te0147(option, nomte)
 !                  RECUPERATION DES CHAMPS LOCAUX
 ! =====================================================================
 !
+
     call jevech('PGEOMER', 'L', igeom)
     call jevech('PDEPLAR', 'L', idepl)
+    call jevech('PMATERC', 'L', imate)
     if (option .eq. 'CALC_K_G' .or. option .eq. 'CALC_K_G_F') then
-        call jevech('PMATERC', 'L', imate)
         call jevech('PBASLOR', 'L', ibalo)
         call jevech('PLSN', 'L', jlsn)
         call jevech('PLST', 'L', jlst)
     end if
 !
+    if (reeldim .eq. 2) then
+        call tecach('ONO', 'ISCPLAN', 'L', iret, iad=iiscplan)
+
+        if (zi(iiscplan) == 1) then
+            iscplan = .true.
+        else
+            iscplan = .false.
+        end if
+    end if
 !
     if (option .eq. 'CALC_G_F' .or. option .eq. 'CALC_K_G_F' .or. option .eq. 'CALC_KJ_G_F') then
         fonc = ASTER_TRUE
@@ -509,36 +519,36 @@ subroutine te0147(option, nomte)
         end if
 !
         ! ===========================================
+        !      RECUPERATION DES DONNEES MATERIAU
+        ! ===========================================
+!
+        call rcvad2(fami, kp, 1, '+', zi(imate), 'ELAS', &
+                    3, nomres, valres, devres, icodre)
+!
+        if ((icodre(1) .ne. 0) .or. (icodre(2) .ne. 0)) then
+            call utmess('F', 'RUPTURE1_25')
+        end if
+!
+        e = valres(1)
+        nu = valres(2)
+        mu = e/(2.d0*(1.d0+nu))
+!
+        if (reeldim .eq. 3 .or. lteatt('AXIS', 'OUI') .or. (.not. iscplan)) then
+            ka = 3.d0-4.d0*nu
+            coeff_K1K2 = e/(1.d0-nu*nu)
+            coeff_K3 = 2.d0*mu
+        else
+!----------- Contrainte plane
+            ka = (3.d0-nu)/(1.d0+nu)
+            coeff_K1K2 = e
+        end if
+!
+        ! ===========================================
         !         CALCUL DES SIFS ; OPTION K
         ! ===========================================
 !
         if (option .eq. 'CALC_K_G' .or. option .eq. 'CALC_K_G_F') then
 !
-            ! ===========================================
-            !      RECUPERATION DES DONNEES MATERIAU
-            ! ===========================================
-!
-            call rcvad2(fami, kp, 1, '+', zi(imate), 'ELAS', &
-                        3, nomres, valres, devres, icodre)
-!
-            if ((icodre(1) .ne. 0) .or. (icodre(2) .ne. 0)) then
-                call utmess('F', 'RUPTURE1_25')
-            end if
-!
-            e = valres(1)
-            nu = valres(2)
-            mu = e/(2.d0*(1.d0+nu))
-!
-            if (reeldim .eq. 3 .or. lteatt('AXIS', 'OUI')) then
-                ka = 3.d0-4.d0*nu
-                coeff_K1K2 = e/(1.d0-nu*nu)
-                coeff_K3 = 2.d0*mu
-            else
-!----------- Contrainte plane
-                ka = (3.d0-nu)/(1.d0+nu)
-                coeff_K1K2 = e
-            end if
-
             ! ===========================================
             !      CALCUL DES COORDONNEE CYLINDRIQUE
             ! ===========================================

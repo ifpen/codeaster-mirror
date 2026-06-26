@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -75,7 +75,7 @@ TEMP = CREA_CHAMP(
 
 
 MODELE = AFFE_MODELE(
-    MAILLAGE=MAILLAGE, AFFE=(_F(GROUP_MA="SURF", PHENOMENE="MECANIQUE", MODELISATION="D_PLAN"),)
+    MAILLAGE=MAILLAGE, AFFE=(_F(TOUT="OUI", PHENOMENE="MECANIQUE", MODELISATION="D_PLAN"),)
 )
 
 ACIER = DEFI_MATERIAU(ELAS=_F(E=205000000000.0, NU=0.3, RHO=7800.0, ALPHA=1.282e-05))
@@ -83,8 +83,8 @@ ACIER = DEFI_MATERIAU(ELAS=_F(E=205000000000.0, NU=0.3, RHO=7800.0, ALPHA=1.282e
 CHAMPMAT = AFFE_MATERIAU(
     MAILLAGE=MAILLAGE,
     MODELE=MODELE,
-    AFFE=_F(GROUP_MA="SURF", MATER=ACIER),
-    AFFE_VARC=_F(GROUP_MA="SURF", NOM_VARC="TEMP", CHAM_GD=TEMP, VALE_REF=20.0),
+    AFFE=_F(TOUT="OUI", MATER=ACIER),
+    AFFE_VARC=_F(TOUT="OUI", NOM_VARC="TEMP", CHAM_GD=TEMP, VALE_REF=20.0),
 )
 
 

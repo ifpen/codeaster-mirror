@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -66,7 +66,12 @@ MAT1 = DEFI_MATERIAU(ELAS=_F(E=198000.0, NU=0.1))
 MAT2 = DEFI_MATERIAU(ELAS=_F(E=594000.0, NU=0.1))
 
 CHMAT = AFFE_MATERIAU(
-    MAILLAGE=MA, AFFE=(_F(GROUP_MA="VMAT1", MATER=MAT1), _F(GROUP_MA="VMAT2", MATER=MAT2))
+    MAILLAGE=MA,
+    AFFE=(
+        _F(TOUT="OUI", MATER=MAT1),
+        _F(GROUP_MA=("VMAT1", "LEVREINS"), MATER=MAT1),
+        _F(GROUP_MA=("VMAT2", "LEVREINF"), MATER=MAT2),
+    ),
 )
 
 # ------------------------------------------------------------------

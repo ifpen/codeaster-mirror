@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -16,7 +16,6 @@
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
 !
-! person_in_charge: matthieu.le-cren at edf.fr
 !
 subroutine cgComputeGtheta(cgField, cgTheta, cgStudy, cgTable, cgStat)
 !
@@ -52,6 +51,14 @@ subroutine cgComputeGtheta(cgField, cgTheta, cgStudy, cgTable, cgStat)
 #include "asterfort/vrcins.h"
 #include "asterfort/vrcref.h"
 #include "asterfort/wkvect.h"
+#include "asterfort/exicp.h"
+#include "asterfort/cescel.h"
+#include "asterfort/cesexi.h"
+#include "asterfort/jexnum.h"
+#include "asterfort/typele.h"
+#include "asterfort/nbelem.h"
+#include "asterfort/jelira.h"
+#include "asterfort/jenuno.h"
 #include "jeveux.h"
 !
     type(CalcG_field), intent(in)    :: cgField
@@ -69,19 +76,21 @@ subroutine cgComputeGtheta(cgField, cgTheta, cgStudy, cgTable, cgStat)
     integer(kind=8) :: iret, nsig, ino1, ino2, inga, ibid, i_theta, i, j
     integer(kind=8) :: nchin, iadrt3
     integer(kind=8) :: jcesd, jcesl, jcesd2, jcesl2
+    integer(kind=8) :: iad, iel, igr, ima, nbgrel, nel, nncp, nute
     real(kind=8) :: gth(7), som(7)
     real(kind=8) :: s1, s2, s3, sn2, sn1, sn
     character(len=2)  :: codret
     character(len=8)  :: k8b, lpain(50), lpaout(1), model
-    character(len=16) :: opti
-    character(len=19) :: chrota, chpesa, cf2d3d, chpres, chvolu, cf1d2d, chepsi
+    character(len=16) :: opti, nomte
+    character(len=19) :: chrota, chpesa, cf2d3d, chpres, chvolu, cf1d2d, chepsi, ligrmo, chscpl
     character(len=19) :: chvarc, chvref, chsdeg, modelLigrel, chslag, chscer, chseli, chcer, cheli
     character(len=24) :: chsigi, celmod, sigelno, chtime, chpuls
     character(len=24) :: chgeom, chsig, chgtheta
-    character(len=24) :: pavolu, papres, pa2d3d, pepsin, pa1d2d
+    character(len=24) :: pavolu, papres, pa2d3d, pepsin, pa1d2d, iscplan
     character(len=24) :: lchin(50), lchout(1)
     aster_logical     :: lfonc, inco
-    integer(kind=8), pointer  :: v_cesv(:) => null()
+    integer(kind=8), pointer :: v_cesv(:) => null()
+    integer(kind=8), pointer :: v_liel(:) => null()
     real(kind=8), pointer :: v_absc(:) => null()
     real(kind=8), pointer :: v_base(:) => null()
     real(kind=8), pointer :: v_basf(:) => null()
@@ -90,6 +99,7 @@ subroutine cgComputeGtheta(cgField, cgTheta, cgStudy, cgTable, cgStat)
     real(kind=8), dimension(cgTheta%nb_theta_field) :: gthi, k1th, k2th, k3th, g1th, g2th, g3th
     real(kind=8), dimension(cgTheta%nnof) :: gs, k1s, k2s, k3s, g1s, g2s, g3s, gis
     real(kind=8) :: finish, start, start0, finish0
+    aster_logical :: outExicp
 
 !----------------------------------------------
 !
@@ -119,6 +129,8 @@ subroutine cgComputeGtheta(cgField, cgTheta, cgStudy, cgTable, cgStat)
     chseli = '&&cgtheta.CHSELI'
     chcer = '&&cgtheta.CHCER'
     cheli = '&&cgtheta.CHELI'
+    chscpl = '&&cgtheta.CHSCPL'
+    iscplan = '&&cgtheta.ISCPLAN'
     !
     gthi(:) = 0.0
     k1th(:) = 0.0
@@ -154,6 +166,50 @@ subroutine cgComputeGtheta(cgField, cgTheta, cgStudy, cgTable, cgStat)
         call rsexch('F', cgField%result_in, 'SIEF_ELGA', cgStudy%nume_ordre, chsig, iret)
     end if
 !
+!   Cas 2D : creation du champ ISCPLAN
+    if (cgField%ndim .eq. 2) then
+!       Recuperation de la modelisation
+        outExicp = exicp(cgStudy%model, ASTER_TRUE, "", 0)
+!
+!       Creation d'un champ simple par elements
+        call cescre('V', chscpl, 'ELEM', cgStudy%mesh, 'NEUT_I', &
+                    0, ' ', [-1], [-1], [-1])
+
+        call jeveuo(chscpl//'.CESD', 'L', jcesd)
+        call jeveuo(chscpl//'.CESL', 'E', jcesl)
+        call jeveuo(chscpl//'.CESV', 'E', vi=v_cesv)
+
+        call dismoi('NOM_LIGREL', cgStudy%model, 'MODELE', repk=ligrmo)
+        call jelira(ligrmo//'.LIEL', 'NMAXOC', nbgrel)
+!
+        do igr = 1, nbgrel
+!
+!           Récupération nombre d'éléments dans le groupe
+            nel = nbelem(ligrmo, igr)
+            call jeveuo(jexnum(ligrmo//'.LIEL', igr), 'L', vi=v_liel)
+!
+!           Boucle sur les éléments du groupe
+            do iel = 1, nel
+                ima = v_liel(iel)
+                if (ima .lt. 0) cycle
+!
+                call cesexi('C', jcesd, jcesl, ima, 1, 1, 1, iad)
+                iad = abs(iad)
+                zl(jcesl-1+iad) = ASTER_TRUE
+                if (outExicp) then
+                    v_cesv(iad) = 1
+                else
+                    v_cesv(iad) = 0
+                end if
+
+            end do
+        end do
+!
+!       Conversion du champ par élément simple en champ par éléments
+        call cescel(chscpl, ligrmo, 'CALC_G', 'ISCPLAN', 'NON', &
+                    nncp, 'V', iscplan, 'F', iret)
+!
+    end if
 !   Elements incompressibles
     inco = cgStudy%l_exi_inco
 !
@@ -348,6 +404,12 @@ subroutine cgComputeGtheta(cgField, cgTheta, cgStudy, cgTable, cgStat)
         lchin(14) = cgTheta%crack//'.BASLOC'
 !
         nchin = 14
+
+        if (cgField%ndim .eq. 2) then
+            lpain(nchin+1) = 'ISCPLAN'
+            lchin(nchin+1) = iscplan
+            nchin = nchin+1
+        end if
 !
         call cgDiscrField(cgField, cgTheta, cgStudy, cgStat, chsdeg, chslag, &
                           v_absc, v_basf, v_cesv, jcesd, jcesl, i_theta, lpain, lchin, nchin)
@@ -660,6 +722,8 @@ subroutine cgComputeGtheta(cgField, cgTheta, cgStudy, cgTable, cgStat)
     call detrsd('CHAMP_GD', chslag)
     call detrsd('CHAMP_GD', chcer)
     call detrsd('CHAMP_GD', cheli)
+    call detrsd('CHAM_ELEM_S', chscpl)
+    call detrsd('CHAMP_GD', iscplan)
 !
 ! --- A ne pas supprimer car on supprime un champ externe sinon
 !    call detrsd('CHAMP_GD', chsigi)

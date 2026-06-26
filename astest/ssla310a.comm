@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -36,15 +36,27 @@ MAT2 = DEFI_MATERIAU(ELAS=_F(E=1.0e3, NU=0.3))
 MAT3 = DEFI_MATERIAU(ELAS=_F(E=1.0e3, NU=0.2))
 
 CHMAT1 = AFFE_MATERIAU(
-    MAILLAGE=MA, AFFE=(_F(GROUP_MA="VMAT1", MATER=MAT2), _F(GROUP_MA="VMAT2", MATER=MAT2))
+    MAILLAGE=MA,
+    AFFE=(
+        _F(GROUP_MA=("VMAT1", "LEVRE_SUP", "LPOP11"), MATER=MAT2),
+        _F(GROUP_MA=("VMAT2", "LEVRE_INF"), MATER=MAT2),
+    ),
 )
 
 CHMAT2 = AFFE_MATERIAU(
-    MAILLAGE=MA, AFFE=(_F(GROUP_MA="VMAT1", MATER=MAT1), _F(GROUP_MA="VMAT2", MATER=MAT3))
+    MAILLAGE=MA,
+    AFFE=(
+        _F(GROUP_MA=("VMAT1", "LEVRE_SUP", "LPOP11"), MATER=MAT1),
+        _F(GROUP_MA=("VMAT2", "LEVRE_INF"), MATER=MAT3),
+    ),
 )
 
 CHMAT3 = AFFE_MATERIAU(
-    MAILLAGE=MA, AFFE=(_F(GROUP_MA="VMAT1", MATER=MAT1), _F(GROUP_MA="VMAT2", MATER=MAT2))
+    MAILLAGE=MA,
+    AFFE=(
+        _F(GROUP_MA=("VMAT1", "LEVRE_SUP", "LPOP11"), MATER=MAT1),
+        _F(GROUP_MA=("VMAT2", "LEVRE_INF"), MATER=MAT2),
+    ),
 )
 
 MA = DEFI_GROUP(
