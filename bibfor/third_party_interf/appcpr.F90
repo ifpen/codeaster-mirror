@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -80,7 +80,8 @@ subroutine appcpr(kptsc)
     character(len=8) :: nomail, nbp_str, typ, nbmode_str, typmat
     character(len=4) :: exilag
     character(len=3) :: matd
-    character(len=800) :: myopt
+    character(len=1000) :: myopt
+    character(len=100) :: myopt_eps
     character(len=24), dimension(:), pointer :: slvk => null()
 !
     real(kind=8) :: fillin, val
@@ -540,6 +541,11 @@ subroutine appcpr(kptsc)
         nbp = max(ceiling(real(nbproc*nbmode, 8)/real(50000, 8), 8), 1_8)
         call codent(nbp, 'D', nbp_str, 'F')
         write (seuil_str, '(E24.16)') slvr(6)
+        if (slvr(6) > 0.d0) then
+            myopt_eps = '-eps_threshold_absolute '//trim(seuil_str)//' '
+        else
+            myopt_eps = '-eps_nev '//trim(nbmode_str)//' '
+        end if
         if (typ == "GENEO") then
             myopt = '-prefix_push pc_hpddm_ '// &
                     '-prefix_push levels_1_ '// &
@@ -551,9 +557,9 @@ subroutine appcpr(kptsc)
                     '-sub_mat_mumps_icntl_25 0 '// &
                     '-sub_mat_mumps_cntl_3 1.e-50 '// &
                     '-sub_mat_mumps_cntl_5 0. '// &
-                    '-eps_nev '//trim(nbmode_str)//' '// &
                     '-st_pc_factor_mat_solver_type mumps '// &
                     '-st_share_sub_ksp '// &
+                    myopt_eps// &
                     '-prefix_pop '// &
                     '-prefix_push coarse_ '// &
                     '-pc_factor_mat_solver_type mumps '// &
@@ -568,9 +574,6 @@ subroutine appcpr(kptsc)
                     '-define_subdomains '// &
                     '-has_neumann '// &
                     '-prefix_pop '
-            if (slvr(6) > 0) then
-                myopt = myopt//'-pc_hpddm_levels_1_eps_threshold_absolute '//trim(seuil_str)//' '
-            end if
         else
             if (factor == 'lu') then
                 typmat = 'baij'
@@ -591,6 +594,7 @@ subroutine appcpr(kptsc)
                     '-svd_nsv '//trim(nbmode_str)//' '// &
                     '-st_pc_factor_mat_solver_type mumps '// &
                     '-st_share_sub_ksp '// &
+                    myopt_eps// &
                     '-prefix_pop '// &
                     '-prefix_push coarse_ '// &
                     '-correction deflated '// &
@@ -607,9 +611,6 @@ subroutine appcpr(kptsc)
                     '-define_subdomains '// &
                     '-harmonic_overlap 5 '// &
                     '-prefix_pop '
-            if (slvr(6) > 0) then
-                myopt = myopt//'-pc_hpddm_levels_1_svd_relative_threshold '//trim(seuil_str)//' '
-            end if
         end if
         call PetscOptionsInsertString(PETSC_NULL_OPTIONS, myopt, ierr)
         ASSERT(ierr == 0)

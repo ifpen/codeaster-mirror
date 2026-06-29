@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -90,14 +90,7 @@ TEMP = THER_LINEAIRE(
     MODELE=MODE_TL,
     CHAM_MATER=MATE_T,
     EXCIT=(_F(CHARGE=CLIMT), _F(CHARGE=BLOQT)),
-    SOLVEUR=_F(
-        METHODE="PETSC",
-        PRE_COND="HPDDM",
-        RESI_RELA=1.0e-9,
-        TYPE_RESOL="GENEO",
-        NB_MODE=20,
-        SEUIL=1e-12,
-    ),
+    SOLVEUR=_F(METHODE="PETSC", PRE_COND="HPDDM", RESI_RELA=1.0e-9, TYPE_RESOL="GENEO", NB_MODE=20),
     TYPE_CALCUL="STAT",
     INCREMENT=_F(LIST_INST=DEFI_LIST_REEL(VALE=0.0)),
     INFO=1,
@@ -127,7 +120,7 @@ RESU = MECA_STATIQUE(
     MODELE=MODE_MQ,
     CHAM_MATER=MATE_M,
     EXCIT=(_F(CHARGE=CHAR), _F(CHARGE=DIRI)),
-    SOLVEUR=_F(METHODE="PETSC", PRE_COND="HPDDM"),
+    SOLVEUR=_F(METHODE="PETSC", PRE_COND="HPDDM", SEUIL=1.0e-2),
 )
 
 # Extract the field from the result
