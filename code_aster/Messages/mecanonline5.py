@@ -287,7 +287,7 @@ Il faut préciser un concept EVOL_NOLI en prédiction de type 'DEPL_CALCULE'
     49: _(
         """
 La recherche linéaire est ignorée pour cette itération : le résidu est orthogonal
-à la direction de descente. On conserve le pas de Newton (rho = 1).
+à la direction de descente. On conserve le pas de Newton.
 """
     ),
     50: _(
