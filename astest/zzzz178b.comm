@@ -23,6 +23,7 @@ from code_aster.Utilities import SharedTmpdir
 from code_aster.Commands import *
 from code_aster import CA
 import os.path as osp
+from code_aster.Utilities import PETSc
 
 test = CA.TestCase()
 
@@ -115,12 +116,21 @@ MATE_M = AFFE_MATERIAU(
     AFFE_VARC=_F(TOUT="OUI", EVOL=TEMP2, VALE_REF=0.0, NOM_VARC="TEMP", NOM_CHAM="TEMP"),
 )
 
+# remove the option that sets the number of eigenvalues to retrieve in order to test
+# the threshold (SEUIL in the SOLVEUR keyword)
+PETSc.Options().delValue("-pc_hpddm_levels_1_eps_nev")
+# some monitoring options
+option = (
+    "-pc_hpddm_levels_1_eps_monitor_all "
+    "-ksp_view -options_view -ksp_monitor "
+    "-pc_hpddm_levels_1_eps_view"
+)
 # Solve the mechanical problem
 RESU = MECA_STATIQUE(
     MODELE=MODE_MQ,
     CHAM_MATER=MATE_M,
     EXCIT=(_F(CHARGE=CHAR), _F(CHARGE=DIRI)),
-    SOLVEUR=_F(METHODE="PETSC", PRE_COND="HPDDM", SEUIL=1.0e-2),
+    SOLVEUR=_F(METHODE="PETSC", PRE_COND="HPDDM", SEUIL=1.0e-1, OPTION_PETSC=option),
 )
 
 # Extract the field from the result

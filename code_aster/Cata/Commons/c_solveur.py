@@ -466,7 +466,6 @@ def C_SOLVEUR(command, base=None):  # COMMUN#
 
     mcfact = FACT(
         statut="d",
-        regles=(EXCLU("NB_MODE", "SEUIL"),),
         b_mult_front=BLOC(
             condition="""equal_to("METHODE", 'MULT_FRONT') """,
             fr=tr("Paramètres de la méthode multi frontale"),
