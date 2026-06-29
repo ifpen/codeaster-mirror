@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -282,6 +282,12 @@ Il faut préciser un concept EVOL_NOLI en prédiction de type 'DEPL_CALCULE'
     48: _(
         """
   Le pilotage est incompatible avec la méthode NEWTON_KRYLOV.
+"""
+    ),
+    49: _(
+        """
+La recherche linéaire est ignorée pour cette itération : le résidu est orthogonal
+à la direction de descente. On conserve le pas de Newton (rho = 1).
 """
     ),
     50: _(

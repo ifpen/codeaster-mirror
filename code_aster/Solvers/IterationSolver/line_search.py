@@ -22,6 +22,7 @@ from enum import IntFlag, auto
 
 import numpy as np
 
+from ...Messages import UTMESS
 from ...Utilities import logger, no_new_attributes, profile
 from ..Basics import ContextMixin
 
@@ -230,6 +231,7 @@ class SecantLineSearch(BaseLineSearch):
         f1 = self.compute_f(rho1, solution)
         tol = 1.0e-12 * self.oper.getResidual().resi.norm() * solution.norm()
         if abs(f0) <= tol and abs(f1) <= tol:
+            UTMESS("A", "MECANONLINE5_49")
             return solution
         fcvg = abs(self._get("RESI_LINE_RELA") * f0)
 
