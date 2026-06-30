@@ -434,8 +434,9 @@ def C_SOLVEUR(command, base=None):  # COMMUN#
     _BlocPE_HPDDM["TYPE_RESOL"] = SIMP(
         statut="f", typ="TXM", defaut="AUTO", into=("AUTO", "GENEO", "HARMO")
     )
-    _BlocPE_HPDDM["NB_MODE"] = SIMP(statut="f", typ="I", defaut=30, val_min=1)
+    _BlocPE_HPDDM["NB_MODE"] = SIMP(statut="f", typ="I", val_min=1)
     _BlocPE_HPDDM["SEUIL"] = SIMP(statut="f", typ="R", val_min=0.0)
+    _BlocPE_HPDDM["regles"] = (UN_PARMI("SEUIL", "NB_MODE", NB_MODE=30),)
     # --------------------------------------------------------------------
 
     _BlocPE_LAGAUG["RENUM"] = SIMP(statut="f", typ="TXM", defaut="SANS", into=("SANS",))
