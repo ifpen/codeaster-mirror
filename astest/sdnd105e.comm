@@ -24,7 +24,6 @@ DEBUT(CODE="OUI", DEBUG=_F(SDVERI="OUI"))
 
 import numpy as np
 
-
 M_Mobile = 1.0 / 100.0
 Hmaillage = 1
 Dist = Hmaillage / 2.0

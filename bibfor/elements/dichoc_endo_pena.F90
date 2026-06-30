@@ -87,7 +87,7 @@ subroutine dichoc_endo_pena(for_discret, iret)
     integer(kind=8), parameter :: nbvari = 3
     real(kind=8) :: varmo(nbvari), varpl(nbvari)
 ! -------------------------------------------------------------------------------
-    real(kind=8) :: xl(6), xd(3), rignor, amornor_in, amornor_out, deplace, ld, seuil, seuil2
+    real(kind=8) :: xl(6), xd(3), rignor, amornor_in, deplace, ld, seuil, seuil2
     real(kind=8) :: enfoncement_resi, enfoncement_resi_moins, enfoncement
     real(kind=8) :: ftry, vitesse
     real(kind=8) :: indic_charge, indic_charge_moins, enfoncement_max
@@ -252,12 +252,9 @@ subroutine dichoc_endo_pena(for_discret, iret)
     seuil2 = valres(1)
     rignor = valres(2)
     amornor_in = 0.0
-    amornor_out = 0.0
-    ! if (tecro2 .eq. 1) then
-    !     amornor_in = valres(3)
-    !     else if (tecro2 .eq. 2) then
-    !         amornor_out = valres(3)
-    ! end if
+    if (tecro2 .eq. 1) then
+        amornor_in = valres(3)
+    end if
 !
 !   indic_charge [0, 1, 2] : [pas de contact, contact élastique, sur le seuil]
     force(:) = 0.0
@@ -276,21 +273,20 @@ subroutine dichoc_endo_pena(for_discret, iret)
 ! limitation de f au seuil (en prenant en compte l'amortissement)
         ftry = rignor*(enfoncement-enfoncement_resi)+amornor_in*vitesse
         if (abs(ftry) .ge. seuil) then
-            force(1) = -seuil+amornor_out*vitesse
+            force(1) = -seuil
             indic_charge = 2.0
             raide(1) = rignor
-        else if (ftry+amornor_out*vitesse-amornor_in*vitesse .gt. 0.d0) then
+        else if (ftry .gt. 0.d0) then
             force(1) = 0.0
             indic_charge = 0.0
         else
-            force(1) = ftry+amornor_out*vitesse-amornor_in*vitesse
+            force(1) = ftry
             indic_charge = 1.0
             raide(1) = rignor
         end if
     end if
 ! Actualisation de la matrice de raideur
     call diklvraid(for_discret%nomte, klv, raide)
-    write (6, *) 'force', force(1)
     !
 ! stockage des contraintes
     if (for_discret%lSigm) then
@@ -341,7 +337,6 @@ subroutine dichoc_endo_pena(for_discret, iret)
 ! stockage variables internes
     if (for_discret%lVari) then
         varpl(1) = enfoncement_max
-        write (6, *) '[CHOC_ENDO_PENA] enfoncement_max', enfoncement_max
         varpl(2) = enfoncement_resi
         varpl(3) = indic_charge
         call jevech('PVARIPR', 'E', ivarip)

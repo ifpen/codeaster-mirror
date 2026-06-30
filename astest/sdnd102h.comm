@@ -159,13 +159,17 @@ DEPLACE2 = CALC_FONC_INTERP(
 #
 # MATERIAU
 
+dmax = 5.0
+fseuil = 5e8
+rigi = fseuil / dmax
+amor = 1.0e4
 
-ldepla = np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]) * 1000
-lforce = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]) * 5.0e10
+ldepla = np.array([0.0, 1.0, 2.0, 3.0, 4.0]) * dmax
+lforce = np.array([1.0, 1.0, 1.0, 1.0, 1.0]) * fseuil
 # Raideur constante
-lraide = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]) * 5.0e7
-# Amortissement nul
-lamort = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]) * 5.0e4
+lraide = np.array([1.0, 1.0, 1.0, 1.0, 1.0]) * rigi
+# Amortissement constant
+lamort = np.array([1.0, 1.0, 1.0, 1.0, 1.0]) * amor
 
 
 fctfx = DEFI_FONCTION(
@@ -186,7 +190,9 @@ MATCHO = DEFI_MATERIAU(
 )
 
 # Materiau DIS_CHOC pour produire le résultat de référence
-MATCHO_REFE = DEFI_MATERIAU(DIS_CONTACT=_F(RIGI_NOR=lraide[0], DIST_1=0.0, DIST_2=0.0))
+MATCHO_REFE = DEFI_MATERIAU(
+    DIS_CONTACT=_F(RIGI_NOR=lraide[0], DIST_1=0.0, DIST_2=0.0, AMOR_NOR=lamort[0])
+)
 
 MATBID = DEFI_MATERIAU(ELAS=_F(E=1.0e10, NU=0.3, RHO=0.0))
 
@@ -194,6 +200,11 @@ MATBID = DEFI_MATERIAU(ELAS=_F(E=1.0e10, NU=0.3, RHO=0.0))
 
 CHMAT = AFFE_MATERIAU(
     MAILLAGE=MAILLAGE, AFFE=(_F(GROUP_MA="RESSORT", MATER=MATBID), _F(GROUP_MA="GAC", MATER=MATCHO))
+)
+
+CHMAT_REFE = AFFE_MATERIAU(
+    MAILLAGE=MAILLAGE,
+    AFFE=(_F(GROUP_MA="RESSORT", MATER=MATBID), _F(GROUP_MA="GAC", MATER=MATCHO_REFE)),
 )
 
 
@@ -278,6 +289,13 @@ MODE_BIC = NORM_MODE(reuse=MODE_BIC, MODE=MODE_BIC, NORME="MASS_GENE")
 # CALCUL DIRECT
 # -------------
 
+DIS_CHOC_args = [_F(RELATION="ELAS", GROUP_MA="RESSORT"), _F(RELATION="DIS_CHOC", GROUP_MA="GAC")]
+
+CHOC_ENDO_PENA_args = [
+    _F(RELATION="ELAS", GROUP_MA="RESSORT"),
+    _F(RELATION="CHOC_ENDO_PENA", GROUP_MA="GAC"),
+]
+
 TRAN_DY2 = DYNA_NON_LINE(
     MODELE=BICHOC,
     CHAM_MATER=CHMAT,
@@ -305,10 +323,7 @@ TRAN_DY2 = DYNA_NON_LINE(
         ),
     ),
     AMOR_MODAL=_F(MODE_MECA=MODE_BIC, AMOR_REDUIT=0.07, REAC_VITE="OUI"),
-    COMPORTEMENT=(
-        _F(RELATION="ELAS", GROUP_MA="RESSORT"),
-        _F(RELATION="CHOC_ENDO_PENA", GROUP_MA="GAC"),
-    ),
+    COMPORTEMENT=CHOC_ENDO_PENA_args,
     INCREMENT=_F(LIST_INST=L_INST),
     SCHEMA_TEMPS=_F(SCHEMA="NEWMARK", FORMULATION="DEPLACEMENT"),
     NEWTON=_F(REAC_ITER=1),
@@ -326,17 +341,67 @@ FORC = RECU_FONCTION(RESULTAT=TRAN_DY2, NOM_CHAM="SIEF_ELGA", NOM_CMP="N", GROUP
 INSTS_CHOC = FORC.Ordo() < -1
 
 
+###
+TRAN_DY2_REFE = DYNA_NON_LINE(
+    MODELE=BICHOC,
+    CHAM_MATER=CHMAT_REFE,
+    MODE_STAT=MSTA_BIC,
+    CARA_ELEM=CARA_BIC,
+    EXCIT=(
+        _F(CHARGE=CL_BICHO),
+        _F(
+            CHARGE=CHAR_SE1,
+            DEPL=DEPLACE1,
+            ACCE=ACCELER1,
+            VITE=VITESSE1,
+            MULT_APPUI="OUI",
+            DIRECTION=(1.0, 0.0, 0.0),
+            GROUP_NO="PT2",
+        ),
+        _F(
+            CHARGE=CHAR_SE2,
+            DEPL=DEPLACE2,
+            ACCE=ACCELER2,
+            VITE=VITESSE2,
+            MULT_APPUI="OUI",
+            DIRECTION=(1.0, 0.0, 0.0),
+            GROUP_NO="PT3",
+        ),
+    ),
+    AMOR_MODAL=_F(MODE_MECA=MODE_BIC, AMOR_REDUIT=0.07, REAC_VITE="OUI"),
+    COMPORTEMENT=DIS_CHOC_args,
+    INCREMENT=_F(LIST_INST=L_INST),
+    SCHEMA_TEMPS=_F(SCHEMA="NEWMARK", FORMULATION="DEPLACEMENT"),
+    NEWTON=_F(REAC_ITER=1),
+    SOLVEUR=_F(METHODE="LDLT"),
+    CONVERGENCE=_F(RESI_GLOB_RELA=1.0e-8, ITER_GLOB_MAXI=20),
+)
+
+DEPL1_REFE = RECU_FONCTION(
+    RESULTAT=TRAN_DY2_REFE, NOM_CHAM="DEPL_ABSOLU", NOM_CMP="DX", GROUP_NO="PT1"
+)
+DEPL2_REFE = RECU_FONCTION(
+    RESULTAT=TRAN_DY2_REFE, NOM_CHAM="DEPL_ABSOLU", NOM_CMP="DX", GROUP_NO="PT2"
+)
+
+DEPL_REFE = CALC_FONCTION(
+    COMB=(_F(FONCTION=DEPL1_REFE, COEF=1.0), _F(FONCTION=DEPL2_REFE, COEF=-1.0))
+)
+
+FORC_REFE = RECU_FONCTION(
+    RESULTAT=TRAN_DY2_REFE, NOM_CHAM="SIEF_ELGA", NOM_CMP="N", GROUP_MA="GAC", POINT=1
+)
+
+INSTS_CHOC_REFE = FORC_REFE.Ordo() < -1
+
+
 # Comparaison à un calcul de référence avec CHOC_ELASTIQUE
-REFE_DIS_CHOC = LIRE_TABLE(FORMAT="TABLEAU", UNITE=30)
-tabrefe = REFE_DIS_CHOC.EXTR_TABLE().values()
-drefe = np.array(tabrefe["DEPL"])[INSTS_CHOC]
-frefe = np.array(tabrefe["FORC"])[INSTS_CHOC]
+drefe = DEPL_REFE.Ordo()[INSTS_CHOC]
+frefe = FORC_REFE.Ordo()[INSTS_CHOC]
 
 insts = DEPL.Absc()[INSTS_CHOC]
 dcalc = DEPL.Ordo()[INSTS_CHOC]
 fcalc = FORC.Ordo()[INSTS_CHOC]
-
-exit(0)
 
 delta_depl = np.abs((dcalc - drefe) / drefe)
 delta_force = np.abs((fcalc - frefe) / frefe)
@@ -355,7 +420,7 @@ try:
     import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(1, 1)
-    ax.plot(tabrefe["DEPL"], tabrefe["FORC"], color="k", label="Reference DIS_CHOC")
+    ax.plot(DEPL_REFE.Ordo(), FORC_REFE.Ordo(), color="k", label="Reference DIS_CHOC")
     ax.scatter(DEPL.Ordo(), FORC.Ordo(), color="crimson", label="CHOC_ENDO_PENA")
     ax.grid()
     ax.set_xlabel("Déplacement N02-N01 [m]")

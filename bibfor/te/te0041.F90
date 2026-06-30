@@ -84,8 +84,8 @@ subroutine te0041(option, nomte)
     character(len=8)    :: k8bid
     character(len=24)   :: valk(2)
 !
-    integer(kind=8)             :: icodre(5), icodre2(2)
-    real(kind=8)        :: valres(5), valres2(2)
+    integer(kind=8)             :: icodre(5), icodre2(2), icodre3(1), tecro2
+    real(kind=8)        :: valres(5), valres2(2), valres3(1)
     character(len=16)   :: nomres(5), nomres2(2)
     character(len=16), pointer :: compor(:) => null()
     real(kind=8)        :: kp, kt1, kt2, indicChoc
@@ -220,6 +220,7 @@ subroutine te0041(option, nomte)
                 call tecach('NNN', 'PMATERC', 'L', iret, iad=jma)
                 if ((jma .eq. 0) .or. (iret .ne. 0)) goto 666
                 if (lDisChoc) then
+                    tecro2 = 0
                     ! Récupération des paramètres matériau DIS_CONTACT
                     nomres(1) = 'RIGI_NOR'
                     nomres(2) = 'AMOR_NOR'
@@ -264,11 +265,9 @@ subroutine te0041(option, nomte)
                     call dikpkt(zi(jma), 'DIS_CONTACT', kp, kt1, kt2)
 
                 else if (lDisChocEndo) then
-                    write (6, *) 'lDisChocEndo'
                     ! Récupération des paramètres matériau DIS_CHOC_ENDO
                     call jevech('PVARIPG', 'L', jvarip)
                     enfoncement_max = zr(jvarip)
-                    write (6, *) 'enfoncement_max', enfoncement_max
                     nomres2(1) = 'RIGI_NOR'; nomres2(2) = 'AMOR_NOR'
                     call rcvala(zi(jma), ' ', 'DIS_CHOC_ENDO', 1, 'DX', &
                                 [-enfoncement_max], 2, nomres2, valres2, icodre2, &
@@ -277,8 +276,13 @@ subroutine te0041(option, nomte)
                     icodre(2) = icodre2(2)
                     riginor_choc = valres2(1)
                     amornor_choc = valres2(2)
-                    write (6, *) 'riginor_choc', riginor_choc
-                    write (6, *) 'amornor_choc', amornor_choc
+
+                    !   Type d'amortissement inclus ou exclus
+                    tecro2 = 0
+                    call rcvala(zi(jma), ' ', 'DIS_CHOC_ENDO', 0, ' ', &
+                                [0.0d0], 1, ['CRIT_AMOR'], valres3, icodre3, &
+                                1)
+                    tecro2 = nint(valres3(1))
 
                     ! Récupération de la matrice tangente (symétrique)
                     call tecach('ONO', 'PRIGIEL', 'L', iret, iad=jdr)
@@ -296,8 +300,7 @@ subroutine te0041(option, nomte)
                         ! Définition du facteur "indicateur de choc" (1 si choc, 0 sinon)
                         ! (contribution élastique à retrancher à la matrice tangente)
                         indicChoc = (matv1(1)-kp)/riginor_choc
-                        write (6, *) 'indicChoc', indicChoc
-                        if (icodre(2) .eq. 0) then
+                        if ((icodre(2) .eq. 0) .and. (tecro2 .ne. 1)) then
                             mata1(1) = indicChoc*amornor_choc
                         end if
                         if (lDisChoc) then
