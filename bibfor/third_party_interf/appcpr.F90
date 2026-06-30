@@ -541,12 +541,12 @@ subroutine appcpr(kptsc)
         nbp = max(ceiling(real(nbproc*nbmode, 8)/real(50000, 8), 8), 1_8)
         call codent(nbp, 'D', nbp_str, 'F')
         write (seuil_str, '(E24.16)') slvr(6)
-        if (slvr(6) > 0.d0) then
-            myopt_eps = '-eps_threshold_absolute '//trim(seuil_str)//' '
-        else
-            myopt_eps = '-eps_nev '//trim(nbmode_str)//' '
-        end if
         if (typ == "GENEO") then
+            if (slvr(6) > 0.d0) then
+                myopt_eps = '-eps_threshold_absolute '//trim(seuil_str)//' '
+            else
+                myopt_eps = '-eps_nev '//trim(nbmode_str)//' '
+            end if
             myopt = '-prefix_push pc_hpddm_ '// &
                     '-prefix_push levels_1_ '// &
                     '-pc_type asm '// &
@@ -580,6 +580,11 @@ subroutine appcpr(kptsc)
             else
                 typmat = 'sbaij'
             end if
+            if (slvr(6) > 0.d0) then
+                myopt_eps = '-svd_threshold_relative '//trim(seuil_str)//' '
+            else
+                myopt_eps = '-svd_nsv '//trim(nbmode_str)//' '
+            end if
             myopt = '-prefix_push pc_hpddm_ '// &
                     '-prefix_push levels_1_ '// &
                     '-pc_type asm '// &
@@ -591,8 +596,6 @@ subroutine appcpr(kptsc)
                     '-sub_mat_mumps_cntl_3 1.e-50 '// &
                     '-sub_mat_mumps_cntl_5 0. '// &
                     '-svd_type lanczos '// &
-                    '-svd_nsv '//trim(nbmode_str)//' '// &
-                    '-st_pc_factor_mat_solver_type mumps '// &
                     '-st_share_sub_ksp '// &
                     myopt_eps// &
                     '-prefix_pop '// &
