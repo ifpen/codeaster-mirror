@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -17,10 +17,12 @@
 ! --------------------------------------------------------------------
 !
 interface
-    subroutine numddl(numeDofZ, renumZ, base, nbMatrElem, listMatrElem)
+    subroutine numddl(numeDofZ, renumZ, base, nbMatrElem, listMatrElem, &
+                      lMacrElemZ_)
         character(len=2), intent(in) :: base
         character(len=*), intent(in) :: numeDofZ, renumZ
         character(len=24), pointer :: listMatrElem(:)
         integer(kind=8), intent(in) :: nbMatrElem
+        aster_logical, optional, intent(in) :: lMacrElemZ_
     end subroutine numddl
 end interface

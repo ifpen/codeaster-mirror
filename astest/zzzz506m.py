@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -81,8 +81,7 @@ RES = STAT_NON_LINE(
         PRE_COND="HPDDM",
         RESI_RELA=1e-10,
         TYPE_RESOL="HARMO",
-        NB_MODE=50,
-        SEUIL=1e-6,
+        SEUIL=1e-1,
         OPTION_PETSC="-ksp_monitor_true_residual -log_view",
     ),
 )

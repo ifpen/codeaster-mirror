@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@ from code_aster.Utilities import SharedTmpdir
 from code_aster.Commands import *
 from code_aster import CA
 import os.path as osp
+from code_aster.Utilities import PETSc
 
 test = CA.TestCase()
 
@@ -90,14 +91,7 @@ TEMP = THER_LINEAIRE(
     MODELE=MODE_TL,
     CHAM_MATER=MATE_T,
     EXCIT=(_F(CHARGE=CLIMT), _F(CHARGE=BLOQT)),
-    SOLVEUR=_F(
-        METHODE="PETSC",
-        PRE_COND="HPDDM",
-        RESI_RELA=1.0e-9,
-        TYPE_RESOL="GENEO",
-        NB_MODE=20,
-        SEUIL=1e-12,
-    ),
+    SOLVEUR=_F(METHODE="PETSC", PRE_COND="HPDDM", RESI_RELA=1.0e-9, TYPE_RESOL="GENEO", NB_MODE=20),
     TYPE_CALCUL="STAT",
     INCREMENT=_F(LIST_INST=DEFI_LIST_REEL(VALE=0.0)),
     INFO=1,
@@ -122,12 +116,21 @@ MATE_M = AFFE_MATERIAU(
     AFFE_VARC=_F(TOUT="OUI", EVOL=TEMP2, VALE_REF=0.0, NOM_VARC="TEMP", NOM_CHAM="TEMP"),
 )
 
+# remove the option that sets the number of eigenvalues to retrieve in order to test
+# the threshold (SEUIL in the SOLVEUR keyword)
+PETSc.Options().delValue("-pc_hpddm_levels_1_eps_nev")
+# some monitoring options
+option = (
+    "-pc_hpddm_levels_1_eps_monitor_all "
+    "-ksp_view -options_view -ksp_monitor "
+    "-pc_hpddm_levels_1_eps_view"
+)
 # Solve the mechanical problem
 RESU = MECA_STATIQUE(
     MODELE=MODE_MQ,
     CHAM_MATER=MATE_M,
     EXCIT=(_F(CHARGE=CHAR), _F(CHARGE=DIRI)),
-    SOLVEUR=_F(METHODE="PETSC", PRE_COND="HPDDM"),
+    SOLVEUR=_F(METHODE="PETSC", PRE_COND="HPDDM", SEUIL=1.0e-1, OPTION_PETSC=option),
 )
 
 # Extract the field from the result

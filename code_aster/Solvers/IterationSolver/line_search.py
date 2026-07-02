@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -22,6 +22,7 @@ from enum import IntFlag, auto
 
 import numpy as np
 
+from ...Messages import UTMESS
 from ...Utilities import logger, no_new_attributes, profile
 from ..Basics import ContextMixin
 
@@ -227,6 +228,11 @@ class SecantLineSearch(BaseLineSearch):
         rho0 = 0.0
         rho1 = 1.0
         f0 = self.compute_f(rho0, solution)
+        f1 = self.compute_f(rho1, solution)
+        tol = 1.0e-12 * self.oper.getResidual().resi.norm() * solution.norm()
+        if abs(f0) <= tol and abs(f1) <= tol:
+            UTMESS("A", "MECANONLINE5_49")
+            return solution
         fcvg = abs(self._get("RESI_LINE_RELA") * f0)
 
         # Best values and updates during line search

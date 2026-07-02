@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
+
+from contextlib import AbstractContextManager
 
 from libaster import deleteTemporaryObjects, resetFortranLoggingLevel, setFortranLoggingLevel
 
@@ -423,17 +425,12 @@ class NonLinearOperator(ContextMixin):
                 solv.solve()
             except (ConvergenceError, IntegrationError, SolverError) as exc:
                 logger.warning(exc.format("I"))
-                try:
+                with storeLastIfFailed(self, state):
                     self.stepper.failed(exc)
-                except (ConvergenceError, IntegrationError, SolverError):
-                    # an error occurred, ensure that the previous step was stored
-                    logger.warning(
-                        "An error occurred, ensure that the last converged step is saved"
-                    )
-                    self._storeState(state.getState(-1), ignore_policy=True)
-                    raise
             else:
-                if not self.stepper.check_event(state):
+                with storeLastIfFailed(self, state):
+                    isok = self.stepper.check_event(state)
+                if not isok:
                     # + reset current_matrix to None (REAC_INCR)
                     state.revert()
                     continue
@@ -483,6 +480,22 @@ class NonLinearOperator(ContextMixin):
         logger.setLevel(level)
         if show:
             ExecutionParameter().enable(Options.ShowSyntax)
+
+
+class storeLastIfFailed(AbstractContextManager):
+    def __init__(self, solver, state):
+        self._solver = solver
+        self._state = state
+
+    def __enter__(self):
+        return self._solver
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if isinstance(exc_val, (ConvergenceError, IntegrationError, SolverError)):
+            # an error occurred, ensure that the previous step was stored
+            logger.warning("An error occurred, ensure that the last converged step is saved")
+            self._solver._storeState(self._state.getState(-1), ignore_policy=True)
+            raise
 
 
 def _msginit(field, result=None):

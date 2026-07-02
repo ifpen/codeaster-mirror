@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 ! --------------------------------------------------------------------
 !
 subroutine nueffe(nbLigr, listLigr, base, numeDofZ, renumZ, &
-                  modelZ, modeLocZ_, idenRelaZ_)
+                  modelZ, modeLocZ_, idenRelaZ_, lMacrElemZ_)
 !
     implicit none
 !
@@ -36,6 +36,7 @@ subroutine nueffe(nbLigr, listLigr, base, numeDofZ, renumZ, &
     character(len=2), intent(in) :: base
     character(len=*), intent(in) :: numeDofZ, renumZ, modelZ
     character(len=*), optional, intent(in) :: modeLocZ_, idenRelaZ_
+    aster_logical, optional, intent(in) :: lMacrElemZ_
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -55,6 +56,7 @@ subroutine nueffe(nbLigr, listLigr, base, numeDofZ, renumZ, &
 ! In  model          : name of model
 ! In  modeLoc        : local mode for GRANDEUR numbering
 ! In  idenRela       : name of object for identity relations between dof
+! In  lMacrElem      : call from MACR_ELEM_STAT
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -82,6 +84,7 @@ subroutine nueffe(nbLigr, listLigr, base, numeDofZ, renumZ, &
     character(len=8) :: typeLagr, model, typeLagrC
     character(len=24) :: modeLoc, idenRela
     character(len=19) :: ligrelName
+    aster_logical :: lMacrElem
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -94,6 +97,10 @@ subroutine nueffe(nbLigr, listLigr, base, numeDofZ, renumZ, &
     idenRela = " "
     if (present(idenRelaZ_)) then
         idenRela = idenRelaZ_
+    end if
+    lMacrElem = ASTER_FALSE
+    if (present(lMacrElemZ_)) then
+        lMacrElem = lMacrElemZ_
     end if
     model = modelZ
 
@@ -117,6 +124,7 @@ subroutine nueffe(nbLigr, listLigr, base, numeDofZ, renumZ, &
 
 ! - Create
     if (typeLagr .eq. 'LAG1') then
+        if (lMacrElem) call utmess('F', 'SOUSTRUC_72')
         ASSERT(nbLigr > 1)
 ! ----- Case with simple Lagrange
         call nueffe_lag1(nbLigr, listLigr, base, numeDofZ, renumZ, &

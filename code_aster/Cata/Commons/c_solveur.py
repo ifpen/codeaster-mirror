@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
-# person_in_charge: olivier.boiteau at edf.fr
 
 from ..Language.DataStructure import *
 from ..Language.Syntax import *
@@ -435,8 +434,9 @@ def C_SOLVEUR(command, base=None):  # COMMUN#
     _BlocPE_HPDDM["TYPE_RESOL"] = SIMP(
         statut="f", typ="TXM", defaut="AUTO", into=("AUTO", "GENEO", "HARMO")
     )
-    _BlocPE_HPDDM["NB_MODE"] = SIMP(statut="f", typ="I", defaut=30, val_min=1)
+    _BlocPE_HPDDM["NB_MODE"] = SIMP(statut="f", typ="I", val_min=1)
     _BlocPE_HPDDM["SEUIL"] = SIMP(statut="f", typ="R", val_min=0.0)
+    _BlocPE_HPDDM["regles"] = (UN_PARMI("SEUIL", "NB_MODE", NB_MODE=30),)
     # --------------------------------------------------------------------
 
     _BlocPE_LAGAUG["RENUM"] = SIMP(statut="f", typ="TXM", defaut="SANS", into=("SANS",))

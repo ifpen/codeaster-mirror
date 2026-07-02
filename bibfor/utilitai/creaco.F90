@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -34,7 +34,6 @@ subroutine creaco(nbmato, ma, nblien)
 !               NBMAMA : NOMBRE DE MAILLES RELIEES A CHAQUE MAILLE
 !
 !----------------------------------------------------------------------
-! person_in_charge: jacques.pellet at edf.fr
 !
     implicit none
 !
@@ -52,6 +51,7 @@ subroutine creaco(nbmato, ma, nblien)
 #include "asterfort/uttcpr.h"
 #include "asterfort/uttcpu.h"
 #include "asterfort/wkvect.h"
+#include "asterfort/assert.h"
 !
     integer(kind=8) :: nbmato, renum, renum2, renum3, co, idco, nbmama
     integer(kind=8) :: nblien
@@ -103,39 +103,32 @@ subroutine creaco(nbmato, ma, nblien)
         zi(idno-1+ima) = idnoeu
 !
 !      ------- ON LINEARISE LES ELEMENTS -------
-        if (nom .eq. 'SEG3    ') then
+        if (nom(1:3) .eq. 'SEG') then
             zk8(typma-1+ima) = 'SEG2    '
             zi(nbno-1+ima) = 2
-        else if (nom .eq. 'TRIA6   ') then
+        else if (nom(1:4) .eq. 'TRIA') then
             zk8(typma-1+ima) = 'TRIA3   '
             zi(nbno-1+ima) = 3
-        else if (nom .eq. 'QUAD8   ') then
+        else if (nom(1:4) .eq. 'QUAD') then
             zk8(typma-1+ima) = 'QUAD4   '
             zi(nbno-1+ima) = 4
-        else if (nom .eq. 'QUAD9   ') then
-            zk8(typma-1+ima) = 'QUAD4   '
-            zi(nbno-1+ima) = 4
-        else if (nom .eq. 'TETRA10 ') then
+        else if (nom(1:5) .eq. 'TETRA') then
             zk8(typma-1+ima) = 'TETRA4  '
             zi(nbno-1+ima) = 4
-        else if (nom .eq. 'PENTA15 ') then
+        else if (nom(1:5) .eq. 'PENTA') then
             zk8(typma-1+ima) = 'PENTA6  '
             zi(nbno-1+ima) = 6
-        else if (nom .eq. 'PENTA18 ') then
-            zk8(typma-1+ima) = 'PENTA6  '
-            zi(nbno-1+ima) = 6
-        else if (nom .eq. 'HEXA20  ') then
+        else if (nom(1:4) .eq. 'HEXA') then
             zk8(typma-1+ima) = 'HEXA8   '
             zi(nbno-1+ima) = 8
-        else if (nom .eq. 'HEXA27  ') then
-            zk8(typma-1+ima) = 'HEXA8   '
-            zi(nbno-1+ima) = 8
-        else if (nom .eq. 'PYRAM13 ') then
+        else if (nom(1:5) .eq. 'PYRAM') then
             zk8(typma-1+ima) = 'PYRAM5  '
             zi(nbno-1+ima) = 5
-        else
+        else if (nom .eq. 'POI1') then
             zk8(typma-1+ima) = nom
             zi(nbno-1+ima) = nbnoeu
+        else
+            ASSERT(ASTER_FALSE)
         end if
 !      ------- FIN DE LA LINEARISATION -------
 !
@@ -192,7 +185,7 @@ subroutine creaco(nbmato, ma, nblien)
     zi4(idco) = 1
     do ima = 2, nbmato+1
         if (zi(nbmama-1+ima-1) .gt. maxi) maxi = zi(nbmama-1+ima-1)
-        zi4(idco-1+ima) = zi4(idco-1+ima-1)+zi(nbmama-1+ima-1)
+        zi4(idco-1+ima) = zi4(idco-1+ima-1)+int(zi(nbmama-1+ima-1), 4)
     end do
 !
 ! ------------------------ JEVEUX ------------------------------------
@@ -312,7 +305,7 @@ subroutine creaco(nbmato, ma, nblien)
 !
     zi4(idco) = 1
     do ima = 2, nbmato+1
-        zi4(idco-1+ima) = zi4(idco-1+ima-1)+zi(nbmama-1+ima-1)
+        zi4(idco-1+ima) = zi4(idco-1+ima-1)+int(zi(nbmama-1+ima-1), 4)
     end do
 !
 ! ------ CREATION DES CONNECTIVITES DES MAILLES ( CO ) ---------------
@@ -404,8 +397,8 @@ subroutine creaco(nbmato, ma, nblien)
 31          continue
             id = zi4(idco-1+ima)+zi(id1-1+ima)
             id2 = zi4(idco-1+zi(temp-1+j))+zi(id1-1+zi(temp-1+j))
-            zi4(co-1+id2) = ima
-            zi4(co-1+id) = zi(temp-1+j)
+            zi4(co-1+id2) = int(ima, 4)
+            zi4(co-1+id) = int(zi(temp-1+j), 4)
             zi(id1-1+ima) = zi(id1-1+ima)+1
             zi(id1-1+zi(temp-1+j)) = zi(id1-1+zi(temp-1+j))+1
 !

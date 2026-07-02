@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -16,7 +16,8 @@
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
 !
-subroutine numddl(numeDofZ, renumZ, base, nbMatrElem, listMatrElem)
+subroutine numddl(numeDofZ, renumZ, base, nbMatrElem, listMatrElem, &
+                  lMacrElemZ_)
 !
     implicit none
 !
@@ -33,6 +34,7 @@ subroutine numddl(numeDofZ, renumZ, base, nbMatrElem, listMatrElem)
     character(len=*), intent(in) :: numeDofZ, renumZ
     character(len=24), pointer :: listMatrElem(:)
     integer(kind=8), intent(in) :: nbMatrElem
+    aster_logical, optional, intent(in) :: lMacrElemZ_
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -49,6 +51,7 @@ subroutine numddl(numeDofZ, renumZ, base, nbMatrElem, listMatrElem)
 !                      base(2:2) => NUME_DDL objects
 ! Ptr listMatrElem   : list of elementary matrixes
 ! In  nbMatrElem     : number of elementary matrixes
+! In  lMacrElem      : call from MACR_ELEM_STAT
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -58,9 +61,14 @@ subroutine numddl(numeDofZ, renumZ, base, nbMatrElem, listMatrElem)
     character(len=8) :: mesh, model, modelNew
     character(len=14) :: numeDof
     character(len=16) :: typsd
+    aster_logical :: lMacrElem
 !
 ! --------------------------------------------------------------------------------------------------
 !
+    lMacrElem = ASTER_FALSE
+    if (present(lMacrElemZ_)) then
+        lMacrElem = lMacrElemZ_
+    end if
 
 ! - Extract list of LIGREL from elementary matrixes
     call numoch(listMatrElem, nbMatrElem, listLigr, nbLigr)
@@ -76,7 +84,8 @@ subroutine numddl(numeDofZ, renumZ, base, nbMatrElem, listMatrElem)
     end do
 
 ! - Numbering - Create NUME_EQUA objects
-    call nueffe(nbLigr, listLigr, base, numeDofZ, renumZ, model)
+    call nueffe(nbLigr, listLigr, base, numeDofZ, renumZ, model, &
+                lMacrElemZ_=lMacrElem)
     AS_DEALLOCATE(vk24=listLigr)
 
 ! - Numbering - Create parallel object
