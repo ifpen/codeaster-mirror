@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -23,7 +23,6 @@ DEBUT(CODE="OUI", DEBUG=_F(SDVERI="OUI"))
 
 
 import numpy as np
-
 
 M_Mobile = 1.0 / 100.0
 Hmaillage = 1
@@ -205,10 +204,7 @@ DYNA = DYNA_NON_LINE(
 Ecin = 1.0 / 2.0 * M_Mobile * Vini**2
 # Enfoncement max theorique
 du = (
-    (
-        Ecin
-        - (F_max**2 / (2 * KN) + LARG_PLAT * F_max + ENFO_FL * (F_max2 + (F_max - F_max2) / 2.0))
-    )
+    (Ecin - (F_max**2 / (2 * KN) + LARG_PLAT * F_max + ENFO_FL * (F_max2 + (F_max - F_max2) / 2.0)))
     / F_max2
     + F_max / KN
     + LARG_PLAT
