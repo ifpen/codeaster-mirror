@@ -26,7 +26,7 @@ from scipy.sparse.linalg import LinearOperator, eigsh, svds
 
 from ...Objects import redistributePetscMat, applyFactorOnSubBlocks
 from ...Supervis import ConvergenceError
-from ...Utilities import PETSc, no_new_attributes, removePETScOptions
+from ...Utilities import PETSc, no_new_attributes, profile, removePETScOptions
 from ...Utilities.mpi_utils import MPI
 from .iteration_solver import BaseIterationSolver
 from .snes_solver import SNESSolver
