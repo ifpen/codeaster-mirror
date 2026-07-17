@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -125,7 +125,9 @@ DEP = MECA_STATIQUE(MODELE=MO, CHAM_MATER=CHMA, CARA_ELEM=CARA, EXCIT=_F(CHARGE=
 CALC_CHAMP(reuse=DEP, RESULTAT=DEP, CONTRAINTE=("SIGM_ELNO", "EFGE_ELNO"))
 
 DEPPOS = POST_CHAMP(
-    RESULTAT=DEP, EXTR_COQUE=_F(NOM_CHAM="SIGM_ELNO", NUME_COUCHE=1, NIVE_COUCHE="SUP")
+    RESULTAT=DEP,
+    EXTR_COQUE=_F(NOM_CHAM="SIGM_ELNO", NUME_COUCHE=1, NIVE_COUCHE="SUP"),
+    GROUP_MA=("GRMA1", "GRMA3"),
 )
 
 SIG = MODI_REPERE(

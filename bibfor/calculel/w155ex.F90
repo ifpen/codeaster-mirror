@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 ! --------------------------------------------------------------------
 
 subroutine w155ex(nomres, resu, nbordr, liordr)
-! person_in_charge: ayaovi-dzifa.kudawoo at edf.fr
 ! ======================================================================
 !     COMMANDE :  POST_CHAMP /EXTR_XXXX
 ! ----------------------------------------------------------------------
@@ -86,6 +85,7 @@ subroutine w155ex(nomres, resu, nbordr, liordr)
     call getvtx(motfac, 'NOM_CHAM', iocc=1, nbval=10, vect=nomsym, &
                 nbret=nbsym)
     ASSERT(nbsym .gt. 0)
+    nucou = 0
     if (motfac .eq. 'EXTR_COQUE' .or. motfac .eq. 'EXTR_TUYAU') then
         call getvis(motfac, 'NUME_COUCHE', iocc=1, scal=nucou, nbret=ibid)
         call getvtx(motfac, 'NIVE_COUCHE', iocc=1, scal=nicou, nbret=ibid)
