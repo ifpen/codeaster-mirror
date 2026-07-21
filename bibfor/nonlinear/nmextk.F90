@@ -214,7 +214,7 @@ subroutine nmextk(model, &
                     if (type_sele_cmp .eq. 'NOM_CMP') then
                         cmp_name = v_list_cmp(ipar)
                     elseif (type_sele_cmp .eq. 'NOM_VARI') then
-                        cmp_name = v_list_cmp(nb_cmp*(i_elem-1)+ipar)
+                        cmp_name = v_list_cmp(nb_elem*(ipar-1)+i_elem)
                     else
                         ASSERT(.false.)
                     end if

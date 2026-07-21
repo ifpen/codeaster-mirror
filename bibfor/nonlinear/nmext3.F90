@@ -182,7 +182,7 @@ subroutine nmext3(mesh, field, field_type, field_s, &
 !
 ! ----------------- Extract value at Gauss point
 !
-                call nmextj(field_type, nb_cmp, list_cmp, type_extr_cmp, type_sele_cmp, &
+                call nmextj(field_type, nb_elem, nb_cmp, list_cmp, type_extr_cmp, type_sele_cmp, &
                             poin_nume, spoi_nume, nb_vale, i_elem, elem_nume, &
                             jcesd, jcesv, jcesl, jcesc, vale_resu)
 !

@@ -19,10 +19,11 @@
 !
 !
 interface
-    subroutine nmextj(field_type, nb_cmp   , list_cmp, type_extr_cmp, type_sele_cmp,&
+    subroutine nmextj(field_type, nb_elem  , nb_cmp  , list_cmp, type_extr_cmp, type_sele_cmp,&
                       poin_nume , spoi_nume, nb_vale , i_elem       , elem_nume    ,&
                       jcesd     , jcesv    , jcesl   , jcesc        , vale_resu)
         character(len=24), intent(in) :: field_type
+        integer(kind=8), intent(in) :: nb_elem
         integer(kind=8), intent(in) :: nb_cmp
         character(len=24), intent(in) :: list_cmp
         character(len=8), intent(in) :: type_extr_cmp
