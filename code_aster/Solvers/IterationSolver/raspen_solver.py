@@ -296,11 +296,11 @@ class _RASPENSolver:
         # Nb of overlap layers
         self.overlap = DDPart.overlap
         # Vecscatter
-        self.vecscatter = self.DDPart.getVecScatter()
+        self.vecscatter = DDPart.getVecScatter()
         # Reads string options values from Petsc
         self.setUpOptions(optionsAndPetscEquivalents, validStringOptions)
         # Local dofs
-        self.local_dofs = self.DDPart.getLocalDofs()
+        self.local_dofs = DDPart.getLocalDofs()
         # Nonoverlapping dofs in local numbering
         self.locNonOvlpDofs = DDPart.local_interior_dofs
         # Nonoverlapping dofs in global numbering
@@ -312,7 +312,7 @@ class _RASPENSolver:
         if self.nbi == 0:
             self.withCoarsePb = False
         # Global size
-        self.glbSize = self.DDPart.getGlobalSize()
+        self.glbSize = DDPart.getGlobalSize()
         # Local sizes
         self.locSize = DDPart.getLocalSize()
         # Local snes
@@ -340,9 +340,9 @@ class _RASPENSolver:
         # Global Jacobian
         self.J = PETSc.Mat().createPython(self.glbSize, comm=MPI.ASTER_COMM_WORLD)
         # Ghost tools
-        self.DDPart.BuildGhostsTools(self.Yloc, self.Res)
+        DDPart.BuildGhostsTools(self.Yloc, self.Res)
         # Multiplicities
-        multiplicity = self.DDPart.getLocalMultiplicity(self.Yloc, self.Res)
+        multiplicity = DDPart.getLocalMultiplicity(self.Yloc, self.Res)
         # Square root of multiplicites
         self.SQMult = np.sqrt(multiplicity)
         # Prefixing local snes
@@ -358,7 +358,6 @@ class _RASPENSolver:
             self.Jloc0 = self.Jloc.duplicate()
             # Number of singular values retained for each subdomain
             self.nb_svs = self.opts.getInt("raspen_nb_sd_singular_vec", 10)
-            print("The number of singular values read from the PETSc options:")
             self.nb_svs = min((self.nbi - 1), self.nb_svs)
             # Append coarse problem type to methode name
             self.methodName += f"_{self.coarseSpaceType}"
@@ -774,12 +773,6 @@ class _RASPENSolver:
         t = time()
         self.glbSnes.solve(rhs, self.glbSol)
         time_exec = time() - t
-        # Write monitoring data in the log file
-        # if self.withCoarsePb:
-        #     print("Total time of assembling:", self.GCGC.assTime,flush=True)
-        #     print("Total time of apply diff:", self.applyDiff,flush=True)
-        #     print("Total time spent in correction:", self.GCGC.corrTime,flush=True)
-        #     print("Total time spent in coarse function:", self.GCGC.funcTime,flush=True)
         if self.rank == 0:
             self.saveTimeStepPerfs(self.glbSnes, time_exec)
 
@@ -787,15 +780,25 @@ class _RASPENSolver:
         """
         Destroys all RASPEN objects
         """
-        self.glbSnes.destroy()
-        self.glbSol.destroy()
-        self.Yloc.destroy()
-        self.Res.destroy()
         self.J.destroy()
+        self.glbSnes.destroy()
+        self.Res.destroy()
+        self.glbSol.destroy()
+        self.locKsp.destroy()
+        self.locSnes.destroy()
+        self.vecscatter.destroy()
+        self.locSol.destroy()
+        self.locSol0.destroy()
+        self.Yloc.destroy()
+
         if self.withCoarsePb:
             self.Jloc0.destroy()
+
         if self.withSubPrecond:
             self.Jp.destroy()
+            self.JpCtx.sksp.destroy()
+            if self.JpCtx.Precond:
+                self.JpCtx.Precond.destroy()
 
 
 class JacCtx:
@@ -922,7 +925,7 @@ class SubJacCtx:
         # The Jacobian context
         self.Jctx = self.Sl.J.getPythonContext()
         # Inherit domain decomposition partitioner
-        self.DDPart = Sl.DDPart
+        self.DDPart = self.Sl.DDPart
         # Subdomain work vector
         self.Yloc = self.Sl.Yloc
         # Boundary ghosts DOFs

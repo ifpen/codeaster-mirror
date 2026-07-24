@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -65,7 +65,10 @@ RAMPE = DEFI_FONCTION(NOM_PARA="INST", VALE=(0, 0, 1, 1))
 L_INST = DEFI_LIST_REEL(DEBUT=0.0, INTERVALLE=(_F(JUSQU_A=1.0, NOMBRE=3),))
 
 DEFLIST = DEFI_LIST_INST(
-    METHODE="MANUEL", DEFI_LIST=_F(LIST_INST=L_INST), ECHEC=_F(SUBD_PAS=10), MODELE=MO
+    METHODE="MANUEL",
+    DEFI_LIST=_F(LIST_INST=L_INST),
+    ECHEC=_F(SUBD_PAS=10, SUBD_NIVEAU=4),
+    MODELE=MO,
 )
 
 # Additive Schwarz
@@ -81,7 +84,7 @@ myOptions = (
     internalRASPENOpts
     # local snesp
     + "-prefix_push lsnes_ "
-    + "  -snes_monitor -snes_type newtonls -snes_converged_reason -snes_rtol 1.e-6 -snes_stol 1.e-20 -snes_atol 1.e-20 -snes_max_it 10 -snes_converged_maxits "
+    + "  -snes_monitor -snes_type newtonls -snes_linesearch_type basic -snes_converged_reason -snes_rtol 1.e-6 -snes_stol 1.e-20 -snes_atol 1.e-9 -snes_max_it 3 -snes_converged_maxits "
     + "  -ksp_type preonly -pc_type lu -pc_factor_mat_solver_type mumps "
     + "-prefix_pop "
     # global snes
