@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2023 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
-# person_in_charge: mathieu.courtois@edf.fr
 """
 :py:class:`MechanicalLoad` --- Assignment of mechanical load
 *******************************************************************
@@ -26,11 +25,41 @@
 from libaster import MechanicalLoadComplex, MechanicalLoadFunction, MechanicalLoadReal
 
 from ..Utilities import injector
+from ..Objects.Serialization import InternalStateBuilder
+
+
+class MechanicalLoadStateBuilder(InternalStateBuilder):
+    """Class that returns the internal state of a *MechanicalLoad*."""
+
+    def save(self, obj):
+        """Return the internal state of a *MechanicalLoad* to be pickled.
+
+        Arguments:
+            obj (*MechanicalLoad*): The *MechanicalLoad* object to be pickled.
+
+        Returns:
+            *InternalStateBuilder*: The internal state itself.
+        """
+        super().save(obj)
+        self._st["fed"] = obj.getFiniteElementDescriptor()
+        return self
+
+    def restore(self, obj):
+        """Restore the *MechanicalLoad* content from the previously saved internal
+        state.
+
+        Arguments:
+            obj (*MechanicalLoad*): The *MechanicalLoad* object to be restored.
+        """
+        super().restore(obj)
+        if self._st["fed"]:
+            obj.setFiniteElementDescriptor(self._st["fed"])
 
 
 @injector(MechanicalLoadReal)
 class ExtendedMechanicalLoadReal:
     cata_sdj = "SD.sd_char_meca.sd_char_meca"
+    internalStateBuilder = MechanicalLoadStateBuilder
 
     def __getinitargs__(self):
         """Returns the argument required to reinitialize a MechanicalLoadReal
@@ -42,6 +71,7 @@ class ExtendedMechanicalLoadReal:
 @injector(MechanicalLoadFunction)
 class ExtendedMechanicalLoadFunction:
     cata_sdj = "SD.sd_char_meca.sd_char_meca"
+    internalStateBuilder = MechanicalLoadStateBuilder
 
     def __getinitargs__(self):
         """Returns the argument required to reinitialize a MechanicalLoadFunction
@@ -53,6 +83,7 @@ class ExtendedMechanicalLoadFunction:
 @injector(MechanicalLoadComplex)
 class ExtendedMechanicalLoadComplex:
     cata_sdj = "SD.sd_char_meca.sd_char_meca"
+    internalStateBuilder = MechanicalLoadStateBuilder
 
     def __getinitargs__(self):
         """Returns the argument required to reinitialize a MechanicalLoadComplex

@@ -5,7 +5,7 @@
  * @file MechanicalLoad.h
  * @author Natacha Bereux
  * @section LICENCE
- *   Copyright (C) 1991 - 2024  EDF R&D                www.code-aster.org
+ *   Copyright (C) 1991 - 2026  EDF www.code-aster.org
  *
  *   This file is part of Code_Aster.
  *
@@ -128,6 +128,13 @@ class MechanicalLoad : public DataStructure, public ListOfTables {
      */
     FiniteElementDescriptorPtr getFiniteElementDescriptor() const {
         return _mecaLoadDesc->getFiniteElementDescriptor();
+    };
+
+    /**
+     * @brief Set the finite element descriptor
+     */
+    void setFiniteElementDescriptor( const FiniteElementDescriptorPtr fed ) const {
+        _mecaLoadDesc->setFiniteElementDescriptor( fed );
     };
 
     /**

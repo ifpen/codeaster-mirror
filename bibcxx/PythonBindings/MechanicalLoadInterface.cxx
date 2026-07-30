@@ -3,7 +3,7 @@
  * @brief Interface python de MechanicalLoad
  * @author Nicolas Sellenet
  * @section LICENCE
- *   Copyright (C) 1991 - 2024  EDF R&D                www.code-aster.org
+ *   Copyright (C) 1991 - 2026  EDF www.code-aster.org
  *
  *   This file is part of Code_Aster.
  *
@@ -32,6 +32,7 @@ void exportMechanicalLoadToPython( py::module_ &mod ) {
         .def( py::init( &initFactoryPtr< MechanicalLoadReal, ModelPtr > ) )
         .def( py::init( &initFactoryPtr< MechanicalLoadReal, std::string, ModelPtr > ) )
         .def( "getFiniteElementDescriptor", &MechanicalLoadReal::getFiniteElementDescriptor )
+        .def( "setFiniteElementDescriptor", &MechanicalLoadReal::setFiniteElementDescriptor )
         .def( "hasLoadField", &MechanicalLoadReal::hasLoadField )
         .def( "updateValuePointers", &MechanicalLoadReal::updateValuePointers )
         .def( "getMechanicalLoadDescription", &MechanicalLoadReal::getMechanicalLoadDescription )
@@ -53,6 +54,7 @@ Returns:
         .def( py::init( &initFactoryPtr< MechanicalLoadFunction, ModelPtr > ) )
         .def( py::init( &initFactoryPtr< MechanicalLoadFunction, std::string, ModelPtr > ) )
         .def( "getFiniteElementDescriptor", &MechanicalLoadFunction::getFiniteElementDescriptor )
+        .def( "setFiniteElementDescriptor", &MechanicalLoadFunction::setFiniteElementDescriptor )
         .def( "hasLoadField", &MechanicalLoadFunction::hasLoadField )
         .def( "updateValuePointers", &MechanicalLoadFunction::updateValuePointers )
         .def( "getModel", &MechanicalLoadFunction::getModel )
@@ -73,6 +75,7 @@ Returns:
         .def( py::init( &initFactoryPtr< MechanicalLoadComplex, ModelPtr > ) )
         .def( py::init( &initFactoryPtr< MechanicalLoadComplex, std::string, ModelPtr > ) )
         .def( "getFiniteElementDescriptor", &MechanicalLoadComplex::getFiniteElementDescriptor )
+        .def( "setFiniteElementDescriptor", &MechanicalLoadComplex::setFiniteElementDescriptor )
         .def( "hasLoadField", &MechanicalLoadComplex::hasLoadField )
         .def( "updateValuePointers", &MechanicalLoadComplex::updateValuePointers )
         .def( "getModel", &MechanicalLoadComplex::getModel )

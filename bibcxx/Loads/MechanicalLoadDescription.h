@@ -5,7 +5,7 @@
  * @file MechanicalLoadDescription.h
  * @author Natacha Bereux
  * @section LICENCE
- *   Copyright (C) 1991 - 2025  EDF R&D                www.code-aster.org
+ *   Copyright (C) 1991 - 2026  EDF www.code-aster.org
  *
  *   This file is part of Code_Aster.
  *
@@ -172,6 +172,8 @@ class MechanicalLoadDescription : public DataStructure {
      * @brief Get the finite element descriptor
      */
     FiniteElementDescriptorPtr getFiniteElementDescriptor() const { return _FEDesc; };
+
+    void setFiniteElementDescriptor( const FiniteElementDescriptorPtr fed ) { _FEDesc = fed; };
 
     BaseMeshPtr getMesh() const { return _model->getMesh(); }
 
