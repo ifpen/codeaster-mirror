@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -21,7 +21,6 @@ subroutine lcejfr(BEHinteg, fami, kpg, ksp, ndim, &
                   mate, option, epsm, deps, sigma, &
                   dsidep, vim, vip, typmod, instam, &
                   instap)
-! person_in_charge: kyrylo.kazymyrenko at edf.fr
 !
     use Behaviour_type
 !
@@ -397,11 +396,12 @@ subroutine lcejfr(BEHinteg, fami, kpg, ksp, ndim, &
     end do
     vip(5) = max(nint(vim(5)), ifouv)
 !
-    vip(6) = vim(6)
+    vip(6) = 0.d0
     do i = 2, ndim
         vip(6) = vip(6)+sigma(i)**2
-        vip(6) = sqrt(vip(6))
     end do
+    vip(6) = sqrt(vip(6))
+!
     vip(7) = a(1)+oset
     do i = 2, ndim
         vip(i+6) = a(i)
