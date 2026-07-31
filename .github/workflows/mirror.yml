@@ -1,0 +1,31 @@
+name: Mirror Code_Aster
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout workflow branch
+        uses: actions/checkout@v4
+
+      - name: Mirror branches
+        run: |
+          git clone --no-checkout https://gitlab.com/codeaster/src.git repo
+          cd repo
+
+          git remote add github https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+
+          git fetch origin main
+          git fetch origin v17
+
+          git push github origin/main:refs/heads/main --force
+          git push github origin/v17:refs/heads/v17 --force
