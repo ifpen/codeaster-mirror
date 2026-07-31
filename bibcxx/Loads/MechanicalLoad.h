@@ -44,7 +44,7 @@
  * @author Nicolas Sellenet
  */
 template < class ConstantFieldOnCellsType >
-class MechanicalLoad : public DataStructure, public ListOfTables {
+class MechanicalLoad : public DSWithCppPickling, public ListOfTables {
 
   protected:
     /** @brief Vecteur Jeveux '.TYPE' */
@@ -88,7 +88,7 @@ class MechanicalLoad : public DataStructure, public ListOfTables {
      * @brief Constructor
      */
     MechanicalLoad( const std::string name, const ModelPtr &currentModel )
-        : DataStructure( name, 8, "CHAR_MECA" ),
+        : DSWithCppPickling( name, 8, "CHAR_MECA" ),
           ListOfTables( name ),
           _mecaLoadDesc( std::make_shared< MechanicalLoadDescription< ConstantFieldOnCellsType > >(
               getName() + ".CHME", currentModel ) ),
@@ -101,6 +101,16 @@ class MechanicalLoad : public DataStructure, public ListOfTables {
           _dualPrdso( JeveuxVectorChar8( getName() + ".DUAL.PRDSO" ) ),
           _dualPrdi( JeveuxVectorLong( getName() + ".DUAL.PRDI" ) ),
           _poidsMaille( getName() + ".POIDS_MAILLE" ) {};
+
+    /** @brief restricted constructor (Set) and method (Get) to support pickling */
+    MechanicalLoad( const py::tuple &tup )
+        : MechanicalLoad( tup[0].cast< std::string >(), tup[1].cast< ModelPtr >() ) {
+        _mecaLoadDesc->setFiniteElementDescriptor( tup[2].cast< FiniteElementDescriptorPtr >() );
+    }
+
+    py::tuple _getState() const {
+        return py::make_tuple( getName(), getModel(), getFiniteElementDescriptor() );
+    };
 
     /**
      * @brief Get the model
@@ -128,13 +138,6 @@ class MechanicalLoad : public DataStructure, public ListOfTables {
      */
     FiniteElementDescriptorPtr getFiniteElementDescriptor() const {
         return _mecaLoadDesc->getFiniteElementDescriptor();
-    };
-
-    /**
-     * @brief Set the finite element descriptor
-     */
-    void setFiniteElementDescriptor( const FiniteElementDescriptorPtr fed ) const {
-        _mecaLoadDesc->setFiniteElementDescriptor( fed );
     };
 
     /**

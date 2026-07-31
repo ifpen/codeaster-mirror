@@ -27,12 +27,13 @@
 
 void exportMechanicalLoadToPython( py::module_ &mod ) {
 
-    py::class_< MechanicalLoadReal, MechanicalLoadReal::MechanicalLoadPtr, DataStructure >(
-        mod, "MechanicalLoadReal" )
+    py::class_< MechanicalLoadReal, MechanicalLoadReal::MechanicalLoadPtr, DSWithCppPickling,
+                DataStructure >( mod, "MechanicalLoadReal" )
         .def( py::init( &initFactoryPtr< MechanicalLoadReal, ModelPtr > ) )
         .def( py::init( &initFactoryPtr< MechanicalLoadReal, std::string, ModelPtr > ) )
+        .def( py::init( &initFactoryPtr< MechanicalLoadReal, const py::tuple & > ) )
+        .def( define_pickling< MechanicalLoadReal >() )
         .def( "getFiniteElementDescriptor", &MechanicalLoadReal::getFiniteElementDescriptor )
-        .def( "setFiniteElementDescriptor", &MechanicalLoadReal::setFiniteElementDescriptor )
         .def( "hasLoadField", &MechanicalLoadReal::hasLoadField )
         .def( "updateValuePointers", &MechanicalLoadReal::updateValuePointers )
         .def( "getMechanicalLoadDescription", &MechanicalLoadReal::getMechanicalLoadDescription )
@@ -49,12 +50,13 @@ Returns:
         )",
               py::arg( "identifier" ) );
 
-    py::class_< MechanicalLoadFunction, MechanicalLoadFunction::MechanicalLoadPtr, DataStructure >(
-        mod, "MechanicalLoadFunction" )
+    py::class_< MechanicalLoadFunction, MechanicalLoadFunction::MechanicalLoadPtr,
+                DSWithCppPickling, DataStructure >( mod, "MechanicalLoadFunction" )
         .def( py::init( &initFactoryPtr< MechanicalLoadFunction, ModelPtr > ) )
         .def( py::init( &initFactoryPtr< MechanicalLoadFunction, std::string, ModelPtr > ) )
+        .def( py::init( &initFactoryPtr< MechanicalLoadFunction, const py::tuple & > ) )
+        .def( define_pickling< MechanicalLoadFunction >() )
         .def( "getFiniteElementDescriptor", &MechanicalLoadFunction::getFiniteElementDescriptor )
-        .def( "setFiniteElementDescriptor", &MechanicalLoadFunction::setFiniteElementDescriptor )
         .def( "hasLoadField", &MechanicalLoadFunction::hasLoadField )
         .def( "updateValuePointers", &MechanicalLoadFunction::updateValuePointers )
         .def( "getModel", &MechanicalLoadFunction::getModel )
@@ -70,12 +72,13 @@ Returns:
         )",
               py::arg( "identifier" ) );
 
-    py::class_< MechanicalLoadComplex, MechanicalLoadComplex::MechanicalLoadPtr, DataStructure >(
-        mod, "MechanicalLoadComplex" )
+    py::class_< MechanicalLoadComplex, MechanicalLoadComplex::MechanicalLoadPtr, DSWithCppPickling,
+                DataStructure >( mod, "MechanicalLoadComplex" )
         .def( py::init( &initFactoryPtr< MechanicalLoadComplex, ModelPtr > ) )
         .def( py::init( &initFactoryPtr< MechanicalLoadComplex, std::string, ModelPtr > ) )
+        .def( py::init( &initFactoryPtr< MechanicalLoadComplex, const py::tuple & > ) )
+        .def( define_pickling< MechanicalLoadComplex >() )
         .def( "getFiniteElementDescriptor", &MechanicalLoadComplex::getFiniteElementDescriptor )
-        .def( "setFiniteElementDescriptor", &MechanicalLoadComplex::setFiniteElementDescriptor )
         .def( "hasLoadField", &MechanicalLoadComplex::hasLoadField )
         .def( "updateValuePointers", &MechanicalLoadComplex::updateValuePointers )
         .def( "getModel", &MechanicalLoadComplex::getModel )
