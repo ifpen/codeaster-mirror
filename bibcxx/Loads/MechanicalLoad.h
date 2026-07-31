@@ -87,11 +87,12 @@ class MechanicalLoad : public DSWithCppPickling, public ListOfTables {
     /**
      * @brief Constructor
      */
-    MechanicalLoad( const std::string name, const ModelPtr &currentModel )
+    MechanicalLoad( const std::string name, const ModelPtr &currentModel,
+                    const FiniteElementDescriptorPtr fed = nullptr )
         : DSWithCppPickling( name, 8, "CHAR_MECA" ),
           ListOfTables( name ),
           _mecaLoadDesc( std::make_shared< MechanicalLoadDescription< ConstantFieldOnCellsType > >(
-              getName() + ".CHME", currentModel ) ),
+              getName() + ".CHME", currentModel, fed ) ),
           _type( getName() + ".TYPE" ),
           _lisma01( getName() + ".LISMA01" ),
           _lisma02( getName() + ".LISMA02" ),
@@ -104,9 +105,8 @@ class MechanicalLoad : public DSWithCppPickling, public ListOfTables {
 
     /** @brief restricted constructor (Set) and method (Get) to support pickling */
     MechanicalLoad( const py::tuple &tup )
-        : MechanicalLoad( tup[0].cast< std::string >(), tup[1].cast< ModelPtr >() ) {
-        _mecaLoadDesc->setFiniteElementDescriptor( tup[2].cast< FiniteElementDescriptorPtr >() );
-    }
+        : MechanicalLoad( tup[0].cast< std::string >(), tup[1].cast< ModelPtr >(),
+                          tup[2].cast< FiniteElementDescriptorPtr >() ) {}
 
     py::tuple _getState() const {
         return py::make_tuple( getName(), getModel(), getFiniteElementDescriptor() );

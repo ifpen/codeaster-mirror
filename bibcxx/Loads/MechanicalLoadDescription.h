@@ -126,7 +126,8 @@ class MechanicalLoadDescription : public DataStructure {
     /**
      * @brief Constructor
      */
-    MechanicalLoadDescription( const std::string name, const ModelPtr &currentModel )
+    MechanicalLoadDescription( const std::string name, const ModelPtr &currentModel,
+                               const FiniteElementDescriptorPtr fed )
         : DataStructure( name, 13, "CHAR_CHME" ),
           _model( currentModel ),
           _temperatureField( getName() + ".TEMPE.TEMP" ),
@@ -134,46 +135,46 @@ class MechanicalLoadDescription : public DataStructure {
           _nameOfAssemblyVector( getName() + ".VEASS" ),
           _veiss( getName() + ".VEISS" ),
           _evolChar( getName() + ".EVOL.CHAR" ),
-          _FEDesc( std::make_shared< FiniteElementDescriptor >( getName() + ".LIGRE",
-                                                                _model->getMesh() ) ),
-          _cimpo( std::make_shared< ConstantFieldOnCellsType >( getName() + ".CIMPO", _FEDesc ) ),
-          _cmult( std::make_shared< ConstantFieldOnCellsReal >( getName() + ".CMULT", _FEDesc ) ),
-          _dpgen( std::make_shared< ConstantFieldOnCellsType >( getName() + ".DPGEN", _FEDesc ) ),
-          _efond( std::make_shared< ConstantFieldOnCellsType >( getName() + ".EFOND", _FEDesc ) ),
-          _epsin( std::make_shared< ConstantFieldOnCellsType >( getName() + ".EPSIN", _FEDesc ) ),
-          _f1d1d( std::make_shared< ConstantFieldOnCellsType >( getName() + ".F1D1D", _FEDesc ) ),
-          _f1d2d( std::make_shared< ConstantFieldOnCellsType >( getName() + ".F1D2D", _FEDesc ) ),
-          _f2d2d( std::make_shared< ConstantFieldOnCellsType >( getName() + ".F2D2D", _FEDesc ) ),
-          _f1d3d( std::make_shared< ConstantFieldOnCellsType >( getName() + ".F1D3D", _FEDesc ) ),
-          _f2d3d( std::make_shared< ConstantFieldOnCellsType >( getName() + ".F2D3D", _FEDesc ) ),
-          _f3d3d( std::make_shared< ConstantFieldOnCellsType >( getName() + ".F3D3D", _FEDesc ) ),
-          _fco2d( std::make_shared< ConstantFieldOnCellsType >( getName() + ".FCO2D", _FEDesc ) ),
-          _fco3d( std::make_shared< ConstantFieldOnCellsType >( getName() + ".FCO3D", _FEDesc ) ),
-          _felec( std::make_shared< ConstantFieldOnCellsType >( getName() + ".FELEC", _FEDesc ) ),
-          _fl101( std::make_shared< ConstantFieldOnCellsType >( getName() + ".FL101", _FEDesc ) ),
-          _fl102( std::make_shared< ConstantFieldOnCellsType >( getName() + ".FL102", _FEDesc ) ),
-          _forno( std::make_shared< ConstantFieldOnCellsType >( getName() + ".FORNO", _FEDesc ) ),
-          _imped( std::make_shared< ConstantFieldOnCellsType >( getName() + ".IMPED", _FEDesc ) ),
-          _pesan( std::make_shared< ConstantFieldOnCellsType >( getName() + ".PESAN", _FEDesc ) ),
-          _preff( std::make_shared< ConstantFieldOnCellsType >( getName() + ".PREFF", _FEDesc ) ),
-          _press( std::make_shared< ConstantFieldOnCellsType >( getName() + ".PRESS", _FEDesc ) ),
-          _flux( std::make_shared< ConstantFieldOnCellsType >( getName() + ".FLUX", _FEDesc ) ),
-          _rotat( std::make_shared< ConstantFieldOnCellsType >( getName() + ".ROTAT", _FEDesc ) ),
-          _sigin( std::make_shared< ConstantFieldOnCellsType >( getName() + ".SIGIN", _FEDesc ) ),
-          _siint( std::make_shared< ConstantFieldOnCellsChar8 >( getName() + ".SIINT", _FEDesc ) ),
-          _vnor( std::make_shared< ConstantFieldOnCellsType >( getName() + ".VNOR", _FEDesc ) ),
-          _vface( std::make_shared< ConstantFieldOnCellsType >( getName() + ".VFACE", _FEDesc ) ),
-          _onde( std::make_shared< ConstantFieldOnCellsType >( getName() + ".ONDE", _FEDesc ) ),
-          _ondpl( std::make_shared< ConstantFieldOnCellsType >( getName() + ".ONDPL", _FEDesc ) ),
-          _ondpr(
-              std::make_shared< ConstantFieldOnCellsType >( getName() + ".ONDPR", _FEDesc ) ) {};
+          _FEDesc( fed ) {
+        if ( _FEDesc == nullptr )
+            _FEDesc = std::make_shared< FiniteElementDescriptor >( getName() + ".LIGRE",
+                                                                   _model->getMesh() );
+        _cimpo = std::make_shared< ConstantFieldOnCellsType >( getName() + ".CIMPO", _FEDesc );
+        _cmult = std::make_shared< ConstantFieldOnCellsReal >( getName() + ".CMULT", _FEDesc );
+        _dpgen = std::make_shared< ConstantFieldOnCellsType >( getName() + ".DPGEN", _FEDesc );
+        _efond = std::make_shared< ConstantFieldOnCellsType >( getName() + ".EFOND", _FEDesc );
+        _epsin = std::make_shared< ConstantFieldOnCellsType >( getName() + ".EPSIN", _FEDesc );
+        _f1d1d = std::make_shared< ConstantFieldOnCellsType >( getName() + ".F1D1D", _FEDesc );
+        _f1d2d = std::make_shared< ConstantFieldOnCellsType >( getName() + ".F1D2D", _FEDesc );
+        _f2d2d = std::make_shared< ConstantFieldOnCellsType >( getName() + ".F2D2D", _FEDesc );
+        _f1d3d = std::make_shared< ConstantFieldOnCellsType >( getName() + ".F1D3D", _FEDesc );
+        _f2d3d = std::make_shared< ConstantFieldOnCellsType >( getName() + ".F2D3D", _FEDesc );
+        _f3d3d = std::make_shared< ConstantFieldOnCellsType >( getName() + ".F3D3D", _FEDesc );
+        _fco2d = std::make_shared< ConstantFieldOnCellsType >( getName() + ".FCO2D", _FEDesc );
+        _fco3d = std::make_shared< ConstantFieldOnCellsType >( getName() + ".FCO3D", _FEDesc );
+        _felec = std::make_shared< ConstantFieldOnCellsType >( getName() + ".FELEC", _FEDesc );
+        _fl101 = std::make_shared< ConstantFieldOnCellsType >( getName() + ".FL101", _FEDesc );
+        _fl102 = std::make_shared< ConstantFieldOnCellsType >( getName() + ".FL102", _FEDesc );
+        _forno = std::make_shared< ConstantFieldOnCellsType >( getName() + ".FORNO", _FEDesc );
+        _imped = std::make_shared< ConstantFieldOnCellsType >( getName() + ".IMPED", _FEDesc );
+        _pesan = std::make_shared< ConstantFieldOnCellsType >( getName() + ".PESAN", _FEDesc );
+        _preff = std::make_shared< ConstantFieldOnCellsType >( getName() + ".PREFF", _FEDesc );
+        _press = std::make_shared< ConstantFieldOnCellsType >( getName() + ".PRESS", _FEDesc );
+        _flux = std::make_shared< ConstantFieldOnCellsType >( getName() + ".FLUX", _FEDesc );
+        _rotat = std::make_shared< ConstantFieldOnCellsType >( getName() + ".ROTAT", _FEDesc );
+        _sigin = std::make_shared< ConstantFieldOnCellsType >( getName() + ".SIGIN", _FEDesc );
+        _siint = std::make_shared< ConstantFieldOnCellsChar8 >( getName() + ".SIINT", _FEDesc );
+        _vnor = std::make_shared< ConstantFieldOnCellsType >( getName() + ".VNOR", _FEDesc );
+        _vface = std::make_shared< ConstantFieldOnCellsType >( getName() + ".VFACE", _FEDesc );
+        _onde = std::make_shared< ConstantFieldOnCellsType >( getName() + ".ONDE", _FEDesc );
+        _ondpl = std::make_shared< ConstantFieldOnCellsType >( getName() + ".ONDPL", _FEDesc );
+        _ondpr = std::make_shared< ConstantFieldOnCellsType >( getName() + ".ONDPR", _FEDesc );
+    };
 
     /**
      * @brief Get the finite element descriptor
      */
     FiniteElementDescriptorPtr getFiniteElementDescriptor() const { return _FEDesc; };
-
-    void setFiniteElementDescriptor( const FiniteElementDescriptorPtr fed ) { _FEDesc = fed; };
 
     BaseMeshPtr getMesh() const { return _model->getMesh(); }
 

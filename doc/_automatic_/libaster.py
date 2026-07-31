@@ -10038,8 +10038,8 @@ class MechanicalLoadDescriptionReal(DataStructure):
 
     # Methods defined here:
 
-    def __init__(self, arg0, arg1):
-        pass
+    def __init__(self, /, *args, **kwargs):
+        """Initialize self.  See help(type(self)) for accurate signature."""
 
     def getConstantLoadField(self, arg0):
         pass

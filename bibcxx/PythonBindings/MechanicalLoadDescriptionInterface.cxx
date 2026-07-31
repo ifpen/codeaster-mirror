@@ -3,7 +3,7 @@
  * @brief Interface python de MechanicalLoadDescription
  * @author Nicolas Sellenet
  * @section LICENCE
- *   Copyright (C) 1991 - 2024  EDF R&D                www.code-aster.org
+ *   Copyright (C) 1991 - 2026  EDF www.code-aster.org
  *
  *   This file is part of Code_Aster.
  *
@@ -30,8 +30,7 @@ void exportMechanicalLoadDescriptionToPython( py::module_ &mod ) {
     py::class_< MechanicalLoadDescriptionReal,
                 MechanicalLoadDescriptionPtr< ConstantFieldOnCellsReal >, DataStructure >(
         mod, "MechanicalLoadDescriptionReal" )
-        .def(
-            py::init( &initFactoryPtr< MechanicalLoadDescriptionReal, std::string, ModelPtr & > ) )
+        // fake initFactoryPtr: not directly created by user
         // fake initFactoryPtr: not directly created by user
         .def( "getConstantLoadField", &MechanicalLoadDescriptionReal::getConstantLoadField );
 };
