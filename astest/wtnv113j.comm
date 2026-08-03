@@ -304,6 +304,7 @@ RESU0 = STAT_NON_LINE(
     ),
     OBSERVATION=(
         _F(
+            TITRE="MIN_SIPXX",
             NOM_CMP="SIPXX",
             NOM_CHAM="SIEF_ELGA",
             EVAL_ELGA="VALE",
@@ -432,12 +433,8 @@ TEST_TABLE(
     NOM_PARA="VALE",
     TABLE=TAB_OBS,
     FILTRE=(
-        _F(CRIT_COMP="EQ", NOM_PARA="NOM_CHAM", VALE_K="SIEF_ELGA"),
-        _F(CRIT_COMP="EQ", NOM_PARA="EVAL_CHAM", VALE_K="MIN"),
-        _F(CRIT_COMP="EQ", NOM_PARA="NOM_CMP", VALE_K="SIPXX"),
-        _F(CRIT_COMP="EQ", NOM_PARA="POINT", VALE_I=1),
+        _F(CRIT_COMP="EQ", NOM_PARA="NOM_OBSERVATION", VALE_K="MIN_SIPXX"),
         _F(NOM_PARA="INST", VALE=1.000000000000e10),
-        _F(NOM_PARA="NUME_REUSE", VALE_I=1),
     ),
 )
 
