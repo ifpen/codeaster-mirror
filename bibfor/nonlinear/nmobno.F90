@@ -47,7 +47,7 @@ subroutine nmobno(sd_obsv, keyw_fact, nb_keyw_fact)
     character(len=24) :: obsv_titl
     character(len=16), pointer :: v_obsv_titl(:) => null()
     character(len=16) :: title
-    character(len=1) :: chaine
+    character(len=2) :: chaine
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -60,8 +60,8 @@ subroutine nmobno(sd_obsv, keyw_fact, nb_keyw_fact)
 ! - Set titles
 !
     do i_keyw_fact = 1, nb_keyw_fact
-        write (chaine, '(I1)') i_keyw_fact
-        title = 'OBSERVATION_'//chaine
+        write (chaine, '(I2)') i_keyw_fact
+        title = 'OBSERVATION_'//adjustl(chaine)
         call getvtx(keyw_fact, 'TITRE', iocc=i_keyw_fact, nbval=0, nbret=nb_title)
         nb_title = -nb_title
         ASSERT(nb_title .le. 1)
