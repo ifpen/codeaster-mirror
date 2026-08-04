@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@ interface
                       jv_mater , ndim     , l_axi    , fnoevo ,&
                       mecani   , press1   , press2   , tempe    , second, &
                       nno      , nnos     , npi      , npg      ,&
-                      elem_coor, dt       , dimdef   , dimcon   , dimuel ,&
+                      elem_coor, dt       , dimdef   , dimcon   , dimuel, inte_type,&
                       jv_poids , jv_poids2,&
                       jv_func  , jv_func2 , jv_dfunc , jv_dfunc2,&
                       nddls    , nddlm    , nddl_meca, nddl_p1  , nddl_p2, nddl_2nd, &
@@ -39,6 +39,7 @@ interface
         real(kind=8) :: elem_coor(ndim, nno)
         real(kind=8), intent(in) :: dt
         integer(kind=8), intent(in) :: dimuel, dimdef, dimcon
+        character(len=3), intent(in) :: inte_type
         integer(kind=8), intent(in) :: jv_poids, jv_poids2
         integer(kind=8), intent(in) :: jv_func, jv_func2, jv_dfunc, jv_dfunc2
         integer(kind=8), intent(in) :: nddls, nddlm

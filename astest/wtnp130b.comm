@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -158,7 +158,7 @@ TEST_TABLE(
 )
 
 TEST_TABLE(
-    VALE_CALC=-0.43390793167945324, NOM_PARA="PRE1", TABLE=TAB, FILTRE=_F(NOM_PARA="INST", VALE=day)
+    VALE_CALC=-0.4334730428457205, NOM_PARA="PRE1", TABLE=TAB, FILTRE=_F(NOM_PARA="INST", VALE=day)
 )
 
 FIN()

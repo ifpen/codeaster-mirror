@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,13 +15,12 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-! person_in_charge: sylvie.granet at edf.fr
 ! aslint: disable=W1504
 !
 subroutine fnothm(ds_thm, jv_mater, ndim, l_axi, fnoevo, &
                   mecani, press1, press2, tempe, second, &
                   nno, nnos, npi, npg, &
-                  elem_coor, deltat, dimdef, dimcon, dimuel, &
+                  elem_coor, deltat, dimdef, dimcon, dimuel, inte_type, &
                   jv_poids, jv_poids2, &
                   jv_func, jv_func2, jv_dfunc, jv_dfunc2, &
                   nddls, nddlm, nddl_meca, nddl_p1, nddl_p2, nddl_2nd, &
@@ -47,6 +46,7 @@ subroutine fnothm(ds_thm, jv_mater, ndim, l_axi, fnoevo, &
     real(kind=8) :: elem_coor(ndim, nno)
     real(kind=8), intent(in) :: deltat
     integer(kind=8), intent(in) :: dimuel, dimdef, dimcon
+    character(len=3), intent(in) :: inte_type
     integer(kind=8), intent(in) :: jv_poids, jv_poids2
     integer(kind=8), intent(in) :: jv_func, jv_func2, jv_dfunc, jv_dfunc2
     integer(kind=8), intent(in) :: nddls, nddlm
@@ -85,6 +85,7 @@ subroutine fnothm(ds_thm, jv_mater, ndim, l_axi, fnoevo, &
 ! In  dimdef           : number of generalized strains
 ! In  dimcon           : dimension of generalized stresses vector
 ! In  dimuel           : number of dof for element
+! In  inte_type        : type of integration - classical, lumped (D), reduced (R)
 ! In  jv_poids         : JEVEUX adress for weight of Gauss points (linear shape functions)
 ! In  jv_poids2        : JEVEUX adress for weight of Gauss points (quadratic shape functions)
 ! In  jv_func          : JEVEUX adress for shape functions (linear shape functions)
@@ -110,6 +111,7 @@ subroutine fnothm(ds_thm, jv_mater, ndim, l_axi, fnoevo, &
     integer(kind=8) :: kpi, i, n
     real(kind=8) :: dfdi(20, 3), dfdi2(20, 3), poids, poids2
     integer(kind=8) :: addeme, addete, addep1, addep2, adde2nd
+    real(kind=8) :: r_bar(dimdef)
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -128,7 +130,7 @@ subroutine fnothm(ds_thm, jv_mater, ndim, l_axi, fnoevo, &
 !
 ! - Loop on Gauss points
 !
-    do kpi = 1, npg
+    do kpi = 1, npi
         r(1:dimdef+1) = 0.d0
 ! ----- Compute [B] matrix for generalized strains
         call cabthm(ds_thm, l_axi, ndim, &
@@ -149,10 +151,28 @@ subroutine fnothm(ds_thm, jv_mater, ndim, l_axi, fnoevo, &
                     mecani, press1, press2, tempe, second, &
                     dimdef, dimcon, deltat, congem((kpi-1)*dimcon+1), &
                     congep((kpi-1)*dimcon+1), r)
-! ----- Compute residual = [B]^T.{R}
+
+! ----- Compute stress vector {R_bar} for selective integration
+        if (inte_type .eq. 'RED') then
+            if (kpi .le. npg) then
+                r_bar = r
+                if (ds_thm%ds_elem%l_dof_pre1) r_bar(addep1) = 0.d0
+                if (ds_thm%ds_elem%l_dof_pre2) r_bar(addep2) = 0.d0
+                if (ds_thm%ds_elem%l_dof_ther) r_bar(addete) = 0.d0
+            else
+                r_bar = 0.d0
+                if (ds_thm%ds_elem%l_dof_pre1) r_bar(addep1) = r(addep1)
+                if (ds_thm%ds_elem%l_dof_pre2) r_bar(addep2) = r(addep2)
+                if (ds_thm%ds_elem%l_dof_ther) r_bar(addete) = r(addete)
+            end if
+        else
+            r_bar = r
+        end if
+
+! ----- Compute residual = [B]^T.{R_bar}
         do i = 1, dimuel
             do n = 1, dimdef
-                vectu(i) = vectu(i)+b(n, i)*r(n)*poids
+                vectu(i) = vectu(i)+b(n, i)*r_bar(n)*poids
             end do
         end do
     end do
