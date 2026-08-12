@@ -22,11 +22,33 @@ DEBUT(CODE="OUI")
 
 mail = LIRE_MAILLAGE(FORMAT="MED")
 
+longueur = 0.1
+mail = CREA_GRILLE(
+    MAILLAGE=mail, GROUP_MA="DALLE", DISTANCE=longueur, COOR_CENTRE=(0.5, 1.0, -longueur / 2)
+)
+
+# IMPR_RESU(RESU=_F(MAILLAGE=mail))
+
 model = AFFE_MODELE(
     MAILLAGE=mail,
     AFFE=(
         _F(GROUP_MA="DALLE", PHENOMENE="MECANIQUE", MODELISATION="DKT"),
-        _F(GROUP_MA=("RESSORT_ALL", "centre_ALL"), PHENOMENE="MECANIQUE", MODELISATION="DIS_TR"),
+        _F(
+            GROUP_MA=(
+                "X_RESSORT",
+                "Y_RESSORT",
+                "Z_RESSORT",
+                "RX_RESSORT",
+                "RY_RESSORT",
+                "X_CENTRE",
+                "Y_CENTRE",
+                "Z_CENTRE",
+                "RX_CENTRE",
+                "RY_CENTRE",
+            ),
+            PHENOMENE="MECANIQUE",
+            MODELISATION="DIS_TR",
+        ),
     ),
 )
 
@@ -42,29 +64,33 @@ carelem = AFFE_CARA_ELEM(
     COQUE=_F(GROUP_MA="DALLE", EPAIS=0.3, COQUE_NCOU=1),
     RIGI_GRILLE=_F(
         GROUP_MA="DALLE",
-        GROUP_MA_SEG2=("RESSORT_X", "RESSORT_Y", "RESSORT_Z", "RESSORT_RX", "RESSORT_RY"),
+        GROUP_MA_SEG2=("X_RESSORT", "Y_RESSORT", "Z_RESSORT", "RX_RESSORT", "RY_RESSORT"),
         VALE=(K, K, K, K, K),
-        GROUP_NO_CENTRE=("centre_X", "centre_Y", "centre_Z", "centre_RX", "centre_RY"),
+        GROUP_NO_CENTRE=("X_CENTRE", "Y_CENTRE", "Z_CENTRE", "RX_CENTRE", "RY_CENTRE"),
         METHODE="UNIFORME",
     ),
-    DISCRET=_F(GROUP_MA="centre_ALL", CARA="K_TR_D_N", VALE=(K0, K0, K0, K0, K0, K0)),
+    DISCRET=_F(
+        GROUP_MA=("X_CENTRE", "Y_CENTRE", "Z_CENTRE", "RX_CENTRE", "RY_CENTRE"),
+        CARA="K_TR_D_N",
+        VALE=(K0, K0, K0, K0, K0, K0),
+    ),
 )
 
 BLOC = AFFE_CHAR_MECA(
     MODELE=model,
     LIAISON_SOLIDE=(
-        _F(GROUP_NO=("centre_RX", "NG_LIAIS_RX")),
-        _F(GROUP_NO=("centre_RY", "NG_LIAIS_RY")),
-        _F(GROUP_NO=("centre_X", "NG_LIAIS_X")),
-        _F(GROUP_NO=("centre_Y", "NG_LIAIS_Y")),
-        _F(GROUP_NO=("centre_Z", "NG_LIAIS_Z")),
+        _F(GROUP_NO=("RX_CENTRE", "RX_RESSORT")),
+        _F(GROUP_NO=("RY_CENTRE", "RY_RESSORT")),
+        _F(GROUP_NO=("X_CENTRE", "X_RESSORT")),
+        _F(GROUP_NO=("Y_CENTRE", "Y_RESSORT")),
+        _F(GROUP_NO=("Z_CENTRE", "Z_RESSORT")),
     ),
     DDL_IMPO=(
-        _F(GROUP_NO="centre_X", DX=0, DY=0, DZ=0, DRX=0, DRY=0, DRZ=0),
-        _F(GROUP_NO="centre_Y", DX=0, DY=0, DZ=0, DRX=0, DRY=0, DRZ=0),
-        _F(GROUP_NO="centre_Z", DX=0, DY=0, DZ=0, DRZ=0),
-        _F(GROUP_NO="centre_RX", DX=0, DY=0, DRX=0, DRZ=0),
-        _F(GROUP_NO="centre_RY", DX=0, DY=0, DRY=0, DRZ=0),
+        _F(GROUP_NO="X_CENTRE", DX=0, DY=0, DZ=0, DRX=0, DRY=0, DRZ=0),
+        _F(GROUP_NO="Y_CENTRE", DX=0, DY=0, DZ=0, DRX=0, DRY=0, DRZ=0),
+        _F(GROUP_NO="Z_CENTRE", DX=0, DY=0, DZ=0, DRZ=0),
+        _F(GROUP_NO="RX_CENTRE", DX=0, DY=0, DRX=0, DRZ=0),
+        _F(GROUP_NO="RY_CENTRE", DX=0, DY=0, DRY=0, DRZ=0),
     ),
 )
 

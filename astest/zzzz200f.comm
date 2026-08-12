@@ -19,20 +19,28 @@
 
 DEBUT(CODE="OUI")
 
-MAIL0 = LIRE_MAILLAGE()
+MAILLAGE = LIRE_MAILLAGE()
 
-MAILLAGE = CREA_MAILLAGE(MAILLAGE=MAIL0, CREA_POI1=_F(NOM_GROUP_MA="PRADIER", GROUP_NO="SRADIER"))
+longueur = 1.0
+MAILLAGE = CREA_GRILLE(
+    MAILLAGE=MAILLAGE,
+    GROUP_MA="SRADIER",
+    DISTANCE=longueur,
+    PREFIXE=("GX", "GY", "GZ", "GRX", "GRY"),
+)
 
-MAILLAGE = DEFI_GROUP(
+DEFI_GROUP(
     reuse=MAILLAGE,
     MAILLAGE=MAILLAGE,
     CREA_GROUP_MA=(
         _F(
             NOM="centre_ALL",
-            TYPE_MAILLE="POI1",
-            UNION=("centre_X", "centre_Y", "centre_Z", "centre_RX", "centre_RY"),
+            UNION=("GX_CENTRE", "GY_CENTRE", "GZ_CENTRE", "GRX_CENTRE", "GRY_CENTRE"),
         ),
-        _F(NOM="RESSORT_ALL", TYPE_MAILLE="SEG2", UNION=("GX", "GY", "GZ", "GRX", "GRY")),
+        _F(
+            NOM="RESSORT_ALL",
+            UNION=("GX_RESSORT", "GY_RESSORT", "GZ_RESSORT", "GRX_RESSORT", "GRY_RESSORT"),
+        ),
     ),
 )
 
@@ -82,11 +90,7 @@ STICKMOD = AFFE_MODELE(
         _F(GROUP_MA="MASSES", PHENOMENE="MECANIQUE", MODELISATION="DIS_TR"),
         _F(GROUP_MA="LIAI_NOE", PHENOMENE="MECANIQUE", MODELISATION="DIS_TR"),
         _F(GROUP_MA=("VRADIER", "SRADIER"), PHENOMENE="MECANIQUE", MODELISATION="3D"),
-        _F(
-            GROUP_MA=("RESSORT_ALL", "centre_ALL", "PRADIER"),
-            PHENOMENE="MECANIQUE",
-            MODELISATION="DIS_TR",
-        ),
+        _F(GROUP_MA=("RESSORT_ALL", "centre_ALL"), PHENOMENE="MECANIQUE", MODELISATION="DIS_TR"),
     ),
 )
 
@@ -369,36 +373,34 @@ CARA_ELE = AFFE_CARA_ELEM(
             CARA="M_TR_D_N",
             VALE=(M0, M0, M0, M0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
         ),
-        _F(GROUP_MA="PRADIER", CARA="M_TR_D_N", VALE=(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)),
     ),
     RIGI_GRILLE=_F(
         GROUP_MA="SRADIER",
-        GROUP_MA_SEG2=("GX", "GY", "GZ", "GRX", "GRY"),
+        GROUP_MA_SEG2=("GX_RESSORT", "GY_RESSORT", "GZ_RESSORT", "GRX_RESSORT", "GRY_RESSORT"),
         VALE=(KX, KY, KZ, KRX, KRY),
-        GROUP_NO_CENTRE=("centre_X", "centre_Y", "centre_Z", "centre_RX", "centre_RY"),
+        GROUP_NO_CENTRE=("GX_CENTRE", "GY_CENTRE", "GZ_CENTRE", "GRX_CENTRE", "GRY_CENTRE"),
     ),
-    ORIENTATION=_F(GROUP_MA="PRADIER", CARA="VECT_X_Y", VALE=(0.0, 0.0, 1.0, 0.0, 1.0, 0.0)),
 )
 
 CONDLIM_LIAIS = AFFE_CHAR_MECA(
     MODELE=STICKMOD,
     LIAISON_SOLIDE=(
-        _F(GROUP_NO=("centre_RX", "NG_LIAIS_RX")),
-        _F(GROUP_NO=("centre_RY", "NG_LIAIS_RY")),
-        _F(GROUP_NO=("centre_X", "NG_LIAIS_X")),
-        _F(GROUP_NO=("centre_Y", "NG_LIAIS_Y")),
-        _F(GROUP_NO=("centre_Z", "NG_LIAIS_Z")),
+        _F(GROUP_NO=("GRX_CENTRE", "GRX_RESSORT")),
+        _F(GROUP_NO=("GRY_CENTRE", "GRY_RESSORT")),
+        _F(GROUP_NO=("GX_CENTRE", "GX_RESSORT")),
+        _F(GROUP_NO=("GY_CENTRE", "GY_RESSORT")),
+        _F(GROUP_NO=("GZ_CENTRE", "GZ_RESSORT")),
     ),
 )
 
 CONDLIM = AFFE_CHAR_MECA(
     MODELE=STICKMOD,
     DDL_IMPO=(
-        _F(GROUP_NO="centre_X", DX=0, DY=0, DZ=0, DRX=0, DRY=0, DRZ=0),
-        _F(GROUP_NO="centre_Y", DX=0, DY=0, DZ=0, DRX=0, DRY=0, DRZ=0),
-        _F(GROUP_NO="centre_Z", DX=0, DY=0, DZ=0, DRZ=0),
-        _F(GROUP_NO="centre_RX", DX=0, DY=0, DRX=0, DRZ=0),
-        _F(GROUP_NO="centre_RY", DX=0, DY=0, DRY=0, DRZ=0),
+        _F(GROUP_NO="GX_CENTRE", DX=0, DY=0, DZ=0, DRX=0, DRY=0, DRZ=0),
+        _F(GROUP_NO="GY_CENTRE", DX=0, DY=0, DZ=0, DRX=0, DRY=0, DRZ=0),
+        _F(GROUP_NO="GZ_CENTRE", DX=0, DY=0, DZ=0, DRZ=0),
+        _F(GROUP_NO="GRX_CENTRE", DX=0, DY=0, DRX=0, DRZ=0),
+        _F(GROUP_NO="GRY_CENTRE", DX=0, DY=0, DRY=0, DRZ=0),
     ),
 )
 
