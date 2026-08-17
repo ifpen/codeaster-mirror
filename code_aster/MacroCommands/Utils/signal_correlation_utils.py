@@ -184,6 +184,39 @@ def CALC_CORRE(rho, dim, RATIO_HV=1.0):
     return Mat_cor
 
 
+def _symmetric_psd_sqrt(matrix):
+    """Return the principal square root of a symmetric positive semidefinite matrix.
+
+    Eigenvectors returned by LAPACK are not unique: their signs and order
+    may differ between implementations, and a degenerate eigenspace may be
+    represented by a different orthonormal basis.  Applying the eigenvectors
+    directly to a fixed random vector therefore makes a realization depend on
+    the LAPACK backend.
+
+    The principal square root Q sqrt(Lambda) Q.T is invariant under those
+    sign, ordering and degenerate-basis changes.  Small negative eigenvalues
+    caused by round-off are clipped to zero, as required for a covariance or
+    coherency matrix.
+    """
+    # --- Platform-independent coherency factorization: begin ---
+    # Remove any round-off-sized antisymmetric part before calling the LAPACK
+    # routine dedicated to real symmetric matrices.
+    symmetric_matrix = 0.5 * (matrix + matrix.T)
+
+    with disable_fpe():
+        eigenvalues, eigenvectors = NP.linalg.eigh(symmetric_matrix)
+
+    # A coherency matrix is positive semidefinite in exact arithmetic.  Tiny
+    # negative eigenvalues may nevertheless be returned because of round-off.
+    eigenvalues = NP.clip(eigenvalues, 0.0, None)
+
+    # NumPy broadcasting scales column j of eigenvectors by sqrt(lambda_j).
+    # Multiplication by eigenvectors.T then builds Q sqrt(Lambda) Q.T.
+    matrix_sqrt = (eigenvectors * NP.sqrt(eigenvalues)) @ eigenvectors.T
+    # --- Platform-independent coherency factorization: end ---
+    return matrix_sqrt
+
+
 # -------------------------------------------------------------------
 # ALGORITHME DE GENERATION DE SIGNAUX GAUSSIENS POUR LE CAS VECTORIEL
 # --------------------------------------------------------------------
@@ -224,20 +257,17 @@ def DSP2ACCE_ND(f_dsp, data_cohe, rv=None):
         rva = NP.array(rv)
         vecc1 = rva[:, :nbfreq2]
         vecc2 = rva[:, nbfreq2:]
+
     for iifr in range(nbfreq2):
         if data_cohe["TYPE"] != "COEF_CORR":
             cohec = CALC_COHE(lw2[iifr], **data_cohe)
-            with disable_fpe():
-                eigv, vec = NP.linalg.eig(cohec)
-            vec = NP.transpose(vec).real
-            eigv = NP.sqrt(NP.where(eigv.real < 1.0e-10, 0.0, eigv.real))
-            vale_xp = 0.0 + 0.0j
-            vale_xn = 0.0 + 0.0j
-            for ii in range(dim):
-                if eigv[ii] > 1.0e-10:
-                    dsps = sqrt(vale_dsp[iifr]) * eigv[ii] * vec[ii]
-                    vale_xp = NP.dot(dsps, vecc1[ii, iifr]) + vale_xp
-                    vale_xn = NP.dot(dsps, vecc2[ii, iifr]) + vale_xn
+            # --- Platform-independent coherency factorization: begin ---
+            # Use the unique symmetric square root
+            sqrt_cohec = _symmetric_psd_sqrt(cohec)
+            dsp_scale = sqrt(vale_dsp[iifr])
+            vale_xp = dsp_scale * NP.dot(sqrt_cohec, vecc1[:, iifr])
+            vale_xn = dsp_scale * NP.dot(sqrt_cohec, vecc2[:, iifr])
+            # --- Platform-independent coherency factorization: end ---
         else:
             dsps = sqrt(vale_dsp[iifr]) * (cohec)
             vale_xp = NP.dot(dsps, vecc1[:, iifr])
