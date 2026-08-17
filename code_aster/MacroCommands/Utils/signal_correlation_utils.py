@@ -188,10 +188,7 @@ def _symmetric_psd_sqrt(matrix):
 
     Eigenvectors returned by LAPACK are not unique: their signs and order
     may differ between implementations, and a degenerate eigenspace may be
-    represented by a different orthonormal basis.  Applying the eigenvectors
-    directly to a fixed random vector therefore makes a realization depend on
-    the LAPACK backend.
-
+    represented by a different orthonormal basis.
     The principal square root Q sqrt(Lambda) Q.T is invariant under those
     sign, ordering and degenerate-basis changes.  Small negative eigenvalues
     caused by round-off are clipped to zero, as required for a covariance or
