@@ -372,7 +372,7 @@ def main(argv=None):
         export.set("mpi_nbcpu", args.mpi_nbcpu)
     if need_mpiexec == "auto":
         need_mpiexec = export.get("mpi_nbcpu", 1) > 1 or CFG.get("require_mpiexec", False)
-        if need_mpiexec and procid >= 0:
+        if need_mpiexec and procid < 0:
             logger.warning(
                 "\n ------------------------------------------------------------"
                 "\n run_aster will be restarted under MPI runner."
@@ -381,7 +381,11 @@ def main(argv=None):
             )
     logger.debug("need_split: %s / need_mpiexec: %s", need_split, need_mpiexec)
 
-    if args.debugpy_runner and procid == args.debugpy_rank and not (need_split or need_mpiexec):
+    if (
+        args.debugpy_runner
+        and (procid < 0 or procid == args.debugpy_rank)
+        and not (need_split or need_mpiexec)
+    ):
         debugpy.listen(("localhost", args.debugpy_runner))
         print("Waiting for debugger attach")
         debugpy.wait_for_client()
