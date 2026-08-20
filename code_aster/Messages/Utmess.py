@@ -26,6 +26,7 @@ import traceback
 
 import aster_core
 import libaster
+from libaster import onFatalError
 
 from ..Utilities import (
     ExecutionParameter,
@@ -203,7 +204,8 @@ class MESSAGE_LOGGER(metaclass=Singleton):
 
             if exception and code[0] in ("S", "F"):
                 if self._mpi_rank is not None:
-                    aster_core.MPI_Warn()
+                    iexc = code[0] == "S" or libaster.onFatalError() == "EXCEPTION"
+                    aster_core.MPI_Warn(int(iexc))
                 exc_typ = dictmess.get("exc_typ")
                 if exc_typ:
                     raise exc_typ(id0, valk, vali, valr)

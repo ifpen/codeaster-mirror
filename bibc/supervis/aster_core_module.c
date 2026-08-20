@@ -568,8 +568,11 @@ void DEFSSPPPPPPPPPPPP( TESTRESU_PRINT, testresu_print, _IN char *refer, _IN STR
  */
 
 static PyObject *aster_mpi_warn( PyObject *self, PyObject *args ) {
-    ASTERINTEGER iexc = 1;
+    int ok = 0, value = 0;
+    ASTERINTEGER iexc = 0;
+    ok = PyArg_ParseTuple( args, "i", &value );
     /* call ASMPI_WARN */
+    iexc = (ASTERINTEGER)value;
     try {
         CALL_ASMPI_WARN( &iexc );
     }

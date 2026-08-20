@@ -65,7 +65,7 @@ class EltCharacteristicsAssignment(ExecuteCommand):
             if type(l_dic_kws) == tuple:  # il y a plus d'une occurrence de MASSIF
                 for dic in l_dic_kws:
                     if "TOUT" in dic.keys():
-                        UTMESS("F", "SUPERVIS_10")
+                        UTMESS("F", "AFFECARAELEM_1")
         #
         # ---------------------------------------------------------------- CABLE
         # Création de VALE et CARA

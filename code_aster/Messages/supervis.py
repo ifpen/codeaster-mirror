@@ -70,11 +70,6 @@ Conseils :
 
 """
     ),
-    10: _(
-        """
-    Si le mot-clé TOUT est donné sous MASSIF, il ne peut y avoir qu'une seule occurrence du mot-clé facteur MASSIF.
-"""
-    ),
     11: _("""Les alarmes ne sont pas **encore** aggravées en Erreur sur cette plate-forme."""),
     12: _(
         """

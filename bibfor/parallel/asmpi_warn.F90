@@ -22,10 +22,10 @@ subroutine asmpi_warn(iexc)
 !
     use parameters_module
     implicit none
+#include "asterc/asabrt.h"
+#include "asterc/asmpi_comm.h"
 #include "asterf_debug.h"
 #include "asterf_types.h"
-#include "asterc/asmpi_comm.h"
-#include "asterc/asabrt.h"
 #include "asterfort/asmpi_check.h"
 #include "asterfort/asmpi_info.h"
 #include "asterfort/asmpi_status.h"

@@ -22,7 +22,11 @@
 from ..Utilities import _
 
 cata_msg = {
-    # Messages dans OP0019
+    1: _(
+        """
+    Si le mot-clé TOUT est donné sous MASSIF, il ne peut y avoir qu'une seule occurrence du mot-clé facteur MASSIF.
+"""
+    ),
     2: _(
         """AFFE_CARA_ELEM
 Au moins un des mot-clés facteur d'AFFE_CARA_ELEM n'a aucune affection sur des GROUP_MA,
@@ -31,7 +35,6 @@ des MAILLES ou sur TOUT='OUI'.
 Vérifiez vos données.
 """
     ),
-    # Messages dans ace_mass_rep
     10: _(
         """AFFE_CARA_ELEM / <%(k1)s> / occurrence %(i1)d
 Une maille dans le groupe <%(k2)s> n'est pas de la bonne topologique.
