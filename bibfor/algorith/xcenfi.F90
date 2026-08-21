@@ -58,7 +58,7 @@ subroutine xcenfi(elrefp, ndim, ndime, nno, geom, &
     real(kind=8) :: epsmax, rbid, crit, maxi, x(81), dekker(4*ndime)
     real(kind=8) :: dff(3, 27), gradls(ndime)
     real(kind=8) :: ptxx(2*ndime), ksi(ndime), tole, xmi(ndime)
-    integer(kind=8) :: ibid, itemax, i, n(3), j
+    integer(kind=8) :: ibid, itemax, i, n(3), j, node
     integer(kind=8) :: pi1, pi2, pi3, pi4, m12, m13, m24, m34
     character(len=6) :: name
     character(len=3) :: edge
@@ -177,11 +177,17 @@ subroutine xcenfi(elrefp, ndim, ndime, nno, geom, &
 !    ON RENSEIGNE LES NOEUDS DU SOUS TETRA POUR LA METHODE DE DEKKER
     dekker(:) = 0.d0
     call xelrex(elrefp, nno, x)
-    do j = 1, ndime
-        dekker(j) = x(ndime*(nn(1)-1)+j)
-        dekker(j+ndime) = x(ndime*(nn(2)-1)+j)
-        dekker(j+2*ndime) = x(ndime*(nn(3)-1)+j)
-        dekker(j+3*ndime) = x(ndime*(nn(4)-1)+j)
+    do i = 1, 4
+        node = nn(i)
+        do j = 1, ndime
+            if (node .lt. 1000) then
+                dekker(j+ndime*(i-1)) = x(ndime*(node-1)+j)
+            else if (node .lt. 2000) then
+                dekker(j+ndime*(i-1)) = pinref(ndime*(node-1001)+j)
+            else
+                dekker(j+ndime*(i-1)) = pmiref(ndime*(node-2001)+j)
+            end if
+        end do
     end do
 !!!!!ATTENTION INITIALISATION DU NEWTON:
     ksi(:) = 0.d0
