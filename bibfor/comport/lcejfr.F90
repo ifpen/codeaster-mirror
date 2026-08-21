@@ -72,6 +72,7 @@ subroutine lcejfr(BEHinteg, fami, kpg, ksp, ndim, &
     real(kind=8) :: gp(ndim-1), gploc(ndim), gpglo(ndim), fhloc(ndim)
     real(kind=8) :: fhglo(ndim), doset, oset, sciage
     real(kind=8) :: coorot(ndim+ndim*ndim), invrot(ndim, ndim), rigart
+    real(kind=8) :: sigma_eff
     character(len=8) :: nompar(ndim+1)
     character(len=16) :: nom(nbpa)
     character(len=1) :: poum
@@ -314,10 +315,10 @@ subroutine lcejfr(BEHinteg, fami, kpg, ksp, ndim, &
 !     (CONTRAINTE TANGENTIEL EST MISE A ZERO)
     if (kn*a(1) .lt. (adhe/mu)) then
         ifouv = 0
-        sigma(1) = kn*a(1)
+        sigma_eff = kn*a(1)
     else
         ifouv = 1
-        sigma(1) = adhe/mu
+        sigma_eff = adhe/mu
     end if
 !
 !     CONTRAINTE TANGENTIELLE
@@ -344,7 +345,7 @@ subroutine lcejfr(BEHinteg, fami, kpg, ksp, ndim, &
     if (.not. resi) goto 5000
 !
 !     CRITERE DE PLASTICITE  NB: SIGMA(1)<0 EN COMPRESSION
-    criter = abstau+mu*sigma(1)-kappa*lambda-adhe
+    criter = abstau+mu*sigma_eff-kappa*lambda-adhe
 !     VERIFICATION DE CRITERE DE PLASTICITE
     if (criter .le. 0.d0) then
 !     PAS DE PLASTICITE
@@ -367,9 +368,9 @@ subroutine lcejfr(BEHinteg, fami, kpg, ksp, ndim, &
 !     PRESFL : IMPOSEE, PRESG : CALCULEE
 !
     if (ifhyme) then
-        sigma(1) = sigma(1)-presg
+        sigma(1) = sigma_eff-presg
     else
-        sigma(1) = sigma(1)-presfl
+        sigma(1) = sigma_eff-presfl
     end if
 !
 !
@@ -526,7 +527,7 @@ subroutine lcejfr(BEHinteg, fami, kpg, ksp, ndim, &
     end do
 ! DSIGMA_T/DDELTA_T
     if (ifplas .eq. 1) then
-        coefhd = -(kappa*lambda+adhe-mu*sigma(1))*kt**2/abstau**3/(kt+kappa)
+        coefhd = -(kappa*lambda+adhe-mu*sigma_eff)*kt**2/abstau**3/(kt+kappa)
         coefd = kappa*kt/(kt+kappa)-coefhd*abstau**2
         do j = 2, ndim
             do i = j, ndim
