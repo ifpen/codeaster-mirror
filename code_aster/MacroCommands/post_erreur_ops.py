@@ -76,9 +76,10 @@ def post_erreur_ops(self, OPTION, CHAM_GD, MODELE, GROUP_MA, **args):
 
     if OPTION == "DEPL_RELA":
         # 1. création du champ de fonctions solution analytiques au points d'intégration
-
-        l_DDL = ("DX", "DY", "DZ")
-
+        if dime == 3:
+            l_DDL = ("DX", "DY", "DZ")
+        else:
+            l_DDL = ("DX", "DY")
         # récuparation de la liste des fonctions correspondant à DX, DY, DZ
         # si l'utilisateur n'a pas renseigné une fonction, on prend la fonction nulle
 
@@ -428,8 +429,10 @@ def post_erreur_ops(self, OPTION, CHAM_GD, MODELE, GROUP_MA, **args):
 
         # 5. création d'un champ de deplacement nul partout
         # ce champ de deplacement est essentiel pour calculer les normes, mais n'aucun impact sur les resultats
-
-        l_DDL = ("DX", "DY", "DZ")
+        if dime == 3:
+            l_DDL = ("DX", "DY", "DZ")
+        else:
+            l_DDL = ("DX", "DY")
 
         # construction de la liste des mots-clefs facteur pour appeler CREA_CHAMP
         l_F = []
@@ -586,7 +589,7 @@ def post_erreur_ops(self, OPTION, CHAM_GD, MODELE, GROUP_MA, **args):
 
         # 3. Conversion du champ solution analytique en champ de déplacement
         # N.B.: L'intégration de la pression asocciée au ddl LAG_C donne 0 !
-        #       On l'associe donc à un autre ddl choisi arbitrairement : DZ.
+        #       On l'associe donc à un autre ddl choisi arbitrairement : DX.
 
         # construction de la liste des mots-clefs facteur pour appeler CREA_CHAMP
         l_F = []
@@ -598,7 +601,7 @@ def post_erreur_ops(self, OPTION, CHAM_GD, MODELE, GROUP_MA, **args):
             d_asse["GROUP_MA"] = group
             d_asse["CHAM_GD"] = __PanaG
             d_asse["NOM_CMP"] = "X3"
-            d_asse["NOM_CMP_RESU"] = "DZ"
+            d_asse["NOM_CMP_RESU"] = "DX"
             # stockage du mot-clef facteur dans la liste
             l_F.append(_F(**d_asse))
 
@@ -647,7 +650,7 @@ def post_erreur_ops(self, OPTION, CHAM_GD, MODELE, GROUP_MA, **args):
             d_asse["CUMUL"] = "OUI"
             d_asse["COEF_R"] = 1.0
             d_asse["NOM_CMP"] = "X3"
-            d_asse["NOM_CMP_RESU"] = "DZ"
+            d_asse["NOM_CMP_RESU"] = "DX"
             # stockage du mot-clef facteur dans la liste
             l_F.append(_F(**d_asse))
 
@@ -658,7 +661,7 @@ def post_erreur_ops(self, OPTION, CHAM_GD, MODELE, GROUP_MA, **args):
             d_asse["CUMUL"] = "OUI"
             d_asse["COEF_R"] = -1.0
             d_asse["NOM_CMP"] = "X3"
-            d_asse["NOM_CMP_RESU"] = "DZ"
+            d_asse["NOM_CMP_RESU"] = "DX"
             # stockage du mot-clef facteur dans la liste
             l_F.append(_F(**d_asse))
 
