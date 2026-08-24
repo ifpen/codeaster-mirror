@@ -286,9 +286,11 @@ subroutine charci(chcine, mfact, mo, valeType)
                 if (zk24(idprol+2) .eq. 'INST') then
                     afck(1) (5:7) = '_FT'
                     goto 122
-                else if ((zk24(idprol) .eq. 'NAPPE') .and. (zk24(idprol+6) .eq. 'INST')) then
-                    afck(1) (5:7) = '_FT'
-                    goto 122
+                else if (zk24(idprol) .eq. 'NAPPE') then
+                    if (zk24(idprol+6) .eq. 'INST') then
+                        afck(1) (5:7) = '_FT'
+                        goto 122
+                    end if
                 end if
             end do
         end if

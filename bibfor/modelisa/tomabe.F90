@@ -260,7 +260,7 @@ subroutine tomabe(chmat, nmabet, nbmabe, mailla, nbnoma, &
     cartez = '&&TOMABE.CARTE'
     chtmp = '&&TOMABE.BID'
 !
-    call copisd(' ', 'V', carte, cartez)
+    call copisd('CHAMP', 'V', carte, cartez)
     call carces(cartez, 'ELEM', chtmp, 'V', chsmat, &
                 'A', iret)
     call jeveuo(chsmat//'.CESD', 'L', jcesd)

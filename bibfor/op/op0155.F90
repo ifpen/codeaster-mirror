@@ -146,7 +146,7 @@ subroutine op0155()
                 zk24(iadou) = zk24(iadin)
                 if (nopara(1:5) .eq. 'EXCIT' .and. zk24(iadin) (1:2) .ne. '  ') then
                     zk24(iadou) = nomres//zk24(iadin) (9:)
-                    call copisd(' ', 'G', zk24(iadin) (1:19), zk24(iadou) (1:19))
+                    call copisd('LISTE_CHARGES', 'G', zk24(iadin) (1:19), zk24(iadou) (1:19))
                 end if
             else if (type(1:3) .eq. 'K16') then
                 zk16(iadou) = zk16(iadin)

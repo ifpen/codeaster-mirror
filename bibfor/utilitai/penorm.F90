@@ -503,7 +503,7 @@ subroutine penorm(resu, modele)
 !      -- 4.9 ON REMPLIT LA TABLE --
 !
         if (nompar(1) .eq. 'RESULTAT') then
-            call wkvect(valk, 'V V K24', 4, jvalk)
+            call wkvect(valk, 'V V K24', 5, jvalk)
             zk24(jvalk) = resuco
             zk24(jvalk+1) = nomcha
             zk24(jvalk+2) = grouma
@@ -517,7 +517,7 @@ subroutine penorm(resu, modele)
             call tbajli(resu, nbpar, nompar, zi(jvali), zr(jvalr), &
                         [c16b], zk24(jvalk), 0)
         else
-            call wkvect(valk, 'V V K24', 3, jvalk)
+            call wkvect(valk, 'V V K24', 4, jvalk)
             zk24(jvalk) = nomcha
             zk24(jvalk+1) = grouma
             zk24(jvalk+2) = infoma
