@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -91,9 +91,9 @@ subroutine penorm(resu, modele)
     character(len=8) :: nopar, infoma
     character(len=16) :: tynorm
     character(len=19) :: knum, kins, lisins, cham2, chamtm, celmod, ligrel
-    character(len=19) :: liscoe, field_resu, chamg
+    character(len=19) :: liscoe, field_resu, chamg, nomcha
     character(len=19) :: tmpcha, cham1, chgaus, chgeom, chcalc
-    character(len=16) :: optio2, nomcha, valk, mocles(1)
+    character(len=16) :: optio2, valk, mocles(1)
     character(len=24) :: mesmai, mesmaf, valr, vali
     character(len=24) :: coefca, valk2(5), grouma
     character(len=24) :: list_cmp, list_cmp_neut
