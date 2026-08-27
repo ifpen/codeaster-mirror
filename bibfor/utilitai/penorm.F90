@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -91,9 +91,9 @@ subroutine penorm(resu, modele)
     character(len=8) :: nopar, infoma
     character(len=16) :: tynorm
     character(len=19) :: knum, kins, lisins, cham2, chamtm, celmod, ligrel
-    character(len=19) :: liscoe, field_resu, chamg
+    character(len=19) :: liscoe, field_resu, chamg, nomcha
     character(len=19) :: tmpcha, cham1, chgaus, chgeom, chcalc
-    character(len=16) :: optio2, nomcha, valk, mocles(1)
+    character(len=16) :: optio2, valk, mocles(1)
     character(len=24) :: mesmai, mesmaf, valr, vali
     character(len=24) :: coefca, valk2(5), grouma
     character(len=24) :: list_cmp, list_cmp_neut
@@ -503,7 +503,7 @@ subroutine penorm(resu, modele)
 !      -- 4.9 ON REMPLIT LA TABLE --
 !
         if (nompar(1) .eq. 'RESULTAT') then
-            call wkvect(valk, 'V V K24', 4, jvalk)
+            call wkvect(valk, 'V V K24', 5, jvalk)
             zk24(jvalk) = resuco
             zk24(jvalk+1) = nomcha
             zk24(jvalk+2) = grouma
@@ -517,7 +517,7 @@ subroutine penorm(resu, modele)
             call tbajli(resu, nbpar, nompar, zi(jvali), zr(jvalr), &
                         [c16b], zk24(jvalk), 0)
         else
-            call wkvect(valk, 'V V K24', 3, jvalk)
+            call wkvect(valk, 'V V K24', 4, jvalk)
             zk24(jvalk) = nomcha
             zk24(jvalk+1) = grouma
             zk24(jvalk+2) = infoma

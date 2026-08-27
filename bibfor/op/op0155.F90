@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 ! --------------------------------------------------------------------
 !
 subroutine op0155()
-! person_in_charge: jacques.pellet at edf.fr
 ! ======================================================================
 !     COMMANDE :  POST_CHAMP
 ! ----------------------------------------------------------------------
@@ -146,7 +145,7 @@ subroutine op0155()
                 zk24(iadou) = zk24(iadin)
                 if (nopara(1:5) .eq. 'EXCIT' .and. zk24(iadin) (1:2) .ne. '  ') then
                     zk24(iadou) = nomres//zk24(iadin) (9:)
-                    call copisd(' ', 'G', zk24(iadin) (1:19), zk24(iadou) (1:19))
+                    call copisd('LISTE_CHARGES', 'G', zk24(iadin) (1:19), zk24(iadou) (1:19))
                 end if
             else if (type(1:3) .eq. 'K16') then
                 zk16(iadou) = zk16(iadin)

@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -243,10 +243,11 @@ RESUSECH = SECH_NON_LINE(
     TITRE=("CAS TEST THER_NON_LINE",),
 )
 
-CHSECH = CREA_CHAMP(
-    TYPE_CHAM="NOEU_TEMP_R", OPERATION="EXTR", RESULTAT=RESUSECH, NOM_CHAM="SECH", INST=1.57680e08
-)
+EXTRSECH = EXTR_RESU(RESULTAT=RESUSECH, ARCHIVAGE=_F(INST=1.57680e08))
 
+CHSECH = CREA_CHAMP(
+    TYPE_CHAM="NOEU_TEMP_R", OPERATION="EXTR", RESULTAT=EXTRSECH, NOM_CHAM="SECH", INST=1.57680e08
+)
 
 RESUSECH = SECH_NON_LINE(
     reuse=RESUSECH,

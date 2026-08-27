@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -260,7 +260,7 @@ subroutine tomabe(chmat, nmabet, nbmabe, mailla, nbnoma, &
     cartez = '&&TOMABE.CARTE'
     chtmp = '&&TOMABE.BID'
 !
-    call copisd(' ', 'V', carte, cartez)
+    call copisd('CHAMP', 'V', carte, cartez)
     call carces(cartez, 'ELEM', chtmp, 'V', chsmat, &
                 'A', iret)
     call jeveuo(chsmat//'.CESD', 'L', jcesd)

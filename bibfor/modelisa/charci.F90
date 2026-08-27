@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -286,9 +286,11 @@ subroutine charci(chcine, mfact, mo, valeType)
                 if (zk24(idprol+2) .eq. 'INST') then
                     afck(1) (5:7) = '_FT'
                     goto 122
-                else if ((zk24(idprol) .eq. 'NAPPE') .and. (zk24(idprol+6) .eq. 'INST')) then
-                    afck(1) (5:7) = '_FT'
-                    goto 122
+                else if (zk24(idprol) .eq. 'NAPPE') then
+                    if (zk24(idprol+6) .eq. 'INST') then
+                        afck(1) (5:7) = '_FT'
+                        goto 122
+                    end if
                 end if
             end do
         end if
