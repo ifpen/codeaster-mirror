@@ -101,9 +101,8 @@ class BaseLineSearch(ABC, ContextMixin):
             rho = min
         if rho > max:
             rho = max
-        if -excl <= rho < 0.0:
-            rho = -excl
-        if 0.0 <= rho <= excl:
+        assert rho >= 0.0
+        if rho <= excl:
             rho = excl
         return rho
 
@@ -195,7 +194,7 @@ class SecantLineSearch(BaseLineSearch):
             rho1 = np.mean([rho_neg, rho_pos])
 
         # zbinte
-        rho1 = sens * self.check_limits(sens * rho1)
+        rho1 = self.check_limits(rho1)
         return rho1, rho_pos, rho_neg, success
 
     def _apply_mixte_special_case(self, f, f_old, rho_neg, rho_pos, rho_old, rho1):
@@ -228,6 +227,7 @@ class SecantLineSearch(BaseLineSearch):
         rho0 = 0.0
         rho1 = 1.0
         f0 = self.compute_f(rho0, solution)
+        logger.debug("fonctionnelle initiale %.6f", f0)
         f1 = self.compute_f(rho1, solution)
         tol = 1.0e-12 * self.oper.getResidual().resi.norm() * solution.norm()
         if abs(f0) <= tol and abs(f1) <= tol:
@@ -250,8 +250,10 @@ class SecantLineSearch(BaseLineSearch):
             rho_neg = 0.0
 
         for iteration in range(self._get("ITER_LINE_MAXI") + 1):
+            logger.debug("rho courant %.6f", sens * rho1)
             try:
                 f = self.compute_f(sens * rho1, solution)
+                logger.debug("fonctionnelle courante %.6f", f)
             except Exception:
                 # do we already have an rhoopt ?
                 if iteration > 0:
