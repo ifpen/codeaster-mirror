@@ -16,105 +16,218 @@
 # You should have received a copy of the GNU General Public License
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
-from ..Cata.Syntax import _F
-from ..CodeCommands import CREA_CHAMP
+from typing import Sequence, Any, List, Optional
 
-from math import cos, sin, atan2, pi
-from typing import Sequence
+from math import cos, sin, hypot, atan2, pi
 import numpy as np
 
-
-def can_perform_atan2(a: float, b: float, tol: float):
-    arr = np.array([a, b])
-    return np.any(np.abs(arr) > tol)
+from ..Objects import FieldOnCellsReal
 
 
-def matrot_eul(angles: Sequence[float]):
-    "Rotation matrix from EULER angles"
-    cos0 = cos(angles[0])
-    cos1 = cos(angles[1])
-    cos2 = cos(angles[2])
-    sin0 = sin(angles[0])
-    sin1 = sin(angles[1])
-    sin2 = sin(angles[2])
+class TransformToNaut:
+    "Class helper to compute the NAUTIQUE angle"
 
-    # Rotation matrix
-    mat = np.zeros((3, 3))
-    mat[0, 0] = cos2 * cos0 - sin2 * cos1 * sin0
-    mat[1, 0] = cos2 * sin0 + sin2 * cos1 * cos0
-    mat[2, 0] = sin2 * sin1
-    mat[0, 1] = -sin2 * cos0 - cos2 * cos1 * sin0
-    mat[1, 1] = -sin2 * sin0 + cos2 * cos1 * cos0
-    mat[2, 1] = cos2 * sin1
-    mat[0, 2] = sin1 * sin0
-    mat[1, 2] = -sin1 * cos0
-    mat[2, 2] = cos1
-    return mat
+    TOLERANCE = 1e-12
 
+    @staticmethod
+    def is_null_vector(v: Sequence[float]) -> bool:
+        """Check if a vector magnitude is numerically zero."""
+        return np.linalg.norm(v) < TransformToNaut.TOLERANCE
 
-def matrot_nau(angles: Sequence[float]):
-    "Rotation matrix from NAUTIQUE angles"
-    cos0 = cos(angles[0])
-    cos1 = cos(angles[1])
-    cos2 = cos(angles[2])
-    sin0 = sin(angles[0])
-    sin1 = sin(angles[1])
-    sin2 = sin(angles[2])
+    @staticmethod
+    def matrot_eul(angles: Sequence[float]):
+        "Rotation matrix from EULER angles"
+        a, b, c = angles
+        ca = cos(a)
+        cb = cos(b)
+        cc = cos(c)
+        sa = sin(a)
+        sb = sin(b)
+        sc = sin(c)
 
-    mat = np.zeros((3, 3))
-    mat[0, 0] = cos1 * cos0
-    mat[1, 0] = sin2 * sin1 * cos0 - cos2 * sin0
-    mat[2, 0] = sin2 * sin0 + cos2 * sin1 * cos0
-    mat[0, 1] = cos1 * sin0
-    mat[1, 1] = cos2 * cos0 + sin2 * sin1 * sin0
-    mat[2, 1] = cos2 * sin1 * sin0 - cos0 * sin2
-    mat[0, 2] = -sin1
-    mat[1, 2] = sin2 * cos1
-    mat[2, 2] = cos2 * cos1
-    return mat
+        return np.array(
+            [
+                [cc * ca - sc * cb * sa, -sc * ca - cc * cb * sa, sb * sa],
+                [cc * sa + sc * cb * ca, -sc * sa + cc * cb * ca, -sb * ca],
+                [sc * sb, cc * sb, cb],
+            ]
+        )
 
+    @staticmethod
+    def matrot_nau(angles: Sequence[float]):
+        "Rotation matrix from NAUTIQUE angles"
+        a, b, c = angles
+        ca = cos(a)
+        cb = cos(b)
+        cc = cos(c)
+        sa = sin(a)
+        sb = sin(b)
+        sc = sin(c)
 
-def eulnau(angeul: Sequence[float]):
-    "Transform EULER angles to NAUTIQUE angles"
-    # Compute rotation matrix
-    mat = matrot_eul(np.deg2rad(angeul))
+        return np.array(
+            [
+                [cb * ca, cb * sa, -sb],
+                [sc * sb * ca - cc * sa, cc * ca + sc * sb * sa, sc * cb],
+                [sc * sa + cc * sb * ca, cc * sb * sa - ca * sc, cc * cb],
+            ]
+        )
 
-    # Local vectors written in the local system
-    xg = mat[:, 0]
-    yg = mat[:, 1]
-    zg = mat[:, 2]
+    @staticmethod
+    def angvx(gx: Sequence[float]) -> tuple[float, float]:
+        """
+        Compute alpha and beta from vector gx.
 
-    # Compute new angles
-    angnau = angvxy(xg, yg)
-    angnau = np.where(angnau < 0.0, angnau + 2 * pi, angnau)
-    return np.rad2deg(angnau)
+        Returns (0, 0) for a null vector since the orientation
+        is undefined.
+        """
+        gx = np.asarray(gx, dtype=float)
 
+        if TransformToNaut.is_null_vector(gx):
+            return 0.0, 0.0
 
-def angvxy(gx: Sequence[float], gn: Sequence[float], tol: float = 1e-14):
-    "Compute 3 NAUTIQUE angles from vectors GX and GN"
-    alpha, beta = angvx(gx, tol=tol)
-    angle = np.zeros(3)
-    angle[0] = alpha
-    angle[1] = beta
-
-    mat = matrot_nau(angle)
-    gy = mat @ gn
-    if can_perform_atan2(gy[2], gy[1], tol):
-        angle[2] = atan2(gy[2], gy[1])
-    return angle
-
-
-def angvx(gx: Sequence[float], tol: float = 1e-14):
-    "Compute 2 NAUTIQUE angles from vector GX"
-    alpha = 0.0
-    if can_perform_atan2(gx[1], gx[0], tol):
         alpha = atan2(gx[1], gx[0])
 
-    p = np.sqrt(gx[0] ** 2 + gx[1] ** 2)
-    beta = 0.0
-    if can_perform_atan2(gx[2], p, tol):
+        p = hypot(gx[0], gx[1])
         beta = -atan2(gx[2], p)
-    return alpha, beta
+
+        return alpha, beta
+
+    @staticmethod
+    def angvxy(gx: Sequence[float], gn: Sequence[float]) -> np.ndarray:
+        """
+        Compute the three NAUTIQUE angles from GX and GN.
+        """
+        alpha, beta = TransformToNaut.angvx(gx)
+
+        angles = np.array([alpha, beta, 0.0])
+
+        gy = TransformToNaut.matrot_nau(angles) @ np.asarray(gn)
+
+        if not TransformToNaut.is_null_vector(gy[1:]):
+            angles[2] = atan2(gy[2], gy[1])
+
+        # Normalize angles to be between 0 and 2*pi
+        angles %= 2 * pi
+        return angles
+
+    @staticmethod
+    def eulnau(angeul: Sequence[float]):
+        "Transform EULER angles to NAUTIQUE angles"
+        # Compute rotation matrix
+        mat = TransformToNaut.matrot_eul(np.deg2rad(angeul))
+
+        # Local vectors written in the local system
+        xg = mat[:, 0]
+        yg = mat[:, 1]
+
+        # Compute new angles
+        angnau = TransformToNaut.angvxy(xg, yg)
+        return np.rad2deg(angnau)
+
+    @staticmethod
+    def cylnau(point: Sequence[float], orig: Sequence[float], angl: Sequence[float]):
+        "Transform CYLINDRIQUE system to NAUTIQUE angles"
+
+        # Rewrite values
+        point = np.asarray(point)
+        orig = np.asarray(orig)
+        alpha, beta = np.deg2rad(angl)
+
+        # Compute useful quantities
+        dire = np.array([cos(alpha) * cos(beta), sin(alpha) * cos(beta), -sin(beta)])
+        v = point - orig
+        sca = np.dot(v, dire)
+
+        # Local vectors written in the local system
+        xg = dire
+        zg = v - sca * dire
+        zg /= np.linalg.norm(zg)
+        yg = np.cross(zg, xg)
+
+        # Compute new angles
+        angnau = TransformToNaut.angvxy(xg, yg)
+        return np.rad2deg(angnau)
+
+
+def include_cylindrique(
+    champ: Any, orig_axe: Sequence[float], angl_axe: Sequence[float], group_ma: Optional[List[str]]
+):
+    """
+    Modify champ to include cylindrique system
+    """
+    # Recover mesh, coordinates and connectivity
+    mesh = champ.getMesh()
+    coordinates = mesh.getCoordinates().getValues()
+    connectivity = mesh.getConnectivity()
+
+    # Recover coordinates X, Y, Z
+    coordinates = np.reshape(coordinates, (-1, 3))
+    X = coordinates[:, 0]
+    Y = coordinates[:, 1]
+    Z = coordinates[:, 2]
+
+    # Recover the values to change ("C", "ALPHA", "BETA", "KAPPA", "X", "Y", "Z")
+    values = np.reshape(champ.getValues(), (-1, 7))
+
+    # Loop over the cells of TOUT or GROUP_MA
+    cells = mesh.getCells(group_ma) if group_ma is not None else mesh.getCells()
+    for cell in cells:
+        lnoeud = connectivity[cell]
+        barycenter = np.array([np.mean(X[lnoeud]), np.mean(Y[lnoeud]), np.mean(Z[lnoeud])])
+        angl_nau = TransformToNaut.cylnau(barycenter, orig_axe, angl_axe)
+        values[cell] = [1, angl_nau[0], angl_nau[1], angl_nau[2], 0.0, 0.0, 0.0]
+    champ.setValues(values.ravel())
+
+
+def include_cartesien(champ: Any, angl_nau: Sequence[float], group_ma: Optional[List[str]]):
+    """
+    Modify champ to include cartesian system
+    """
+    # Recover mesh, coordinates and connectivity
+    mesh = champ.getMesh()
+
+    # Recover the values to change ("C", "ALPHA", "BETA", "KAPPA", "X", "Y", "Z")
+    values = np.reshape(champ.getValues(), (-1, 7))
+
+    # Affect the constant array to the cells of TOUT or GROUP_MA
+    cells = mesh.getCells(group_ma) if group_ma is not None else mesh.getCells()
+    values[cells] = [1, angl_nau[0], angl_nau[1], angl_nau[2], 0.0, 0.0, 0.0]
+    champ.setValues(values.ravel())
+
+
+def modify_field(champ: Any, args_in: dict):
+    """
+    Reads information in ``args_in`` and include it into ``champ``
+    """
+    if "TOUT" in args_in:
+        group_ma = None
+    elif "GROUP_MA" in args_in:
+        group_ma = args_in["GROUP_MA"]
+    else:
+        raise NotImplementedError
+
+    SYST_COOR = args_in["SYST_COOR"]
+    if SYST_COOR == "CYLINDRIQUE":
+        otmp = args_in["ORIG_AXE"]
+        orig = [otmp[0], otmp[1], 0.0]
+        if len(otmp) > 2:
+            orig[2] = otmp[2]
+        atmp = args_in["ANGL_AXE"]
+        angl = [atmp[0], atmp[1]]
+        include_cylindrique(champ, orig_axe=orig, angl_axe=angl, group_ma=group_ma)
+
+    elif SYST_COOR == "CARTESIEN":
+        if "ANGL_NAUT" in args_in:
+            angl = args_in["ANGL_NAUT"]
+        elif "ANGL_EULER" in args_in:
+            eule = args_in["ANGL_EULER"]
+            angl = TransformToNaut.eulnau([eule[0], eule[1], eule[2]])
+        else:
+            raise NotImplementedError
+        include_cartesien(champ, angl_nau=angl, group_ma=group_ma)
+
+    else:
+        raise NotImplementedError
 
 
 def defi_repere_ops(self, **kwargs):
@@ -122,54 +235,18 @@ def defi_repere_ops(self, **kwargs):
     # Recover model
     model = kwargs["MODELE"]
 
-    # TODO: add verification with geometrical and topological dimension
-    ndim = model.getGeometricDimension()
-
-    # Define arguments for keyword AFFE in CREA_CHAMP
-    AFFE_ARGS = {}
-
-    # 1. Set TOUT or GROUP_MA
+    # Recover defi arguments
     DEFI_ARGS = kwargs["DEFI"]
-    if "TOUT" in DEFI_ARGS:
-        AFFE_ARGS["TOUT"] = DEFI_ARGS["TOUT"]
-    elif "GROUP_MA" in DEFI_ARGS:
-        AFFE_ARGS["GROUP_MA"] = DEFI_ARGS["GROUP_MA"]
-    else:
-        raise NotImplementedError
 
-    # 2. Set NOM_CMP
-    # TODO: replace X1 ... X7 for ("C", "ALPHA", "BETA", "KAPPA", "X", "Y", "Z")
-    AFFE_ARGS["NOM_CMP"] = ("X1", "X2", "X3", "X4", "X5", "X6", "X7")
-
-    # 3. Set VALE for different cases
-    SYST_COOR = DEFI_ARGS["SYST_COOR"]
-    if SYST_COOR == "CYLINDRIQUE":
-        dtype = -1
-        orig = DEFI_ARGS["ORIG_AXE"]
-        angl = DEFI_ARGS["ANGL_AXE"]
-    elif SYST_COOR == "CARTESIEN":
-        dtype = 1
-        orig = (0.0, 0.0, 0.0)
-        if "ANGL_NAUT" in DEFI_ARGS:
-            angl = DEFI_ARGS["ANGL_NAUT"]
-        elif "ANGL_EULER" in DEFI_ARGS:
-            eule = DEFI_ARGS["ANGL_EULER"]
-            angl = eulnau([eule[0], eule[1], eule[2]])
-        else:
-            raise NotImplementedError
-    else:
-        raise NotImplementedError
-
-    VALE = (dtype, angl[0], angl[1], angl[2], orig[0], orig[1], orig[2])
-    AFFE_ARGS["VALE"] = VALE
+    if not len(DEFI_ARGS):
+        raise NotImplementedError("Empty list")
 
     # Create CREA_CHAMP datastructure
-    champ = CREA_CHAMP(
-        OPERATION="AFFE",
-        TYPE_CHAM="ELEM_CAMA_R",  # or ELEM_NEUT_R
-        MODELE=model,
-        PROL_ZERO="OUI",
-        AFFE=_F(**AFFE_ARGS),
-    )
+    champ = FieldOnCellsReal(model, "ELEM", "CAMA_R")
+    champ.setValues(0.0)
+
+    # Modify field with information in defi arguments
+    for args_in in DEFI_ARGS:
+        modify_field(champ, args_in)
 
     return champ

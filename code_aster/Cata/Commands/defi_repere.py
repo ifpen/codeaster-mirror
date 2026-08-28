@@ -30,9 +30,9 @@ DEFI_REPERE = MACRO(
     MODELE=SIMP(statut="o", typ=modele_sdaster),
     DEFI=FACT(
         statut="o",
-        max=1,
+        max="**",
         regles=(UN_PARMI("TOUT", "GROUP_MA"),),
-        TOUT=SIMP(statut="f", typ="TXM", into=("OUI",)),
+        TOUT=SIMP(statut="f", typ="TXM", validators=NoRepeat(), into=("OUI",)),
         GROUP_MA=SIMP(
             statut="f",
             typ=grma,
@@ -44,14 +44,14 @@ DEFI_REPERE = MACRO(
         b_SYST_CART=BLOC(
             condition="""equal_to("SYST_COOR", 'CARTESIEN')""",
             regles=(UN_PARMI("ANGL_EULER", "ANGL_NAUT"),),
-            ANGL_EULER=SIMP(statut="f", typ="R", max="**"),
-            ANGL_NAUT=SIMP(statut="f", typ="R", max="**"),
+            ANGL_EULER=SIMP(statut="f", typ="R", min=3, max=3),
+            ANGL_NAUT=SIMP(statut="f", typ="R", min=3, max=3),
         ),
         b_SYST_CYLI=BLOC(
             condition="""equal_to("SYST_COOR", 'CYLINDRIQUE')""",
-            regles=(ENSEMBLE("ORIG_AXE", "ANGL_AXE"),),
-            ORIG_AXE=SIMP(statut="f", typ="R", max="**"),
-            ANGL_AXE=SIMP(statut="f", typ="R", max="**"),
+            regles=(PRESENT_PRESENT("ORIG_AXE", "ANGL_AXE"),),
+            ORIG_AXE=SIMP(statut="o", typ="R", min=2, max=3),
+            ANGL_AXE=SIMP(statut="o", typ="R", min=2, max=2),
         ),
     ),
 )
