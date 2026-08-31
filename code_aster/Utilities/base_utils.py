@@ -92,14 +92,18 @@ def get_caller_context(level):
 
     Arguments:
         level (int): Number of parents in the calling stack. 0 means where
-            `get_caller_context` is called.
+            `get_caller_context` is called. "Frozen" frames are skipped.
 
     Returns:
         dict: 'globals' context at this level.
     """
     caller = inspect.currentframe()
-    for _ in range(level + 1):
+    count = 0
+    while count < level + 1:
         caller = caller.f_back
+        if caller.f_code.co_filename.startswith("<frozen"):
+            continue
+        count += 1
     try:
         context = caller.f_globals
     finally:

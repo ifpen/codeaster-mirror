@@ -143,7 +143,7 @@ class Starter(ExecuteCommand):
         if caller == "init":
             cls.level += 1
         if rc.initialize:
-            cls.level += 8
+            cls.level += 1
         # restart = 'True | False | None' from rc / override by keywords
         restart = rc.restart
         # force startup or continue ?
