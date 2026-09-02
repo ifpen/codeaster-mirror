@@ -242,25 +242,25 @@ subroutine amumpm(ldist, kxmps, kmonit, impr, ifmump, &
                 end do
             end if
             kblock = '&&AMUMPM.BLOCKS'
-            call wkvect(kblock, 'V V I', n, iblock)
+            call wkvect(kblock, 'V V I', n+1, iblock)
             call vecint(n, -1_8, zi(iblock))
             nblk = 1
 ! premier bloc
             zi(iblock+nblk-1) = 1
             do k = 2, n
-            if (zi(jdeeq+2*(k-1)) .gt. 0) then
-            if (zi(jdeeq+2*(k-1)) .eq. zi(jdeeq+2*(k-2))) then
+                if (zi(jdeeq+2*(k-1)) .gt. 0) then
+                    if (zi(jdeeq+2*(k-1)) .eq. zi(jdeeq+2*(k-2))) then
 ! on ne fait rien, element du meme bloc, ddl physique ou Lagrange
-            else
+                    else
 ! nouveau bloc
-                nblk = nblk+1
-                zi(iblock+nblk-1) = k
-            end if
-            else
+                        nblk = nblk+1
+                        zi(iblock+nblk-1) = k
+                    end if
+                else
 ! nouveau bloc: lagrange pour CL egalite
-            nblk = nblk+1
-            zi(iblock+nblk-1) = k
-            end if
+                    nblk = nblk+1
+                    zi(iblock+nblk-1) = k
+                end if
             end do
 ! pour marquer la fin des blocs
             zi(iblock+nblk) = n+1
