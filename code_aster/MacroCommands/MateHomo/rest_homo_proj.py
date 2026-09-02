@@ -104,10 +104,15 @@ def MOCK_PROJ_CHAMP(RESULTAT, METHODE, MAILLAGE_1, MAILLAGE_2, NOM_CHAM, TYPE_CH
     if MAILLAGE_1.isParallel():
         rank = MPI.ASTER_COMM_WORLD.Get_rank()
 
+        coords1 = MAILLAGE_1.getCoordinates().toNumpy()
+        coords2 = MAILLAGE_2.getCoordinates().toNumpy()
+
         # The target point
-        p0 = MAILLAGE_2.getCoordinates().toNumpy().tolist()[0]
-        # A second random point always present
-        p1 = MAILLAGE_1.getCoordinates().toNumpy().tolist()[0]
+        p0 = coords2[0].tolist()
+
+        # Another point guaranteed to be a corner node
+        random_id = next(cell[0] for cell in MAILLAGE_1.getConnectivity() if len(cell) > 1)
+        p1 = coords1[random_id].tolist()
 
         # Build a new point cloud mesh from the coordinate points
         MP0 = Mesh.buildPointCloud([p0, p1], info=0)
