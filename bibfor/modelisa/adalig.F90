@@ -116,7 +116,7 @@ subroutine adalig(ligrz, partsdz)
     call jelira(liel, 'CLAS', cval=clas)
     call jedupo(liel, 'V', tliel, .true._1)
     call jedetr(liel)
-    call jelira(tliel, 'NMAXOC', nbtg)
+    call jelira(tliel, 'NUTIOC', nbtg)
 
 !   -- Calcul de 2 vecteurs de travail (sur-dimensionnes) :
 !     teut  : liste des type_elem utilises dans le ligrel
