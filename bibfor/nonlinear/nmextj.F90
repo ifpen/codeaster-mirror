@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -29,7 +29,6 @@ subroutine nmextj(field_type, nb_elem, nb_cmp, list_cmp, type_extr_cmp, type_sel
 #include "asterfort/lxliis.h"
 #include "asterfort/nmextv.h"
 !
-! person_in_charge: mickael.abbas at edf.fr
 !
     character(len=24), intent(in) :: field_type
     integer(kind=8), intent(in) :: nb_elem
