@@ -672,7 +672,9 @@ subroutine amumpp(option, nbsol, kxmps, ldist, type, &
                             if (delg(k) .eq. -1) then
                                 rsolu((i-1)*nbeql+k) = 0.5d0*rsolu((i-1)*nbeql+k)
                                 jj = dlg2(k)
-                                rsolu((i-1)*nbeql+jj) = rsolu((i-1)*nbeql+k)
+                                if (jj .ne. 0) then
+                                    rsolu((i-1)*nbeql+jj) = rsolu((i-1)*nbeql+k)
+                                end if
                             end if
                         end do
                     end do
@@ -682,7 +684,9 @@ subroutine amumpp(option, nbsol, kxmps, ldist, type, &
                             if (delg(k) .eq. -1) then
                                 csolu((i-1)*nbeql+k) = 0.5d0*csolu((i-1)*nbeql+k)
                                 jj = dlg2(k)
-                                csolu((i-1)*nbeql+jj) = csolu((i-1)*nbeql+k)
+                                if (jj .ne. 0) then
+                                    csolu((i-1)*nbeql+jj) = csolu((i-1)*nbeql+k)
+                                end if
                             end if
                         end do
                     end do
