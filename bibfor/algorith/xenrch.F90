@@ -298,7 +298,7 @@ subroutine xenrch(noma, cnslt, cnsln, cnslj, &
     call wkvect('&&XENRCH.TAILR', 'V V R', nfon+1, jtail)
 !
     fonmul = '&&XENRCH.FONDMULT'
-    call wkvect(fonmul, 'V V I', nfon, jfonmu)
+    call wkvect(fonmul, 'V V I', 2*nfon, jfonmu)
     nfono = nfon
 !
 !     SEULEMENT EN 3D
