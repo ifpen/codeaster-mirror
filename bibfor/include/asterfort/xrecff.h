@@ -19,9 +19,10 @@
 !
 !
 interface
-    subroutine xrecff(fiss, typfis, chfond, basfon, fonoeu, lnoff, conf)
+    subroutine xrecff(fiss, typfis, ndim, chfond, basfon, fonoeu, lnoff, conf)
         character(len=8) :: fiss
         character(len=8) :: typfis
+        integer(kind=8) :: ndim
         character(len=24) :: chfond
         character(len=24) :: basfon
         character(len=24) :: fonoeu
