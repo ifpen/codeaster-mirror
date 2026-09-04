@@ -333,7 +333,6 @@ subroutine fetcrf(nomo, nbsd)
 !
     call wkvect(nomsdm, 'G V I', 1, jadr)
     zi(jadr) = nbsd
-    zi(jadr+4) = nbnoto
 !
 !
 !
