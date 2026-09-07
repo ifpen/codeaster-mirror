@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,7 +15,6 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-! person_in_charge: mickael.abbas at edf.fr
 !
 subroutine nmextk(model, &
                   keyw_fact, i_keyw_fact, &
@@ -214,7 +213,7 @@ subroutine nmextk(model, &
                     if (type_sele_cmp .eq. 'NOM_CMP') then
                         cmp_name = v_list_cmp(ipar)
                     elseif (type_sele_cmp .eq. 'NOM_VARI') then
-                        cmp_name = v_list_cmp(nb_cmp*(i_elem-1)+ipar)
+                        cmp_name = v_list_cmp(nb_elem*(ipar-1)+i_elem)
                     else
                         ASSERT(.false.)
                     end if

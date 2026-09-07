@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -34,7 +34,6 @@ subroutine nmext3(mesh, field, field_type, field_s, &
 #include "asterfort/nmextj.h"
 #include "asterfort/sdmpic.h"
 !
-! person_in_charge: mickael.abbas at edf.fr
 !
     character(len=8), intent(in) :: mesh
     character(len=19), intent(in) :: field
@@ -182,7 +181,7 @@ subroutine nmext3(mesh, field, field_type, field_s, &
 !
 ! ----------------- Extract value at Gauss point
 !
-                call nmextj(field_type, nb_cmp, list_cmp, type_extr_cmp, type_sele_cmp, &
+                call nmextj(field_type, nb_elem, nb_cmp, list_cmp, type_extr_cmp, type_sele_cmp, &
                             poin_nume, spoi_nume, nb_vale, i_elem, elem_nume, &
                             jcesd, jcesv, jcesl, jcesc, vale_resu)
 !
@@ -249,8 +248,8 @@ subroutine nmext3(mesh, field, field_type, field_s, &
 
                     val2r = v_work_elem(1+nb_cmp*nb_poin*nb_spoi*(i_elem_r-1)+ &
                                         nb_poin*nb_spoi*(i_vale-1)+ &
-                                        nb_spoi*(i_poin-1)+ &
-                                        (i_spoi-1))
+                                        nb_spoi*(1-1)+ &
+                                        (1-1))
                     if (type_extr .eq. 'VALE') then
                         v_work_elem(1+nb_cmp*nb_poin*nb_spoi*(i_elem_r-1)+ &
                                     nb_poin*nb_spoi*(i_vale-1)+ &
@@ -259,28 +258,28 @@ subroutine nmext3(mesh, field, field_type, field_s, &
                     else if (type_extr .eq. 'MAX') then
                         v_work_elem(1+nb_cmp*nb_poin*nb_spoi*(i_elem_r-1)+ &
                                     nb_poin*nb_spoi*(i_vale-1)+ &
-                                    nb_spoi*(i_poin-1)+ &
-                                    (i_spoi-1)) = max(valr, val2r)
+                                    nb_spoi*(1-1)+ &
+                                    (1-1)) = max(valr, val2r)
                     else if (type_extr .eq. 'MIN') then
                         v_work_elem(1+nb_cmp*nb_poin*nb_spoi*(i_elem_r-1)+ &
                                     nb_poin*nb_spoi*(i_vale-1)+ &
-                                    nb_spoi*(i_poin-1)+ &
-                                    (i_spoi-1)) = min(valr, val2r)
+                                    nb_spoi*(1-1)+ &
+                                    (1-1)) = min(valr, val2r)
                     else if (type_extr .eq. 'MAXI_ABS') then
                         v_work_elem(1+nb_cmp*nb_poin*nb_spoi*(i_elem_r-1)+ &
                                     nb_poin*nb_spoi*(i_vale-1)+ &
-                                    nb_spoi*(i_poin-1)+ &
-                                    (i_spoi-1)) = max(abs(val2r), abs(valr))
+                                    nb_spoi*(1-1)+ &
+                                    (1-1)) = max(abs(val2r), abs(valr))
                     else if (type_extr .eq. 'MINI_ABS') then
                         v_work_elem(1+nb_cmp*nb_poin*nb_spoi*(i_elem_r-1)+ &
                                     nb_poin*nb_spoi*(i_vale-1)+ &
-                                    nb_spoi*(i_poin-1)+ &
-                                    (i_spoi-1)) = min(abs(val2r), abs(valr))
+                                    nb_spoi*(1-1)+ &
+                                    (1-1)) = min(abs(val2r), abs(valr))
                     else if (type_extr .eq. 'MOY') then
                         v_work_elem(1+nb_cmp*nb_poin*nb_spoi*(i_elem_r-1)+ &
                                     nb_poin*nb_spoi*(i_vale-1)+ &
-                                    nb_spoi*(i_poin-1)+ &
-                                    (i_spoi-1)) = val2r+valr/nb_elem_effe
+                                    nb_spoi*(1-1)+ &
+                                    (1-1)) = val2r+valr/nb_elem_effe
                     else
                         ASSERT(.false.)
                     end if

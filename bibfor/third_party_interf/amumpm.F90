@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -41,7 +41,6 @@ subroutine amumpm(ldist, kxmps, kmonit, impr, ifmump, &
 ! IN  LBLOC  :  LOG   : LOGIQUE PRECISANT SI ON EFFECTUE L ANALYSE PAR BLOCS
 !---------------------------------------------------------------
 ! aslint: disable=W1501
-! person_in_charge: olivier.boiteau at edf.fr
 !
 #include "asterf.h"
 #include "asterf_types.h"
@@ -242,25 +241,25 @@ subroutine amumpm(ldist, kxmps, kmonit, impr, ifmump, &
                 end do
             end if
             kblock = '&&AMUMPM.BLOCKS'
-            call wkvect(kblock, 'V V I', n, iblock)
+            call wkvect(kblock, 'V V I', n+1, iblock)
             call vecint(n, -1_8, zi(iblock))
             nblk = 1
 ! premier bloc
             zi(iblock+nblk-1) = 1
             do k = 2, n
-            if (zi(jdeeq+2*(k-1)) .gt. 0) then
-            if (zi(jdeeq+2*(k-1)) .eq. zi(jdeeq+2*(k-2))) then
+                if (zi(jdeeq+2*(k-1)) .gt. 0) then
+                    if (zi(jdeeq+2*(k-1)) .eq. zi(jdeeq+2*(k-2))) then
 ! on ne fait rien, element du meme bloc, ddl physique ou Lagrange
-            else
+                    else
 ! nouveau bloc
-                nblk = nblk+1
-                zi(iblock+nblk-1) = k
-            end if
-            else
+                        nblk = nblk+1
+                        zi(iblock+nblk-1) = k
+                    end if
+                else
 ! nouveau bloc: lagrange pour CL egalite
-            nblk = nblk+1
-            zi(iblock+nblk-1) = k
-            end if
+                    nblk = nblk+1
+                    zi(iblock+nblk-1) = k
+                end if
             end do
 ! pour marquer la fin des blocs
             zi(iblock+nblk) = n+1

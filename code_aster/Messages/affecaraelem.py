@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -17,12 +17,15 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
-# person_in_charge: jean-luc.flejou at edf.fr
 
 from ..Utilities import _
 
 cata_msg = {
-    # Messages dans OP0019
+    1: _(
+        """
+    Si le mot-clé TOUT est donné sous MASSIF, il ne peut y avoir qu'une seule occurrence du mot-clé facteur MASSIF.
+"""
+    ),
     2: _(
         """AFFE_CARA_ELEM
 Au moins un des mot-clés facteur d'AFFE_CARA_ELEM n'a aucune affection sur des GROUP_MA,
@@ -31,7 +34,6 @@ des MAILLES ou sur TOUT='OUI'.
 Vérifiez vos données.
 """
     ),
-    # Messages dans ace_mass_rep
     10: _(
         """AFFE_CARA_ELEM / <%(k1)s> / occurrence %(i1)d
 Une maille dans le groupe <%(k2)s> n'est pas de la bonne topologique.

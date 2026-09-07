@@ -1,6 +1,6 @@
 # coding: utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2024 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
-# person_in_charge: mathieu.courtois@edf.fr
 
 """
 :py:mod:`base_utils` --- General purpose utilities
@@ -92,14 +91,18 @@ def get_caller_context(level):
 
     Arguments:
         level (int): Number of parents in the calling stack. 0 means where
-            `get_caller_context` is called.
+            `get_caller_context` is called. "Frozen" frames are skipped.
 
     Returns:
         dict: 'globals' context at this level.
     """
     caller = inspect.currentframe()
-    for _ in range(level + 1):
+    count = 0
+    while count < level + 1:
         caller = caller.f_back
+        if caller.f_code.co_filename.startswith("<frozen"):
+            continue
+        count += 1
     try:
         context = caller.f_globals
     finally:

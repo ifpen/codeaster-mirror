@@ -18,6 +18,7 @@
 !
 subroutine te0116(option, nomte)
 !
+    use MetallurgyMeca_module
     implicit none
 !
 #include "asterf_types.h"
@@ -28,7 +29,6 @@ subroutine te0116(option, nomte)
 #include "asterfort/getAnnealingParaOnCell.h"
 #include "asterfort/getAnnealingTempTrigger.h"
 #include "asterfort/jevech.h"
-#include "asterfort/rcvalb.h"
 #include "asterfort/rcvarc.h"
 #include "jeveux.h"
 !
@@ -40,13 +40,13 @@ subroutine te0116(option, nomte)
 !
 ! --------------------------------------------------------------------------------------------------
 !
-    character(len=4), parameter :: fami = "RIGI"
-    integer(kind=8), parameter :: kspg = 1, nbVariMaxi = 30, nbVariAnneal = 7
+    character(len=8), parameter :: fami = "RIGI"
+    integer(kind=8), parameter :: kspg = 1, nbVariMaxi = 30
     integer(kind=8) :: kpg, iVari, iVariEcro
-    integer(kind=8) :: npg, nbVari, nbVariEcro
+    integer(kind=8) :: npg, nbVari, nbVariEcro, nbVariAnneal
     integer(kind=8) :: jvMater, jvVariOut, jvVariIn, jvTimePrev, jvTimeCurr
     character(len=16), pointer :: compor(:) => null()
-    character(len=16) :: rela_comp, postIncr, defoComp
+    character(len=16) :: relaComp, postIncr, defoComp
     real(kind=8) :: timeCurr, timePrev
     real(kind=8) :: tauInf, x0, alpha, epsqMini, xcinMini
     real(kind=8) :: epsq, xcin
@@ -80,36 +80,19 @@ subroutine te0116(option, nomte)
 
 ! - Get parameters of behaviour
     call jevech('PCOMPOR', 'L', vk16=compor)
-    rela_comp = compor(RELA_NAME)
+    relaComp = compor(RELA_NAME)
     defoComp = compor(DEFO)
     read (compor(NVAR), '(I16)') nbVari
     postIncr = compor(POSTINCR)
     ASSERT(nbVari .le. nbVariMaxi)
 
-! - Type of hardening to apply annealing
-    lHardIsot = ASTER_FALSE
-    lHardKine = ASTER_FALSE
-    lHardMixed = ASTER_FALSE
-    if (rela_comp .eq. 'VMIS_ISOT_LINE') then
-        lHardIsot = ASTER_TRUE
-    elseif (rela_comp .eq. 'VMIS_ISOT_TRAC') then
-        lHardIsot = ASTER_TRUE
-    elseif (rela_comp .eq. 'VMIS_CINE_LINE') then
-        lHardKine = ASTER_TRUE
-    elseif (rela_comp .eq. 'VMIS_ECMI_LINE') then
-        lHardMixed = ASTER_TRUE
-    elseif (rela_comp .eq. 'VMIS_CIN1_CHAB') then
-        lHardIsot = ASTER_TRUE
-    elseif (rela_comp .eq. 'VMIS_CIN2_CHAB') then
-        lHardIsot = ASTER_TRUE
-    else
-        ASSERT(ASTER_FALSE)
-    end if
-
 ! - Get output field
     call jevech('PVARIPR', 'E', jvVariOut)
 !
     if (postIncr .eq. 'REST_ECRO') then
+! ----- Type of hardening to apply annealing
+        call metaAnnealGetType(relaComp, lHardIsot, lHardKine, lHardMixed, nbVariAnneal)
+
 ! ----- Get annealing parameters on cell
         call getAnnealingParaOnCell(fami, zi(jvMater), &
                                     T1, T2, &
@@ -121,25 +104,25 @@ subroutine te0116(option, nomte)
         variEcroIndx = 0
         variSaveIndx = 0
         indxEpseq = -1
-        if (rela_comp .eq. 'VMIS_ISOT_LINE' .or. &
-            rela_comp .eq. 'VMIS_ISOT_TRAC') then
+        if (relaComp .eq. 'VMIS_ISOT_LINE' .or. &
+            relaComp .eq. 'VMIS_ISOT_TRAC') then
             nbVariEcro = 1
             variEcroIndx(1) = 1
             variSaveIndx(1) = nbVari-nbVariAnneal+1-idxgdef
             indxEpseq = 1
-        elseif (rela_comp .eq. 'VMIS_ISOT_NL') then
+        elseif (relaComp .eq. 'VMIS_ISOT_NL') then
             nbVariEcro = 1
             variEcroIndx(1) = 1
             variSaveIndx(1) = nbVari-nbVariAnneal+1-idxgdef
             indxEpseq = 1
-        elseif (rela_comp .eq. 'VMIS_CINE_LINE') then
+        elseif (relaComp .eq. 'VMIS_CINE_LINE') then
             nbVariEcro = 6
             do iVariEcro = 1, nbVariEcro
                 variEcroIndx(iVariEcro) = iVariEcro
                 variSaveIndx(iVariEcro) = nbVari-nbVariAnneal+iVariEcro-idxgdef
             end do
             indxEpseq = -1
-        elseif (rela_comp .eq. 'VMIS_ECMI_LINE') then
+        elseif (relaComp .eq. 'VMIS_ECMI_LINE') then
             nbVariEcro = 7
             variEcroIndx(1) = 1
             variSaveIndx(1) = nbVari-nbVariAnneal+1-idxgdef
@@ -149,12 +132,12 @@ subroutine te0116(option, nomte)
                 variSaveIndx(iVariEcro) = nbVari-nbVariAnneal+iVariEcro-idxgdef
             end do
             indxEpseq = 1
-        elseif (rela_comp .eq. 'VMIS_CIN1_CHAB') then
+        elseif (relaComp .eq. 'VMIS_CIN1_CHAB') then
             nbVariEcro = 1
             variEcroIndx(1) = 1
             variSaveIndx(1) = nbVari-nbVariAnneal+1-idxgdef
             indxEpseq = 1
-        elseif (rela_comp .eq. 'VMIS_CIN2_CHAB') then
+        elseif (relaComp .eq. 'VMIS_CIN2_CHAB') then
             nbVariEcro = 1
             variEcroIndx(1) = 1
             variSaveIndx(1) = nbVari-nbVariAnneal+1-idxgdef

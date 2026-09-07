@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -28,7 +28,6 @@ subroutine nmobsz(sd_obsv, tabl_name, title, field_type, field_disc, &
 #include "asterfort/jeveuo.h"
 #include "asterfort/tbajli.h"
 !
-! person_in_charge: mickael.abbas at edf.fr
 !
     character(len=19), intent(in) :: sd_obsv
     character(len=19), intent(in) :: tabl_name
@@ -221,14 +220,16 @@ subroutine nmobsz(sd_obsv, tabl_name, title, field_type, field_disc, &
             nb_vale_k = nb_vale_k+1
         end if
         if (type_extr_elem .eq. 'VALE') then
-            para_name_add(i_para_add) = para_name(14)
-            i_para_add = i_para_add+1
-            tabl_vale_i(nb_vale_i) = poin_numez
-            nb_vale_i = nb_vale_i+1
-            para_name_add(i_para_add) = para_name(15)
-            i_para_add = i_para_add+1
-            tabl_vale_i(nb_vale_i) = spoi_numez
-            nb_vale_i = nb_vale_i+1
+            if (type_extr .eq. 'VALE') then
+                para_name_add(i_para_add) = para_name(14)
+                i_para_add = i_para_add+1
+                tabl_vale_i(nb_vale_i) = poin_numez
+                nb_vale_i = nb_vale_i+1
+                para_name_add(i_para_add) = para_name(15)
+                i_para_add = i_para_add+1
+                tabl_vale_i(nb_vale_i) = spoi_numez
+                nb_vale_i = nb_vale_i+1
+            end if
             para_name_add(i_para_add) = para_name(16)
             i_para_add = i_para_add+1
             tabl_vale_r(nb_vale_r) = valr
