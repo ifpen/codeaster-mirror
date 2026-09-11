@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
 
-subroutine cgleff(typfis, nomfis, fonoeu, chfond, basfon, &
+subroutine cgleff(typfis, nomfis, ndim, fonoeu, chfond, basfon, &
                   taillr, conf, lnoff)
     implicit none
 #include "jeveux.h"
@@ -28,8 +28,8 @@ subroutine cgleff(typfis, nomfis, fonoeu, chfond, basfon, &
 #include "asterfort/xrecff.h"
 !
     character(len=8) :: typfis, nomfis
+    integer(kind=8) :: ndim
 !
-! person_in_charge: samuel.geniaut at edf.fr
 !
 !     SOUS-ROUTINE DE L'OPERATEUR CALC_G
 !
@@ -113,7 +113,7 @@ subroutine cgleff(typfis, nomfis, fonoeu, chfond, basfon, &
 
 !       4) CREATION DE LA LISTE DES POINTS DU FOND A CALCULER
 !       EN PRENANT EN COMPTE LES MOTS-CLES NUME_FOND ET NB_POINT_FOND
-        call xrecff(nomfis, typfis, chfond, basfon, fonoeu, lnoff, conf)
+        call xrecff(nomfis, typfis, ndim, chfond, basfon, fonoeu, lnoff, conf)
 !
 !       5) TAILLR = TAILLES DES MAILLES CONNECTEES AUX NOEUDS
         taillr = nomfis//'.FOND.TAILLE_R'
@@ -144,7 +144,7 @@ subroutine cgleff(typfis, nomfis, fonoeu, chfond, basfon, &
 !
 !       4) CREATION DE LA LISTE DES POINTS DU FOND A CALCULER
 !       EN PRENANT EN COMPTE LES MOTS-CLES NUME_FOND ET NB_POINT_FOND
-        call xrecff(nomfis, typfis, chfond, basfon, fonoeu, lnoff, conf)
+        call xrecff(nomfis, typfis, ndim, chfond, basfon, fonoeu, lnoff, conf)
 !
 !       5) TAILLR = TAILLES DES MAILLES CONNECTEES AUX NOEUDS
         taillr = nomfis//'.FOND.TAILLE_R'

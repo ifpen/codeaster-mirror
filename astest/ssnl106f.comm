@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
-# person_in_charge: jean-luc.flejou at edf.fr
 # AVEC ECRO-LINE OU UN MOMENT EN PLASTICITE PARFAITE
 # MODELISATION COQUE_3D + tuyaux aux extremites pour appliquer
 # d un cote l'encastrement et de l'autre une rotation
@@ -146,7 +145,9 @@ REST = CALC_CHAMP(
 )
 
 REST1 = POST_CHAMP(
-    RESULTAT=REST, EXTR_COQUE=_F(NOM_CHAM="SIGM_ELNO", NUME_COUCHE=1, NIVE_COUCHE="SUP")
+    GROUP_MA=("TUYAU", "CER1", "CER2"),
+    RESULTAT=REST,
+    EXTR_COQUE=_F(NOM_CHAM="SIGM_ELNO", NUME_COUCHE=1, NIVE_COUCHE="SUP"),
 )
 REST2 = POST_CHAMP(
     RESULTAT=REST,
@@ -265,7 +266,9 @@ RESM = CALC_CHAMP(
 )
 
 RESM1 = POST_CHAMP(
-    RESULTAT=RESM, EXTR_COQUE=_F(NOM_CHAM="SIGM_ELNO", NUME_COUCHE=1, NIVE_COUCHE="SUP")
+    GROUP_MA=("TUYAU", "CER1", "CER2"),
+    RESULTAT=RESM,
+    EXTR_COQUE=_F(NOM_CHAM="SIGM_ELNO", NUME_COUCHE=1, NIVE_COUCHE="SUP"),
 )
 RESM2 = POST_CHAMP(
     RESULTAT=RESM,

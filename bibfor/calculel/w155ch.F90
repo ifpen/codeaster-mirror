@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -18,7 +18,6 @@
 
 subroutine w155ch(chin, carele, ligrel, chextr, motfac, &
                   nucou, nicou, nangl, nufib)
-! person_in_charge: jacques.pellet at edf.fr
 ! ======================================================================
     implicit none
 #include "asterf_types.h"
@@ -280,7 +279,13 @@ subroutine w155ch(chin, carele, ligrel, chextr, motfac, &
                         motfac, jce2d, jce2l, jce2v, jce5d, &
                         jce5l, jce5v, ksp1, ksp2, c1, &
                         c2, iret)
-            if (iret .eq. 1) goto 140
+            if (iret .eq. 1) then
+                call utmess('F', 'CALCULEL2_28', sk=motfac)
+            end if
+!           blindage spécifique pour les grilles avec EXTR_COQUE
+            if (nucou .gt. 0 .and. nbsp1 .eq. 1) then
+                call utmess('F', 'CALCULEL2_25')
+            end if
 !
             do ipt = 1, nbpt
                 ncmp1 = ncmp*ncdyn

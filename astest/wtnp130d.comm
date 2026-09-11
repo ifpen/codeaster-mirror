@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -212,11 +212,11 @@ TAB = POST_RELEVE_T(
 )
 
 TEST_TABLE(
-    VALE_CALC=-41.1326516368954, NOM_PARA="PRE1", TABLE=TAB, FILTRE=_F(NOM_PARA="INST", VALE=day)
+    VALE_CALC=-41.12512321628428, NOM_PARA="PRE1", TABLE=TAB, FILTRE=_F(NOM_PARA="INST", VALE=day)
 )
 
 TEST_TABLE(
-    VALE_CALC=0.04287840247421276, NOM_PARA="PRE2", TABLE=TAB, FILTRE=_F(NOM_PARA="INST", VALE=day)
+    VALE_CALC=0.04287235153840176, NOM_PARA="PRE2", TABLE=TAB, FILTRE=_F(NOM_PARA="INST", VALE=day)
 )
 
 FIN()

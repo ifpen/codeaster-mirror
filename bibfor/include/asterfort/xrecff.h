@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -19,9 +19,10 @@
 !
 !
 interface
-    subroutine xrecff(fiss, typfis, chfond, basfon, fonoeu, lnoff, conf)
+    subroutine xrecff(fiss, typfis, ndim, chfond, basfon, fonoeu, lnoff, conf)
         character(len=8) :: fiss
         character(len=8) :: typfis
+        integer(kind=8) :: ndim
         character(len=24) :: chfond
         character(len=24) :: basfon
         character(len=24) :: fonoeu

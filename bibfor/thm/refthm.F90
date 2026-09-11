@@ -20,7 +20,7 @@
 subroutine refthm(ds_thm, jv_mater, ndim, l_axi, fnoevo, &
                   mecani, press1, press2, tempe, second, &
                   nno, nnos, npi, npg, elem_coor, &
-                  dt, dimdef, dimcon, dimuel, jv_poids, &
+                  dt, dimdef, dimcon, dimuel, inte_type, jv_poids, &
                   jv_poids2, jv_func, jv_func2, jv_dfunc, jv_dfunc2, &
                   nddls, nddlm, nddl_meca, nddl_p1, nddl_p2, &
                   nddl_2nd, b, r, vectu)
@@ -49,6 +49,7 @@ subroutine refthm(ds_thm, jv_mater, ndim, l_axi, fnoevo, &
     real(kind=8) :: elem_coor(ndim, nno)
     real(kind=8), intent(in) :: dt
     integer(kind=8), intent(in) :: dimuel, dimdef, dimcon
+    character(len=3), intent(in) :: inte_type
     integer(kind=8), intent(in) :: jv_poids, jv_poids2
     integer(kind=8), intent(in) :: jv_func, jv_func2, jv_dfunc, jv_dfunc2
     integer(kind=8), intent(in) :: nddls, nddlm
@@ -84,6 +85,7 @@ subroutine refthm(ds_thm, jv_mater, ndim, l_axi, fnoevo, &
 ! In  dimdef           : number of generalized strains
 ! In  dimcon           : dimension of generalized stresses vector
 ! In  dimuel           : number of dof for element
+! In  inte_type        : type of integration - classical, lumped (D), reduced (R)
 ! In  jv_poids         : JEVEUX adress for weight of Gauss points (linear shape functions)
 ! In  jv_poids2        : JEVEUX adress for weight of Gauss points (quadratic shape functions)
 ! In  jv_func          : JEVEUX adress for shape functions (linear shape functions)
@@ -201,7 +203,7 @@ subroutine refthm(ds_thm, jv_mater, ndim, l_axi, fnoevo, &
                 call fnothm(ds_thm, jv_mater, ndim, l_axi, fnoevo, &
                             mecani, press1, press2, tempe, second, &
                             nno, nnos, npi, npg, elem_coor, &
-                            dt, dimdef, dimcon, dimuel, jv_poids, &
+                            dt, dimdef, dimcon, dimuel, inte_type, jv_poids, &
                             jv_poids2, jv_func, jv_func2, jv_dfunc, jv_dfunc2, &
                             nddls, nddlm, nddl_meca, nddl_p1, nddl_p2, &
                             nddl_2nd, sigtm, sigtm, b, r, bsigm(1))

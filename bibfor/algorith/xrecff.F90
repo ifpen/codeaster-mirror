@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
 !
-subroutine xrecff(fiss, typfis, chfond, basfon, fonoeu, &
+subroutine xrecff(fiss, typfis, ndim, chfond, basfon, fonoeu, &
                   lnoff, conf)
     implicit none
 !
@@ -31,12 +31,11 @@ subroutine xrecff(fiss, typfis, chfond, basfon, fonoeu, &
 #include "asterfort/jemarq.h"
 #include "asterfort/jeveuo.h"
 #include "asterfort/wkvect.h"
-    integer(kind=8) :: lnoff
+    integer(kind=8) :: ndim, lnoff
     character(len=8) :: fiss, typfis, conf
     character(len=24) :: chfond, basfon, fonoeu
 !
 !
-! person_in_charge: samuel.geniaut at edf.fr
 !
 !       RECUPERATION DE LA LISTE DES POINTS DU FOND DE FISSURE
 !       SUR LEQUEL ON VA EFFECTUER LE CALCUL + BASE LOCALE EN FOND
@@ -136,7 +135,16 @@ subroutine xrecff(fiss, typfis, chfond, basfon, fonoeu, &
         call wkvect(bastmp, 'V V R', lnoff*6, ibas)
         do i = 1, lnoff
             do j = 1, 6
-                zr(ibas-1+6*(i-1)+j) = basefond(6*(i+(idepfi-1)-1)+j)
+                ! It was:
+                !   zr(ibas-1+6*(i-1)+j) = basefond(6*(i+(idepfi-1)-1)+j)
+                ! but BASEFOND should be if size 2*ndim*nfon from the doc...
+                ! but it is 2*ndim*(nfon+1) in xenrch (&&XENRCH.BASEFO).
+                ! And the both 'basefond(6*...)' and 'basefond((2*ndim)*...' work!
+                if (ndim .eq. 2 .and. (modulo(j, 3) .eq. 0)) then
+                    zr(ibas-1+6*(i-1)+j) = 0.d0
+                else
+                    zr(ibas-1+6*(i-1)+j) = basefond((2*ndim)*(i+(idepfi-1)-1)+j)
+                end if
             end do
         end do
     end if

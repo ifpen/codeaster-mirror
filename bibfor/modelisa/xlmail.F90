@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -144,7 +144,8 @@ subroutine xlmail(fiss, nmaen1, nmaen2, nmaen3, nmafon, &
                 end do
             end do
 !
-            call wkvect(xbasfo, 'G V R', 2*ndim*nfon, jba)
+            ! consistent with '&&XENRCH.BASFO'
+            call wkvect(xbasfo, 'G V R', 2*ndim*(nfon+1), jba)
             do i = 1, nfon
                 do k = 1, ndim
                     zr(jba-1+2*ndim*(i-1)+k) = zr(jbas-1+2*ndim*(i-1)+k)

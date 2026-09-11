@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -19,10 +19,11 @@
 !
 !
 interface
-    subroutine cgleff(typfis, nomfis, fonoeu, chfond, basfon,&
+    subroutine cgleff(typfis, nomfis, ndim, fonoeu, chfond, basfon,&
                       taillr, conf, lnoff)
         character(len=8) :: typfis
         character(len=8) :: nomfis
+        integer(kind=8) :: ndim
         character(len=24) :: fonoeu
         character(len=24) :: chfond
         character(len=24) :: basfon

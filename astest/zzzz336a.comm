@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -448,6 +448,7 @@ U3 = CALC_CHAMP(RESULTAT=U3, reuse=U3, DEFORMATION=("EPSP_ELNO",))
 
 COU_MOY = POST_CHAMP(
     RESULTAT=U3,
+    GROUP_MA="SDAL",
     EXTR_COQUE=_F(
         NOM_CHAM=("EPME_ELGA", "EPVC_ELGA", "EPSP_ELGA", "EPME_ELNO", "EPVC_ELNO", "EPSP_ELNO"),
         NUME_COUCHE=1,
