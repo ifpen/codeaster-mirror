@@ -323,11 +323,8 @@ class THER2DQ9_HHO333(Element):
         ),
         OP.TOU_INI_ELEM(
             te=99,
-            para_out=((OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM3D), (OP.TOU_INI_ELEM.PTEMP_R, LC.CTEMPER)),
-        ),
-        OP.TOU_INI_ELEM(
-            te=99,
             para_out=(
+                (OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM2D),
                 (OP.TOU_INI_ELEM.PCOEH_R, LC.EHECHPR),
                 (OP.TOU_INI_ELEM.PSOUR_R, LC.CSOURCR),
                 (OP.TOU_INI_ELEM.PTEMP_R, LC.CTEMPER),

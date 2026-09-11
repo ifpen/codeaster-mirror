@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -428,25 +428,8 @@ CH1 = CREA_CHAMP(
     OPERATION="EXTR", TYPE_CHAM="ELGA_SIEF_R", NOM_CHAM="SIEF_ELGA", RESULTAT=cal1, INST=TFINAL
 )
 
-CH2 = CREA_CHAMP(
-    TYPE_CHAM="ELGA_NEUT_R",
-    OPERATION="ASSE",
-    MODELE=MODELT,
-    PROL_ZERO="OUI",
-    ASSE=_F(TOUT="OUI", CHAM_GD=CH1, NOM_CMP=("M11"), NOM_CMP_RESU=("X1")),
-)
-
-CH3 = CREA_CHAMP(OPERATION="DISC", TYPE_CHAM="NOEU_NEUT_R", CHAM_GD=CH2, MODELE=MODELT)
-
-CH4 = CREA_CHAMP(
-    TYPE_CHAM="NOEU_SIEF_R",
-    OPERATION="ASSE",
-    MODELE=MODELT,
-    ASSE=_F(TOUT="OUI", CHAM_GD=CH3, NOM_CMP_RESU=("M11"), NOM_CMP=("X1")),
-)
-
 INTM11 = POST_ELEM(
-    CHAM_GD=CH4,
+    CHAM_GD=CH1,
     CHAM_MATER=CHMAT,
     MODELE=MODELT,
     INTEGRALE=_F(NOM_CMP="M11", TOUT="OUI", TYPE_MAILLE="2D"),
