@@ -149,53 +149,69 @@ class TransformToNaut:
         return np.rad2deg(angnau)
 
 
+def _get_values_and_description(champ: Any, group_ma: Optional[List[str]]):
+    """
+    Get values and description of group_ma.
+    """
+    mesh = champ.getMesh()
+    cells = mesh.getCells(group_ma) if group_ma is not None else mesh.getCells()
+    cmps = ["C", "ALPHA", "BETA", "KAPPA", "X", "Y", "Z"]
+    values, description = champ.getValuesWithDescription(cmps=cmps, cells=cells)
+    values = np.reshape(values, (-1, len(cmps)))
+    return values, description
+
+
 def include_cylindrique(
     champ: Any, orig_axe: Sequence[float], angl_axe: Sequence[float], group_ma: Optional[List[str]]
 ):
     """
-    Modify champ to include cylindrique system
+    Modify champ to include cylindrique system.
     """
-    # Recover mesh, coordinates and connectivity
+    # Recover mesh connectivity
     mesh = champ.getMesh()
-    coordinates = mesh.getCoordinates().getValues()
     connectivity = mesh.getConnectivity()
 
     # Recover coordinates X, Y, Z
+    coordinates = mesh.getCoordinates().getValues()
     coordinates = np.reshape(coordinates, (-1, 3))
     X = coordinates[:, 0]
     Y = coordinates[:, 1]
     Z = coordinates[:, 2]
 
-    # Recover the values to change ("C", "ALPHA", "BETA", "KAPPA", "X", "Y", "Z")
-    values = np.reshape(champ.getValues(), (-1, 7))
+    # Recover values of cham_elem
+    values, description = _get_values_and_description(champ, group_ma)
+    (v_cells, v_cmps, points, subpoints) = description
 
-    # Loop over the cells of TOUT or GROUP_MA
-    cells = mesh.getCells(group_ma) if group_ma is not None else mesh.getCells()
-    for cell in cells:
+    # Loop over the target cells to modify old values
+    target_cells = np.reshape(v_cells, values.shape)[:, 0]
+    for row, cell in enumerate(target_cells):
         lnoeud = connectivity[cell]
         barycenter = np.array([np.mean(X[lnoeud]), np.mean(Y[lnoeud]), np.mean(Z[lnoeud])])
         angl_nau = TransformToNaut.cylnau(barycenter, orig_axe, angl_axe)
-        values[cell] = [1, angl_nau[0], angl_nau[1], angl_nau[2], 0.0, 0.0, 0.0]
-    champ.setValues(values.ravel())
+        values[row] = [1, angl_nau[0], angl_nau[1], angl_nau[2], 0.0, 0.0, 0.0]
+
+    # Save new values
+    values = values.ravel()
+    champ.setValues(v_cells, v_cmps, points, subpoints, values)
 
 
 def include_cartesien(champ: Any, angl_nau: Sequence[float], group_ma: Optional[List[str]]):
     """
-    Modify champ to include cartesian system
+    Modify champ to include cartesian system.
     """
-    # Recover mesh, coordinates and connectivity
-    mesh = champ.getMesh()
+    # Recover values of cham_elem
+    values, description = _get_values_and_description(champ, group_ma)
+    (v_cells, v_cmps, points, subpoints) = description
 
-    # Recover the values to change ("C", "ALPHA", "BETA", "KAPPA", "X", "Y", "Z")
-    values = np.reshape(champ.getValues(), (-1, 7))
+    # Modify old values
+    values[:] = [1, angl_nau[0], angl_nau[1], angl_nau[2], 0.0, 0.0, 0.0]
 
-    # Affect the constant array to the cells of TOUT or GROUP_MA
-    cells = mesh.getCells(group_ma) if group_ma is not None else mesh.getCells()
-    values[cells] = [1, angl_nau[0], angl_nau[1], angl_nau[2], 0.0, 0.0, 0.0]
-    champ.setValues(values.ravel())
+    # Save new values
+    values = values.ravel()
+    champ.setValues(v_cells, v_cmps, points, subpoints, values)
 
 
-def modify_field(champ: Any, args_in: dict):
+def modify_values_on_field(champ: Any, args_in: dict):
     """
     Reads information in ``args_in`` and include it into ``champ``
     """
@@ -242,11 +258,10 @@ def defi_repere_ops(self, **kwargs):
         raise NotImplementedError("Empty list")
 
     # Create CREA_CHAMP datastructure
-    champ = FieldOnCellsReal(model, "ELEM", "CAMA_R")
-    champ.setValues(0.0)
+    field = FieldOnCellsReal(model, "ELEM", "CAMA_R").toSimpleFieldOnCells()
 
     # Modify field with information in defi arguments
     for args_in in DEFI_ARGS:
-        modify_field(champ, args_in)
+        modify_values_on_field(field, args_in)
 
-    return champ
+    return field.toFieldOnCells(model.getFiniteElementDescriptor())
