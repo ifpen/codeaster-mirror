@@ -30,7 +30,11 @@ by doing, for example for PETSc: ``from ..Utilities import PETSc``...
 from .ExecutionParameter import disable_fpe
 
 
-class _PETScMeta(type):
+class NoPickling(type):
+    __pickling_disabled__ = 1
+
+
+class _PETScMeta(NoPickling):
     """Meta class for petsc4py wrapping."""
 
     _init = False
@@ -46,7 +50,7 @@ class _PETScMeta(type):
         return getattr(cls._mod, attr)
 
 
-class _SLEPcMeta(type):
+class _SLEPcMeta(NoPickling):
     """Meta class for slepc4py wrapping."""
 
     _init = False
@@ -70,7 +74,7 @@ class SLEPc(metaclass=_SLEPcMeta):
     """Wrapper to slepc4py.SLEPc"""
 
 
-class _medcouplingMeta(type):
+class _medcouplingMeta(NoPickling):
     """Meta class for medcoupling module wrapping."""
 
     _init = False
@@ -85,7 +89,7 @@ class _medcouplingMeta(type):
         return getattr(cls._mod, attr)
 
 
-class _ParaMEDMEMMeta(type):
+class _ParaMEDMEMMeta(NoPickling):
     """Meta class for ParaMEDMEM module wrapping."""
 
     _init = False
@@ -108,7 +112,7 @@ class ParaMEDMEM(metaclass=_ParaMEDMEMMeta):
     """Wrapper to ParaMEDMEM"""
 
 
-class _sympyMeta(type):
+class _sympyMeta(NoPickling):
     """Meta class for sympy module wrapping."""
 
     _init = False
