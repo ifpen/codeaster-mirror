@@ -52,6 +52,7 @@ module HHO_quadrature_module
         real(kind=8), dimension(3, MSIZE_QP)  :: points = 0.d0
         real(kind=8), dimension(MSIZE_QP)     :: weights = 0.d0
         real(kind=8), dimension(3, MSIZE_QP)  :: points_param = 0.d0
+        real(kind=8), dimension(MSIZE_QP)     :: weights_param = 0.d0
         aster_logical                       :: l_point_param = ASTER_TRUE
 ! ----- member functions
     contains
@@ -169,6 +170,7 @@ contains
 !
         do ipg = 1, nbpg
             this%points_param(1, ipg) = xpg(ipg)
+            this%weights_param(ipg) = poidpg(ipg)
             this%points(1:3, ipg) = barycenter+xpg(ipg)*v1
             this%weights(ipg) = meas_2*poidpg(ipg)
         end do
@@ -224,6 +226,7 @@ contains
             y = coorpg(dimp*(ipg-1)+2)
             call hho_transfo_quad(coorno, (/x, y/), ndim, coorpgglo, jaco)
             this%points_param(1:2, ipg) = (/x, y/)
+            this%weights_param(ipg) = poidpg(ipg)
             this%points(1:3, ipg) = coorpgglo
             this%weights(ipg) = abs(jaco)*poidpg(ipg)
         end do
@@ -280,6 +283,7 @@ contains
             z = coorpg(dimp*(ipg-1)+3)
             call hho_transfo_3d(coorno, 8, MT_HEXA8, (/x, y, z/), coorac, jaco)
             this%points_param(1:3, ipg) = (/x, y, z/)
+            this%weights_param(ipg) = poidpg(ipg)
             this%points(1:3, ipg) = coorac(1:3)
             this%weights(ipg) = abs(jaco)*poidpg(ipg)
         end do
@@ -340,6 +344,7 @@ contains
                 coorac(idim) = dot_product(coorno(idim, 1:3), basis(1:3))
             end do
             this%points_param(1:2, ipg) = (/x, y/)
+            this%weights_param(ipg) = poidpg(ipg)
             this%points(1:3, ipg) = coorac
             this%weights(ipg) = jaco*poidpg(ipg)
         end do
@@ -419,6 +424,7 @@ contains
                     call reereg("S", typma_s, nbnode, coorno, coorac, ndim, &
                                 xe, iret, 1.d-8, 3)
                     this%points_param(1:2, this%nbQuadPoints+ipg) = xe(1:2)
+                    this%weights_param(this%nbQuadPoints+ipg) = poidpg(ipg)
                 end if
             end do
             this%nbQuadPoints = this%nbQuadPoints+nbpg
@@ -477,6 +483,7 @@ contains
             z = coorpg(dimp*(ipg-1)+3)
             call hho_transfo_3d(coorno, 4, MT_TETRA4, (/x, y, z/), coorac)
             this%points_param(1:3, ipg) = (/x, y, z/)
+            this%weights_param(ipg) = poidpg(ipg)
             this%points(1:3, ipg) = coorac
             this%weights(ipg) = jaco*poidpg(ipg)
         end do
@@ -552,6 +559,7 @@ contains
                     call reereg("S", typma_s, nbnode, coorno, coorac, 3, &
                                 xe, iret, 1.d-8, 3)
                     this%points_param(1:3, this%nbQuadPoints+ipg) = xe(1:3)
+                    this%weights_param(this%nbQuadPoints+ipg) = poidpg(ipg)
                 end if
             end do
             this%nbQuadPoints = this%nbQuadPoints+nbpg
@@ -608,6 +616,7 @@ contains
             z = coorpg(dimp*(ipg-1)+3)
             call hho_transfo_3d(coorno, 5, MT_PYRAM5, (/x, y, z/), coorac, jaco)
             this%points_param(1:3, ipg) = (/x, y, z/)
+            this%weights_param(ipg) = poidpg(ipg)
             this%points(1:3, ipg) = coorac(1:3)
             this%weights(ipg) = abs(jaco)*poidpg(ipg)
         end do
@@ -663,6 +672,7 @@ contains
             z = coorpg(dimp*(ipg-1)+3)
             call hho_transfo_3d(coorno, 6, MT_PENTA6, (/x, y, z/), coorac, jaco)
             this%points_param(1:3, ipg) = (/x, y, z/)
+            this%weights_param(ipg) = poidpg(ipg)
             this%points(1:3, ipg) = coorac(1:3)
             this%weights(ipg) = abs(jaco)*poidpg(ipg)
         end do

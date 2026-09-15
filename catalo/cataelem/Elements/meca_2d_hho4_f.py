@@ -98,6 +98,17 @@ class MECA_2D_HHO4_F(Element):
             ),
             para_out=((SP.PVECTUR, MVECTUR),),
         ),
+        OP.CHAR_MECA_PRSU_R(
+            te=459,
+            para_in=(
+                (SP.PDEPLMR, DDL_MECA),
+                (SP.PDEPLPR, DDL_MECA),
+                (SP.PGEOMER, LC.EGEOM2D),
+                (SP.PPRESSR, LC.EPRE3DR),
+                (OP.CHAR_MECA_PRES_R.PCHHOBS, CHHOBS),
+            ),
+            para_out=((SP.PVECTUR, MVECTUR),),
+        ),
         OP.COOR_ELGA(
             te=479,
             para_in=((SP.PGEOMER, LC.EGEOM2D),),
@@ -129,6 +140,17 @@ class MECA_2D_HHO4_F(Element):
             te=496,
             para_in=((OP.NSPG_NBVA.PCOMPOR, LC.CCOMPO2),),
             para_out=((SP.PDCEL_I, LC.EDCEL_I),),
+        ),
+        OP.RIGI_MECA_PRSU_R(
+            te=561,
+            para_in=(
+                (SP.PDEPLMR, DDL_MECA),
+                (SP.PDEPLPR, DDL_MECA),
+                (SP.PGEOMER, LC.EGEOM2D),
+                (SP.PPRESSR, LC.EPRE3DR),
+                (OP.RIGI_MECA_PRSU_R.PCHHOBS, CHHOBS),
+            ),
+            para_out=((SP.PMATUNS, MMATUNS),),
         ),
         OP.TOU_INI_ELEM(
             te=99,

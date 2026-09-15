@@ -22,7 +22,7 @@
 !
 interface
     subroutine apnorm(elem_nbnode, elem_code, elem_dime, elem_coor,&
-                      ksi1       , ksi2     , elem_norm, elem_tau1, elem_tau2)
+                      ksi1       , ksi2     , elem_norm, elem_tau1, elem_tau2, elem_noor)
 #include "MeshTypes_type.h"
         integer(kind=8), intent(in) :: elem_nbnode
         character(len=8), intent(in) :: elem_code
@@ -31,6 +31,6 @@ interface
         real(kind=8), intent(in) :: ksi1
         real(kind=8), intent(in) :: ksi2
         real(kind=8), intent(out) :: elem_norm(3)
-        real(kind=8), intent(out), optional :: elem_tau1(3), elem_tau2(3)
+        real(kind=8), intent(out), optional :: elem_tau1(3), elem_tau2(3), elem_noor
     end subroutine apnorm
 end interface

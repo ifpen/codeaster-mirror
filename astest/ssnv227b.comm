@@ -1,0 +1,197 @@
+# coding=utf-8
+# --------------------------------------------------------------------
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
+# This file is part of code_aster.
+#
+# code_aster is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# code_aster is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
+# --------------------------------------------------------------------
+
+#       D4UN MATERIAU DE TYPE MOONEY-RIVLIN - Symmetry version of case A
+
+DEBUT(CODE="OUI", ERREUR=_F(ALARME="EXCEPTION"), DEBUG=_F(SDVERI="OUI"))
+
+Mesh0 = LIRE_MAILLAGE(FORMAT="MED")
+
+Mesh = CREA_MAILLAGE(MAILLAGE=Mesh0, MODI_HHO=_F(TOUT="OUI"))
+
+Mod3d = AFFE_MODELE(
+    MAILLAGE=Mesh, AFFE=_F(TOUT="OUI", PHENOMENE="MECANIQUE", MODELISATION="3D_HHO")
+)
+
+Mesh = MODI_MAILLAGE(reuse=Mesh, MAILLAGE=Mesh, ORIE_PEAU=_F(GROUP_MA_PEAU="Atop"))
+
+FORCE = AFFE_CHAR_MECA(MODELE=Mod3d, PRES_REP=_F(GROUP_MA="Atop", PRES=-6.0))
+
+DEPL = AFFE_CHAR_CINE(
+    MODELE=Mod3d,
+    MECA_IMPO=(_F(GROUP_MA="xOy", DZ=0.0), _F(GROUP_MA="xOz", DY=0.0), _F(GROUP_MA="yOz", DX=0.0)),
+)
+
+
+LISTE = DEFI_LIST_REEL(DEBUT=0.0, INTERVALLE=_F(JUSQU_A=1.0, NOMBRE=20), INFO=2)
+
+RAMPE = DEFI_FONCTION(NOM_PARA="INST", VALE=(0.0, 0.0, 1.0, 1.0), INFO=2)
+
+
+# MATERIAU HYPER-ELASTIQUE: Mooney-Rivlin
+C01 = 2.3456
+C10 = 0.709
+C20 = 0.0
+NU = 0.499
+K = (6 * (C10 + C01)) / (3 * (1 - 2 * NU))
+
+rubber = DEFI_MATERIAU(ELAS_HYPER=_F(C10=C10, C01=C01, C20=C20, K=K))
+
+
+MatRub = AFFE_MATERIAU(MAILLAGE=Mesh, MODELE=Mod3d, AFFE=_F(TOUT="OUI", MATER=rubber))
+
+# CALCUL EN PETITES PERTURBATIONS (HPP)
+# PRESSION APPLIQUEE = 6Pa
+
+LIST_HPP = DEFI_LIST_REEL(DEBUT=0.0, INTERVALLE=_F(JUSQU_A=1.0e-6, NOMBRE=1), INFO=2)
+
+res_HPP = STAT_NON_LINE(
+    MODELE=Mod3d,
+    CHAM_MATER=MatRub,
+    EXCIT=(_F(CHARGE=FORCE, FONC_MULT=RAMPE), _F(CHARGE=DEPL)),
+    NEWTON=_F(REAC_INCR=1, MATRICE="TANGENTE", REAC_ITER=1),
+    COMPORTEMENT=_F(RELATION="ELAS_HYPER", DEFORMATION="GREEN_LAGRANGE", TOUT="OUI"),
+    INCREMENT=_F(LIST_INST=LIST_HPP),
+)
+
+# POST-TRAITEMENT
+
+CALC_CHAMP(reuse=res_HPP, RESULTAT=res_HPP, CONTRAINTE="SIEF_NOEU")
+
+TEST_RESU(
+    RESU=_F(
+        NUME_ORDRE=1,
+        REFERENCE="ANALYTIQUE",
+        RESULTAT=res_HPP,
+        NOM_CHAM="HHO_DEPL",
+        GROUP_NO="N1535",
+        NOM_CMP="DZ",
+        VALE_CALC=1.4086522484052948e-05,
+        VALE_REFE=1.40865e-05,
+        CRITERE="RELATIF",
+        PRECISION=3.0e-3,
+    )
+)
+
+# CALCUL EN GRANDS DEPLACEMENTS AVEC PRESSION SUIVEUSE
+# PRESSION APPLIQUEE = 6MPa
+
+res = STAT_NON_LINE(
+    MODELE=Mod3d,
+    CHAM_MATER=MatRub,
+    EXCIT=(_F(CHARGE=FORCE, FONC_MULT=RAMPE, TYPE_CHARGE="SUIV"), _F(CHARGE=DEPL)),
+    NEWTON=_F(REAC_INCR=1, MATRICE="TANGENTE", REAC_ITER=1),
+    COMPORTEMENT=_F(RELATION="ELAS_HYPER", DEFORMATION="GREEN_LAGRANGE", TOUT="OUI"),
+    CONVERGENCE=_F(ITER_GLOB_MAXI=4, RESI_GLOB_RELA=1e-10),
+    INCREMENT=_F(LIST_INST=LISTE),
+)
+
+res.printMedFile("/home/C00976/tmp/ssnv227b.med")
+
+
+# POST-TRAITEMENT
+
+CALC_CHAMP(reuse=res, RESULTAT=res, CONTRAINTE="SIEF_NOEU", DEFORMATION="EPSI_NOEU")
+
+
+TEST_RESU(
+    RESU=(
+        _F(
+            NUME_ORDRE=20,
+            RESULTAT=res,
+            NOM_CHAM="HHO_DEPL",
+            GROUP_NO="N8",
+            NOM_CMP="DX",
+            VALE_CALC=-0.39037842122818034,
+            CRITERE="RELATIF",
+        ),
+        _F(
+            NUME_ORDRE=20,
+            RESULTAT=res,
+            NOM_CHAM="HHO_DEPL",
+            GROUP_NO="N8",
+            NOM_CMP="DY",
+            VALE_CALC=-0.9369082109476317,
+            CRITERE="RELATIF",
+        ),
+    )
+)
+
+TEST_RESU(
+    RESU=_F(
+        NUME_ORDRE=20,
+        RESULTAT=res,
+        NOM_CHAM="HHO_DEPL",
+        GROUP_NO="N1535",
+        NOM_CMP="DZ",
+        VALE_CALC=17.425967962469464,
+        CRITERE="RELATIF",
+    )
+)
+
+TEST_RESU(
+    RESU=(
+        _F(
+            NUME_ORDRE=20,
+            RESULTAT=res,
+            NOM_CHAM="SIEF_NOEU",
+            GROUP_NO="N1535",
+            NOM_CMP="SIZZ",
+            VALE_REFE=6.0,
+            VALE_CALC=6.000000000343981,
+            REFERENCE="ANALYTIQUE",
+            PRECISION=1.0e-3,
+            CRITERE="RELATIF",
+        ),
+    )
+)
+
+TEST_RESU(
+    RESU=(
+        _F(
+            NUME_ORDRE=20,
+            RESULTAT=res,
+            NOM_CHAM="EPSI_NOEU",
+            GROUP_NO="N1535",
+            NOM_CMP="EPXX",
+            VALE_CALC=-0.15615136849124908,
+            CRITERE="RELATIF",
+        ),
+        _F(
+            NUME_ORDRE=20,
+            RESULTAT=res,
+            NOM_CHAM="EPSI_NOEU",
+            GROUP_NO="N1535",
+            NOM_CMP="EPYY",
+            VALE_CALC=-0.15615136849128522,
+            CRITERE="RELATIF",
+        ),
+        _F(
+            NUME_ORDRE=20,
+            RESULTAT=res,
+            NOM_CHAM="EPSI_NOEU",
+            GROUP_NO="N1535",
+            NOM_CMP="EPZZ",
+            VALE_CALC=0.4052550688949218,
+            CRITERE="RELATIF",
+        ),
+    )
+)
+
+FIN()

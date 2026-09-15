@@ -46,8 +46,9 @@ module HHO_geometry_module
 ! --------------------------------------------------------------------------------------------------
 !
     public :: barycenter, hhoFaceInitCoor, hhoGeomBasis, hhoGeomDerivBasis
-    public :: hhoLocalBasisFace, hhoNormalFace2, hhoNormalFace3, hhoNormalFaceQP
+    public :: hhoLocalTangentBasisFace, hhoNormalFace2, hhoNormalFace3, hhoNormalFaceQP
     public :: hhoSplitSimplex, hho_transfo_3d, hho_transfo_quad, hhoIsJacobCst, prod_vec
+    public :: hhoTangentFaceQP, hhoLocalBasisFaceQP
     private :: hho_jaco_cst_quad, hho_jaco_cst_3d
     private :: hhoNormalFace2d, well_oriented, hhoNormalFace1d, find_lowest_vertex
 !
@@ -204,21 +205,10 @@ contains
 !  Out normal            :: outward normal
 ! --------------------------------------------------------------------------------------------------
 !
-        character(len=8) :: ts
-        real(kind=8) :: coor(3, MT_NNOMAX2D)
+        real(kind=8) :: tau1(3), tau2(3)
 !  -------------------------------------------------------------------------------------------------
-        normal = 0.d0
-        call CellNameL2S(hhoFace%typema, ts)
-        coor(1:3, 1:4) = hhoFace%coorno(1:3, 1:4)
-!
-        call apnorm(hhoFace%nbnodes, ts, hhoFace%ndim+1, coor, qp_param(1), &
-                    qp_param(2), normal)
-!
-        if (norm2(hhoFace%normal) > 0.5d0) then
-            if (.not. well_oriented(hhoFace%normal, normal)) then
-                normal = -normal
-            end if
-        end if
+
+        call hhoLocalBasisFaceQP(hhoFace, qp_param, tau1, tau2, normal)
 !
     end function
 !
@@ -374,7 +364,85 @@ contains
 !
 !===================================================================================================
 !
-    function hhoLocalBasisFace(hhoFace) result(axes)
+    subroutine hhoLocalBasisFaceQP(hhoFace, qp_param, tau1, tau2, normal, jaco)
+!
+        implicit none
+!
+        type(HHO_Face), intent(in) :: hhoFace
+        real(kind=8), dimension(2), intent(in) :: qp_param
+        real(kind=8), dimension(3), intent(out) :: tau1, tau2, normal
+        real(kind=8), optional, intent(out) :: jaco
+!
+! --------------------------------------------------------------------------------------------------
+!  In coorno             :: coordinates of the nodes
+!  In nbnodes            :: number of nodes
+!  In barycenter_face    :: barycenter of the face
+!  In barycenter_cell    :: barycenter of the cell
+!  Out normal            :: outward normal
+! --------------------------------------------------------------------------------------------------
+!
+        character(len=8) :: ts
+        real(kind=8) :: coor(3, MT_NNOMAX2D), tau(3), noor
+!  -------------------------------------------------------------------------------------------------
+        normal = 0.d0
+        call CellNameL2S(hhoFace%typema, ts)
+        coor(1:3, 1:4) = hhoFace%coorno(1:3, 1:4)
+!
+        call apnorm(hhoFace%nbnodes, ts, hhoFace%ndim+1, coor, qp_param(1), &
+                    qp_param(2), normal, tau1, tau2, noor)
+!
+        if (norm2(hhoFace%normal) > 0.5d0) then
+            if (.not. well_oriented(hhoFace%normal, normal)) then
+                normal = -normal
+                if (hhoFace%ndim == 1) then
+                    tau1 = -tau1
+                    tau2 = 0.d0
+                else
+                    tau = tau1
+                    tau1 = tau2
+                    tau2 = tau
+                end if
+            end if
+        end if
+!
+        if (present(jaco)) then
+            jaco = noor
+        end if
+!
+    end subroutine
+!
+!===================================================================================================
+!
+!===================================================================================================
+!
+    subroutine hhoTangentFaceQP(hhoFace, qp_param, tau1, tau2)
+!
+        implicit none
+!
+        type(HHO_Face), intent(in) :: hhoFace
+        real(kind=8), dimension(2), intent(in) :: qp_param
+        real(kind=8), dimension(3), intent(out) :: tau1, tau2
+!
+! --------------------------------------------------------------------------------------------------
+!  In coorno             :: coordinates of the nodes
+!  In nbnodes            :: number of nodes
+!  In barycenter_face    :: barycenter of the face
+!  In barycenter_cell    :: barycenter of the cell
+!  Out normal            :: outward normal
+! --------------------------------------------------------------------------------------------------
+!
+        real(kind=8) ::  normal(3)
+!  -------------------------------------------------------------------------------------------------
+!
+        call hhoLocalBasisFaceQP(hhoFace, qp_param, tau1, tau2, normal)
+!
+    end subroutine
+!
+!===================================================================================================
+!
+!===================================================================================================
+!
+    function hhoLocalTangentBasisFace(hhoFace) result(axes)
 !
         implicit none
 !

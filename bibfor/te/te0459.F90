@@ -18,14 +18,16 @@
 !
 subroutine te0459(option, nomte)
 !
-    use HHO_type
-    use HHO_size_module, only: hhoMecaFaceDofs
-    use HHO_quadrature_module
-    use HHO_Neumann_module
-    use HHO_init_module, only: hhoInfoInitFace
+    use FE_algebra_module
+    use HHO_basis_module
     use HHO_eval_module
-    use HHO_utils_module
     use HHO_geometry_module
+    use HHO_init_module, only: hhoInfoInitFace, hhoUpdateCoordinatesFace
+    use HHO_Neumann_module
+    use HHO_quadrature_module
+    use HHO_size_module, only: hhoMecaFaceDofs
+    use HHO_type
+    use HHO_utils_module
 !
     implicit none
 !
@@ -35,6 +37,8 @@ subroutine te0459(option, nomte)
 #include "asterfort/tefrep.h"
 #include "asterfort/HHO_size_module.h"
 #include "asterfort/writeVector.h"
+#include "asterfort/readVector.h"
+#include "asterfort/mmnorm.h"
 !
     character(len=16), intent(in) :: option, nomte
 !
@@ -61,16 +65,21 @@ subroutine te0459(option, nomte)
     real(kind=8) :: valpar(maxpara)
     character(len=8) :: nompar(maxpara)
     type(HHO_Data) :: hhoData
-    type(HHO_Face) :: hhoFace
-    type(HHO_Quadrature) :: hhoQuadFace
+    type(HHO_Face) :: hhoFace, hhoFaceDef
+    type(HHO_Quadrature) :: hhoQuadFace, hhoQuadFaceDef
+    type(HHO_basis_face) :: hhoBasisFace
     real(kind=8) :: rhs_forces(MSIZE_FACE_VEC), NeumValuesQP(3, MSIZE_QP_FACE)
     real(kind=8) :: normal(3), PresQP(MSIZE_QP_FACE)
+    real(kind=8), dimension(MSIZE_FACE_VEC) :: depl_prev, depl_incr, depl_curr
+    real(kind=8) :: depl_nodes(3, 9)
     integer(kind=8) :: fbs, celldim, ipg, nbpara, idim
-    integer(kind=8) :: j_time, j_pres, j_forc
+    integer(kind=8) :: j_time, j_pres, j_forc, ino
+    aster_logical :: l_undead
 !
 ! -- Retrieve HHO informations
 !
     call hhoInfoInitFace(hhoFace, hhoData, hhoQuadFace=hhoQuadFace)
+    call hhoMecaFaceDofs(hhoFace, hhoData, fbs)
 !
     ASSERT(hhoQuadFace%nbQuadPoints <= MSIZE_QP_FACE)
 !
@@ -79,6 +88,35 @@ subroutine te0459(option, nomte)
     NeumValuesQP = 0.d0
     nompar(:) = 'XXXXXXXX'
     valpar(:) = 0.d0
+!
+    l_undead = (option .eq. 'CHAR_MECA_PRSU_F') .or. &
+               (option .eq. 'CHAR_MECA_PRSU_R') .or. &
+               (option .eq. 'CHAR_MECA_FRSU23')
+!
+    if (l_undead) then
+        call readVector('PDEPLMR', fbs, depl_prev)
+        call readVector('PDEPLPR', fbs, depl_incr)
+        call dcopy_1(fbs, depl_prev, depl_curr)
+        call daxpy_1(fbs, 1.d0, depl_incr, depl_curr)
+!
+        call hhoBasisFace%initialize(hhoFace)
+!
+! --- Compute the displacement
+!
+        depl_nodes = 0.d0
+
+        do ino = 1, hhoFace%nbnodes
+            depl_nodes(1:3, ino) = hhoEvalVecFace( &
+                                   hhoBasisFace, hhoData%face_degree(), &
+                                   hhoFace%coorno(1:3, ino), depl_curr)
+        end do
+!
+        hhoFaceDef = hhoFace
+        call hhoUpdateCoordinatesFace(depl_nodes, hhoFaceDef)
+        call hhoQuadFaceDef%getQuadFace(hhoFaceDef, 2*hhoData%face_degree(), param=ASTER_TRUE)
+!
+    end if
+!
 !
 ! ---- Which option ?
 !
@@ -94,6 +132,22 @@ subroutine te0459(option, nomte)
         do ipg = 1, hhoQuadFace%nbQuadPoints
             normal = hhoNormalFaceQP(hhoFace, hhoQuadFace%points_param(1:2, ipg))
             NeumValuesQP(1:3, ipg) = -PresQP(ipg)*normal
+        end do
+!
+    else if (option .eq. 'CHAR_MECA_PRSU_R') then
+!
+! ----- Evaluate the function PRES
+!
+        call jevech('PPRESSR', 'L', j_pres)
+        call hhoFuncRScalEvalQp(hhoFace, hhoQuadFace, zr(j_pres), PresQP)
+!
+! ---- Compute the load at the quadrature points T = -p*normal
+!
+        do ipg = 1, hhoQuadFace%nbQuadPoints
+            normal = hhoNormalFaceQP(hhoFaceDef, hhoQuadFace%points_param(1:2, ipg))
+            NeumValuesQP(1:3, ipg) = -PresQP(ipg)*normal
+! ----- Use weight of deformed face only since basis use only initial coordinates
+            hhoQuadFace%weights(ipg) = hhoQuadFaceDef%weights(ipg)
         end do
 !
     else if (option .eq. 'CHAR_MECA_PRES_F') then
@@ -185,10 +239,6 @@ subroutine te0459(option, nomte)
 ! ---- compute surface load
 !
     call hhoMecaNeumForces(hhoFace, hhoData, hhoQuadFace, NeumValuesQP, rhs_forces)
-!
-! ---- number of dofs
-!
-    call hhoMecaFaceDofs(hhoFace, hhoData, fbs)
 !
 ! ---- save result
 !

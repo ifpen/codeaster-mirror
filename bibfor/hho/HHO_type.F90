@@ -110,6 +110,8 @@ module HHO_type
         aster_logical               :: l_axis_on_axe = ASTER_FALSE
 ! ----- Axis problem
         aster_logical                :: l_axis = ASTER_FALSE
+! ----- ReOrientation (True if local renumbering change orientation of the normal )
+        aster_logical                :: reorientation = ASTER_FALSE
 ! ----- member function
     contains
         procedure, public, pass :: print => print_face
