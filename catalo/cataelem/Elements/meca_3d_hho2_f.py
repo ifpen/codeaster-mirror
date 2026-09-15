@@ -110,6 +110,17 @@ class MECA3DQU9_HHO2_F(Element):
             ),
             para_out=((SP.PVECTUR, MVECTUR),),
         ),
+        OP.CHAR_MECA_FRSU23(
+            te=459,
+            para_in=(
+                (SP.PDEPLMR, DDL_MECA),
+                (SP.PDEPLPR, DDL_MECA),
+                (SP.PFR2D3D, LC.NFOR3DR),
+                (SP.PGEOMER, LC.EGEOM3D),
+                (OP.CHAR_MECA_FRSU23.PCHHOBS, CHHOBS),
+            ),
+            para_out=((SP.PVECTUR, MVECTUR),),
+        ),
         OP.COOR_ELGA(
             te=488,
             para_in=((SP.PGEOMER, LC.EGEOM3D),),

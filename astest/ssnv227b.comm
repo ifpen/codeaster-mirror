@@ -102,8 +102,6 @@ res = STAT_NON_LINE(
     INCREMENT=_F(LIST_INST=LISTE),
 )
 
-res.printMedFile("/home/C00976/tmp/ssnv227b.med")
-
 
 # POST-TRAITEMENT
 

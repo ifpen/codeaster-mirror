@@ -35,6 +35,7 @@ module HHO_geometry_module
 #include "asterfort/elrfvf.h"
 #include "asterfort/provec.h"
 #include "MeshTypes_type.h"
+#include "asterfort/HHO_size_module.h"
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -48,7 +49,8 @@ module HHO_geometry_module
     public :: barycenter, hhoFaceInitCoor, hhoGeomBasis, hhoGeomDerivBasis
     public :: hhoLocalTangentBasisFace, hhoNormalFace2, hhoNormalFace3, hhoNormalFaceQP
     public :: hhoSplitSimplex, hho_transfo_3d, hho_transfo_quad, hhoIsJacobCst, prod_vec
-    public :: hhoTangentFaceQP, hhoLocalBasisFaceQP
+    public :: hhoTangentFaceQP, hhoLocalBasisFaceQP, hhoGeomGradFaceQP
+    public :: hhoCrossProductMatrix, hhoPlaneNormalRotation
     private :: hho_jaco_cst_quad, hho_jaco_cst_3d
     private :: hhoNormalFace2d, well_oriented, hhoNormalFace1d, find_lowest_vertex
 !
@@ -393,6 +395,7 @@ contains
 !
         if (norm2(hhoFace%normal) > 0.5d0) then
             if (.not. well_oriented(hhoFace%normal, normal)) then
+                ASSERT(hhoFace%reorientation)
                 normal = -normal
                 if (hhoFace%ndim == 1) then
                     tau1 = -tau1
@@ -1038,5 +1041,111 @@ contains
         end select
 !
     end function
+!
+!===================================================================================================
+!
+!===================================================================================================
+!
+    subroutine hhoGeomGradFaceQP(hhoFace, qp_param, nb_basis, BSEvalNodes, geomGrad)
+!
+        implicit none
+!
+        type(HHO_Face), intent(in) :: hhoFace
+        real(kind=8), dimension(2), intent(in) :: qp_param
+        integer(kind=8), intent(in) :: nb_basis
+        real(kind=8), intent(in) :: BSEvalNodes(MSIZE_FACE_SCAL, 9)
+        real(kind=8), intent(out) :: geomGrad(2, MSIZE_FACE_SCAL)
+!
+! --------------------------------------------------------------------------------------------------
+!  In coorno             :: coordinates of the nodes
+!  In nbnodes            :: number of nodes
+!  In barycenter_face    :: barycenter of the face
+!  In barycenter_cell    :: barycenter of the cell
+!  Out normal            :: outward normal
+! --------------------------------------------------------------------------------------------------
+!
+        integer(kind=8) :: jbasis, ino
+        real(kind=8) :: dNGeo(3, 8), qp(3)
+!
+!------------------------------------------------------------------------------------------------
+! Derivative of the Lagrange geometry with respect to HHO coefficients
+!------------------------------------------------------------------------------------------------
+!
+        dNGeo = 0.d0
+        qp = (/qp_param(1), qp_param(2), 0.d0/)
+        call hhoGeomDerivBasis(hhoFace%typema, qp, dNGeo)
+!
+! --- Renumber derivatives consistently with hhoTangentFaceQP
+!
+        if (hhoFace%reorientation) then
+            if (hhoFace%ndim == 1) then
+                dNGeo(1, 1:8) = -dNGeo(1, 1:8)
+            else
+                dNGeo(3, 1:8) = dNGeo(1, 1:8)
+                dNGeo(1, 1:8) = dNGeo(2, 1:8)
+                dNGeo(2, 1:8) = dNGeo(3, 1:8)
+                dNGeo(3, 1:8) = 0.d0
+            end if
+        end if
+!
+        geomGrad = 0.d0
+        do jbasis = 1, nb_basis
+            do ino = 1, hhoFace%nbnodes
+                geomGrad(1, jbasis) = geomGrad(1, jbasis)+ &
+                                      dNGeo(1, ino)*BSEvalNodes(jbasis, ino)
+!
+                if (hhoFace%ndim == 2) then
+                    geomGrad(2, jbasis) = geomGrad(2, jbasis) &
+                                          +dNGeo(2, ino)*BSEvalNodes(jbasis, ino)
+                end if
+            end do
+        end do
+!
+    end subroutine
+!
+!===================================================================================================
+!
+!===================================================================================================
+!
+    subroutine hhoCrossProductMatrix(vector, crossMatrix)
+!
+        implicit none
+!
+!------------------------------------------------------------------------------------------------
+! Cross-product matrix associated with current vector
+!
+! crossMatrix * v = vector x v
+!------------------------------------------------------------------------------------------------
+!
+!
+        real(kind=8), dimension(3), intent(in) :: vector
+        real(kind=8), dimension(3, 3), intent(out) :: crossMatrix
+!
+        crossMatrix = 0.d0
+!
+        crossMatrix(1, 2) = -vector(3)
+        crossMatrix(1, 3) = vector(2)
+        crossMatrix(2, 1) = vector(3)
+        crossMatrix(2, 3) = -vector(1)
+        crossMatrix(3, 1) = -vector(2)
+        crossMatrix(3, 2) = vector(1)
+!
+    end subroutine hhoCrossProductMatrix
+!
+!===================================================================================================
+!
+!===================================================================================================
+!
+    subroutine hhoPlaneNormalRotation(rotation2D)
+!
+        implicit none
+!
+        real(kind=8), dimension(2, 2), intent(out) :: rotation2D
+!
+        rotation2D = 0.d0
+        rotation2D(1, 2) = 1.d0
+        rotation2D(2, 1) = -1.d0
+!
+    end subroutine hhoPlaneNormalRotation
 !
 end module

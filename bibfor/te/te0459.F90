@@ -136,7 +136,7 @@ subroutine te0459(option, nomte)
 !
     else if (option .eq. 'CHAR_MECA_PRSU_R') then
 !
-! ----- Evaluate the function PRES
+! ----- Evaluate the function PRES - no dependency to geometry
 !
         call jevech('PPRESSR', 'L', j_pres)
         call hhoFuncRScalEvalQp(hhoFace, hhoQuadFace, zr(j_pres), PresQP)
@@ -144,7 +144,7 @@ subroutine te0459(option, nomte)
 ! ---- Compute the load at the quadrature points T = -p*normal
 !
         do ipg = 1, hhoQuadFace%nbQuadPoints
-            normal = hhoNormalFaceQP(hhoFaceDef, hhoQuadFace%points_param(1:2, ipg))
+            normal = hhoNormalFaceQP(hhoFaceDef, hhoQuadFaceDef%points_param(1:2, ipg))
             NeumValuesQP(1:3, ipg) = -PresQP(ipg)*normal
 ! ----- Use weight of deformed face only since basis use only initial coordinates
             hhoQuadFace%weights(ipg) = hhoQuadFaceDef%weights(ipg)
@@ -230,6 +230,27 @@ subroutine te0459(option, nomte)
 ! ---- Compute the load at the quadrature points
 !
         call hhoFuncRVecEvalQp(hhoFace, hhoQuadFace, zr(j_forc), NeumValuesQP)
+!
+    else if (option .eq. 'CHAR_MECA_FRSU12' .or. option .eq. 'CHAR_MECA_FRSU23') then
+!
+! ---- Get Forces
+!
+        if (celldim == 3) then
+            ASSERT(option .eq. 'CHAR_MECA_FRSU23')
+            call tefrep(option, 'PFR2D3D', j_forc)
+        else if (celldim == 2) then
+            ASSERT(option .eq. 'CHAR_MECA_FRSU12')
+            call tefrep(option, 'PFR1D2D', j_forc)
+        else
+            ASSERT(ASTER_FALSE)
+        end if
+!
+! ---- Compute the load at the quadrature points - no dependency to geometry
+!
+        call hhoFuncRVecEvalQp(hhoFace, hhoQuadFace, zr(j_forc), NeumValuesQP)
+! ----- Use weight of deformed face only since basis use only initial coordinates
+        hhoQuadFace%weights(1:hhoQuadFace%nbQuadPoints) = &
+            hhoQuadFaceDef%weights(1:hhoQuadFace%nbQuadPoints)
 !
     else
 !

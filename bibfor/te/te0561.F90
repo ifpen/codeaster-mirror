@@ -67,22 +67,22 @@ subroutine te0561(option, nomte)
     type(HHO_basis_face) :: hhoBasisFace
 !
     real(kind=8) :: lhs(MSIZE_FACE_VEC, MSIZE_FACE_VEC)
-    real(kind=8) :: PresQP(MSIZE_QP_FACE)
+    real(kind=8) :: PresQP(MSIZE_QP_FACE), ForceQP(3, MSIZE_QP_FACE)
     real(kind=8) :: BSEval(MSIZE_FACE_SCAL)
     real(kind=8) :: BSEvalNodes(MSIZE_FACE_SCAL, 9)
     real(kind=8), dimension(MSIZE_FACE_VEC) :: depl_prev, depl_incr, depl_curr
-    real(kind=8) :: depl_nodes(3, 9), dNGeo(3, 8)
-    real(kind=8) :: tau1(3), tau2(3)
+    real(kind=8) :: depl_nodes(3, 9), rotation2D(2, 2)
+    real(kind=8) :: tau1(3), tau2(3), normal_t(3), jac_t, tangent_unit(3)
     real(kind=8) :: geomGrad(2, MSIZE_FACE_SCAL)
     real(kind=8) :: skewTau1(3, 3), skewTau2(3, 3), block_ij(3, 3)
-    real(kind=8) :: coef
+    real(kind=8) :: coef, gradJac(3), matGeom(3, 3)
 !
     integer(kind=8) :: fbs, fbs_scal, celldim
     integer(kind=8) :: ipg, ino
     integer(kind=8) :: ibasis, jbasis
     integer(kind=8) :: idim, jdim
     integer(kind=8) :: irow, jcol
-    integer(kind=8) :: j_pres
+    integer(kind=8) :: j_pres, j_forc
 !
 !---------------------------------------------------------------------------------------------------
 ! Retrieve HHO data
@@ -171,59 +171,18 @@ subroutine te0561(option, nomte)
 ! Differentiate the actual Lagrange geometry with respect to each HHO mode
 !------------------------------------------------------------------------------------------------
 !
-            call hhoGeomDerivBasis(hhoFace%typema, hhoQuadFace%points_param(1:2, ipg), &
-                                   dNGeo)
-! --- Renumber derivative since normal and tangent can change of sign.
-            if (hhoFace%reorientation) then
-                if (hhoFace%ndim == 1) then
-                    dNGeo(1, 1:8) = -dNGeo(1, 1:8)
-                else
-                    dNGeo(3, 1:8) = dNGeo(1, 1:8)
-                    dNGeo(1, 1:8) = dNGeo(2, 1:8)
-                    dNGeo(2, 1:8) = dNGeo(3, 1:8)
-                    dNGeo(3, 1:8) = 0.d0
-                end if
-            end if
-!
-            geomGrad = 0.d0
-            do jbasis = 1, fbs_scal
-                do ino = 1, hhoFace%nbnodes
-                    geomGrad(1, jbasis) = geomGrad(1, jbasis)+ &
-                                          dNGeo(1, ino)*BSEvalNodes(jbasis, ino)
-!
-                    if (hhoFace%ndim == 2) then
-                        geomGrad(2, jbasis) = geomGrad(2, jbasis) &
-                                              +dNGeo(2, ino)*BSEvalNodes(jbasis, ino)
-                    end if
-                end do
-            end do
+            call hhoGeomGradFaceQP(hhoFaceDef, hhoQuadFace%points_param(1:2, ipg), fbs_scal, &
+                                   BSEvalNodes, geomGrad)
 !
 !------------------------------------------------------------------------------------------------
 ! Cross-product matrix associated with current tau
-!
-! skewTau * v = tau x v
 !------------------------------------------------------------------------------------------------
 !
-            skewTau1 = 0.d0
-            skewTau2 = 0.d0
-!
             if (hhoFace%ndim == 2) then
-                skewTau1(1, 2) = -tau1(3)
-                skewTau1(1, 3) = tau1(2)
-                skewTau1(2, 1) = tau1(3)
-                skewTau1(2, 3) = -tau1(1)
-                skewTau1(3, 1) = -tau1(2)
-                skewTau1(3, 2) = tau1(1)
-!
-                skewTau2(1, 2) = -tau2(3)
-                skewTau2(1, 3) = tau2(2)
-                skewTau2(2, 1) = tau2(3)
-                skewTau2(2, 3) = -tau2(1)
-                skewTau2(3, 1) = -tau2(2)
-                skewTau2(3, 2) = tau2(1)
+                call hhoCrossProductMatrix(tau1, skewTau1)
+                call hhoCrossProductMatrix(tau2, skewTau2)
             else
-                skewTau1(1, 2) = 1.d0
-                skewTau1(2, 1) = -1.d0
+                call hhoPlaneNormalRotation(rotation2D)
             end if
 !
             coef = hhoQuadFace%weights_param(ipg)*PresQP(ipg)
@@ -242,7 +201,7 @@ subroutine te0561(option, nomte)
                                    -geomGrad(1, jbasis)*skewTau2+geomGrad(2, jbasis)*skewTau1)
                     else
                         block_ij(1:2, 1:2) = coef*BSEval(ibasis) &
-                                             *geomGrad(1, jbasis)*skewTau1(1:2, 1:2)
+                                             *geomGrad(1, jbasis)*rotation2D(1:2, 1:2)
                     end if
                     do idim = 1, celldim
                         irow = (idim-1)*fbs_scal+ibasis
@@ -257,6 +216,111 @@ subroutine te0561(option, nomte)
 !
         end do
 !
+    else if (option(1:14) == 'RIGI_MECA_FRSU') then
+!
+!---------------------------------------------------------------------------------------------------
+! Retrieve nodal FORCE_FACE values
+!---------------------------------------------------------------------------------------------------
+!
+        if (celldim == 3) then
+            call tefrep(option, 'PFR2D3D', j_forc)
+        else if (celldim == 2) then
+            call tefrep(option, 'PFR1D2D', j_forc)
+        else
+            ASSERT(ASTER_FALSE)
+        end if
+!
+!---------------------------------------------------------------------------------------------------
+! Interpolate nodal forces at quadrature points
+!
+! ForceQP is evaluated with the Lagrange interpolation associated
+! with the face geometry. The nodal force values are assumed fixed.
+!---------------------------------------------------------------------------------------------------
+!
+        call hhoFuncRVecEvalQp(hhoFaceDef, hhoQuadFace, zr(j_forc), ForceQP)
+!
+!---------------------------------------------------------------------------------------------------
+! Quadrature loop
+!---------------------------------------------------------------------------------------------------
+!
+        do ipg = 1, hhoQuadFace%nbQuadPoints
+!
+!------------------------------------------------------------------------------------------------
+! Current covariant tangent vectors
+!------------------------------------------------------------------------------------------------
+!
+            tau1 = 0.d0
+            tau2 = 0.d0
+
+            call hhoLocalBasisFaceQP(hhoFaceDef, hhoQuadFace%points_param(1:2, ipg), &
+                                     tau1, tau2, normal_t, jac_t)
+!
+!------------------------------------------------------------------------------------------------
+! HHO test basis on the initial face
+!------------------------------------------------------------------------------------------------
+!
+            call hhoBasisFace%BSEval(hhoQuadFace%points(1:3, ipg), 0, hhoData%face_degree(), &
+                                     BSEval)
+!
+!------------------------------------------------------------------------------------------------
+! Derivative of the Lagrange geometry with respect to HHO coefficients
+!------------------------------------------------------------------------------------------------
+!
+            call hhoGeomGradFaceQP(hhoFaceDef, hhoQuadFace%points_param(1:2, ipg), fbs_scal, &
+                                   BSEvalNodes, geomGrad)
+!
+!------------------------------------------------------------------------------------------------
+! Current surface or line Jacobian
+!------------------------------------------------------------------------------------------------
+!
+            if (hhoFace%ndim == 2) then
+                call hhoCrossProductMatrix(tau1, skewTau1)
+                call hhoCrossProductMatrix(tau2, skewTau2)
+            else
+                tangent_unit(1:2) = tau1(1:2)/jac_t
+            end if
+!
+!------------------------------------------------------------------------------------------------
+! Assemble d F_ext / d U
+!------------------------------------------------------------------------------------------------
+!
+            coef = hhoQuadFace%weights_param(ipg)
+!
+            do ibasis = 1, fbs_scal
+                do jbasis = 1, fbs_scal
+                    block_ij = 0.d0
+                    gradJac = 0.d0
+!
+                    if (celldim == 3) then
+! delta(tau1 cross tau2) = M_j delta U_j
+!
+                        matGeom = -geomGrad(1, jbasis)*skewTau2+geomGrad(2, jbasis)*skewTau1
+                        gradJac(1:3) = matmul(transpose(matGeom), normal_t)
+                    else if (celldim == 2) then
+                        gradJac(1:2) = geomGrad(1, jbasis)*tangent_unit(1:2)
+                    else
+                        ASSERT(ASTER_FALSE)
+                    end if
+!
+! d F_ext_i / d U_j = integral phi_i force_qp outer grad(J_t) d xi
+!
+                    do idim = 1, celldim
+                        do jdim = 1, celldim
+                            block_ij(idim, jdim) = coef*BSEval(ibasis) &
+                                                   *ForceQP(idim, ipg)*gradJac(jdim)
+                        end do
+                    end do
+!
+                    do idim = 1, celldim
+                        irow = (idim-1)*fbs_scal+ibasis
+                        do jdim = 1, celldim
+                            jcol = (jdim-1)*fbs_scal+jbasis
+                            lhs(irow, jcol) = lhs(irow, jcol)+block_ij(idim, jdim)
+                        end do
+                    end do
+                end do
+            end do
+        end do
     else
         ASSERT(ASTER_FALSE)
     end if
