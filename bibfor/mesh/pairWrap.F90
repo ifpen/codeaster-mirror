@@ -99,7 +99,8 @@ subroutine pairWrap(method, &
     meshPairing%debug = verbosity .ge. 2
 
 ! - Create main object for pairing
-    pairDime = nbCellMast*nbCellSlav
+! - 5 is an average of pair by face - Avoid to allocate to large object
+    pairDime = 5*nbCellSlav
     call pairAllocate(pairDime, meshPairing)
 
 ! - Tolerances
