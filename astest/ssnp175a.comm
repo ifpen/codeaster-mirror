@@ -65,6 +65,7 @@ RACCORD = AFFE_CHAR_MECA(
         GROUP_MA_ESCL="LIAISON_Haut",
         GROUP_MA_MAIT="LIAISON_Bas",
         METHODE="PENALISATION",
+        TYPE_APPA="FORCEBRUTE",
         COEF_PENA=E,
     ),
 )
