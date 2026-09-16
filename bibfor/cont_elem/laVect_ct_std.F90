@@ -30,6 +30,7 @@ subroutine laVect_ct_std(parameters, geom, vect_cont, vect_fric, k_diff)
 #include "asterfort/laElemCont.h"
 #include "blas/daxpy.h"
 #include "contact_module.h"
+#include "asterfort/laVect_orphan.h"
 !
     type(ContactParameters), intent(in) :: parameters
     type(ContactGeom), intent(in) :: geom
@@ -81,13 +82,7 @@ subroutine laVect_ct_std(parameters, geom, vect_cont, vect_fric, k_diff)
 ! - Slave node is not paired -> Special treatment
 !
     if (geom%elem_slav_code == "PO1") then
-        if (geom%elem_mast_code == "LAGR") then
-            vect_cont(geom%elem_dime+1) = -geom%lagc_slav_curr(1)
-        else
-            if (geom%elem_mast_code .ne. "NOLAGR") then
-                ASSERT(ASTER_FALSE)
-            end if
-        end if
+        call laVect_orphan(parameters, geom, vect_cont, vect_fric)
 !
         go to 999
     end if

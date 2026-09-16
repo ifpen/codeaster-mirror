@@ -32,6 +32,7 @@ subroutine laMatr_ct_pr(parameters, geom, matr_cont, matr_fric)
 #include "blas/dgemm.h"
 #include "blas/dger.h"
 #include "contact_module.h"
+#include "asterfort/laMatr_orphan.h"
 !
     type(ContactParameters), intent(in) :: parameters
     type(ContactGeom), intent(in) :: geom
@@ -89,19 +90,7 @@ subroutine laMatr_ct_pr(parameters, geom, matr_cont, matr_fric)
 ! - Slave node is not paired -> Special treatment
 !
     if (geom%elem_slav_code == "PO1") then
-        if (geom%elem_mast_code == "LAGR") then
-            matr_cont(geom%elem_dime+1, geom%elem_dime+1) = 1.d0
-            if (parameters%l_fric) then
-                matr_fric(geom%elem_dime+2, geom%elem_dime+2) = 1.d0
-                if (geom%elem_dime == 3) then
-                    matr_fric(geom%elem_dime+3, geom%elem_dime+3) = 1.d0
-                end if
-            end if
-        else
-            if (geom%elem_mast_code .ne. "NOLAGR") then
-                ASSERT(ASTER_FALSE)
-            end if
-        end if
+        call laMatr_orphan(parameters, geom, matr_cont, matr_fric)
 !
         go to 999
     end if
