@@ -36,4 +36,14 @@ Les mailles portant une modélisation HHO doivent être uniquement utilisées un
 Le raccord massif avec la méthode NITSCHE est pour l'instant limité à utiliser une modélisation HHO dans GROUP_MA_MAIT.
 """
     ),
+    4: _(
+        """
+Aucun modèle n'est affecté à la maille esclave %(i1)d.
+"""
+    ),
+    5: _(
+        """
+Aucun modèle n'est affecté à la maille maître %(i1)d.
+"""
+    ),
 }
