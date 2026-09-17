@@ -62,6 +62,11 @@ subroutine te0355(nomopt, nomte)
 ! - Get Parameters
     call laParam(parameters)
 
+    if ((parameters%vari_cont == CONT_VARI_ROBU) .and. &
+        (parameters%l_fric)) then
+        ASSERT(parameters%coef_cont(1) == parameters%coef_fric(1))
+    end if
+
 ! - Use finite difference Jacobian
     diff_num = (parameters%jac_type .gt. 0)
 
