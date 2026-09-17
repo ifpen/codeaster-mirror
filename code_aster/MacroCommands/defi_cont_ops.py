@@ -48,6 +48,12 @@ def _hasFriction(zones):
     return False
 
 
+def _is_Poulios_Renard_formulation(zone):
+    is_Lag_PR = zone["ALGO_CONT"] == "LAGRANGIEN" and zone["VARIANTE"] == "ROBUSTE"
+    is_Pena_PR = zone["ALGO_CONT"] == "PENALISATION"
+    return is_Lag_PR or is_Pena_PR
+
+
 def defi_cont_ops(self, **keywords):
     """Execute the command.
 
@@ -167,8 +173,12 @@ def defi_cont_ops(self, **keywords):
             elif fricParam.getType() == FrictionType.Coulomb:
                 fricParam.setCoulomb(zone["COULOMB"])
 
-            # in the case of undefined COEF_FROT, set it to the default value (100.)
-            fricParam.setCoefficient(zone["COEF_FROT"] or 100.0)
+            # when using ROBUSTE (Poulios and Renard), COEF_CONT should be equal to COEF_FROT
+            if _is_Poulios_Renard_formulation(zone):
+                fricParam.setCoefficient(zone["COEF_CONT"])
+            else:
+                # in the case of undefined COEF_FROT, set it to the default value (100.)
+                fricParam.setCoefficient(zone["COEF_FROT"] or 100.0)
             contZone.setFrictionParameter(fricParam)
 
         # pairing parameters
