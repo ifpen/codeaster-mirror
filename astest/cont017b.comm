@@ -1,0 +1,55 @@
+# coding=utf-8
+# --------------------------------------------------------------------
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
+# This file is part of code_aster.
+#
+# code_aster is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# code_aster is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
+# --------------------------------------------------------------------
+
+## ------------------------------------
+#   PARAMETERS
+## ------------------------------------
+# - Pairing
+pairing_algo = "NEWTON"
+# - Mesh parameters
+use_quad = True
+refine_mesh = False
+refine_factor = 1
+
+# - Physical parameters
+young = 1.0
+coef = young
+use_friction = False
+coef_coulomb = 0.1
+
+# - Loadings parameters
+fac = 1.0  # 0.86
+
+TZ = 2.0
+TX = 10.0
+tfin = fac * TX
+nsteps_tx = 5
+
+dz = 3.0e-2
+dx = 3.0e-1
+
+# - Convergence parameters
+resi_glob_rela = 1e-6
+iter_glob_maxi = 50
+
+DEBUT(CODE="OUI", ERREUR=_F(ERREUR_F="ABORT"))
+
+ma = LIRE_MAILLAGE(FORMAT="MED", UNITE=20)
+
+FIN()
