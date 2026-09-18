@@ -43,6 +43,7 @@ module HHO_LargeStrainMeca_module
 #include "asterfort/HHO_size_module.h"
 #include "asterfort/lagmodtonommod.h"
 #include "asterfort/lcdetf.h"
+#include "asterfort/matinv.h"
 #include "asterfort/nmcomp.h"
 #include "asterfort/pk2sig.h"
 #include "asterfort/pk2topk1.h"
@@ -57,9 +58,9 @@ module HHO_LargeStrainMeca_module
 !
 ! --------------------------------------------------------------------------------------------------
     public :: hhoLargeStrainLCMeca, hhoCalculF, hhoCalculGreenLagrange
-    public :: hhoComputeLhsLarge, hhoComputeRhsLarge
+    public :: hhoComputeLhsLarge, hhoComputeRhsLarge, hhoCalculFinger, hhoCalculEpsDef
     public :: hhoAssembleLhsLarge
-    private :: hhoComputeAgphi
+    private :: hhoComputeAgphi, hhoMatrixToVoigth
     private :: select_behavior, gdeflog, nbsigm_cmp, greenlagr
 !
 contains
@@ -537,6 +538,37 @@ contains
 !
 !===================================================================================================
 !
+    function hhoMatrixToVoigth(ndim, mat) result(vect)
+!
+        implicit none
+!
+        integer(kind=8), intent(in) :: ndim
+        real(kind=8), intent(in) :: mat(3, 3)
+        real(kind=8) :: vect(6)
+!
+! --------------------------------------------------------------------------------------------------
+!   HHO - mechanics
+!
+!  Voigt Notation (XX, YY, ZZ, XY*rac2, XZ*rac2, YZ*rac2)
+! --------------------------------------------------------------------------------------------------
+        real(kind=8), parameter :: rac2 = sqrt(2.d0)
+! --------------------------------------------------------------------------------------------------
+!
+        if (ndim == 2) then
+            vect = [mat(1, 1), mat(2, 2), mat(3, 3), mat(1, 2)*rac2, 0.d0, 0.d0]
+        else if (ndim == 3) then
+            vect = [mat(1, 1), mat(2, 2), mat(3, 3), mat(1, 2)*rac2, mat(1, 3)*rac2, &
+                    mat(2, 3)*rac2]
+        else
+            ASSERT(ASTER_FALSE)
+        end if
+!
+    end function
+!
+!===================================================================================================
+!
+!===================================================================================================
+!
     subroutine hhoCalculGreenLagrange(ndim, F, GLvec)
 !
         implicit none
@@ -548,7 +580,7 @@ contains
 ! --------------------------------------------------------------------------------------------------
 !   HHO - mechanics
 !
-!   Compute the matrix F = G +I
+!   Compute the matrix E = 0.5*(F^T.F-I)
 !   In ndim         : dimension
 !   In F            : deformation gradient
 !   In GLvec        : Green-Lagrange using Voigt Notation (XX, YY, ZZ, XY*rac2, XZ*rac2, YZ*rac2)
@@ -556,7 +588,6 @@ contains
 !
         integer(kind=8) :: i, j, k
         real(kind=8) :: GL_(3, 3)
-        real(kind=8), parameter :: rac2 = sqrt(2.d0)
 ! --------------------------------------------------------------------------------------------------
 !
 ! ---- Compute C/2 = F^T*F/2
@@ -576,22 +607,88 @@ contains
             GL_(k, k) = GL_(k, k)-0.5d0
         end do
 !
-! ---- ! be carrefull with c_plan, I don't know the result
-        if (ndim == 2) then
-            GL_(3, 1:3) = 0.d0
-            GL_(1:2, 3) = 0.d0
-        end if
+        GLvec = hhoMatrixToVoigth(ndim, GL_)
 !
-! ---- convert GL in (XX, YY, ZZ, XY*rac2, XZ*rac2, YZ*rac2)
+    end subroutine
 !
-        if (ndim == 2) then
-            GLvec = [GL_(1, 1), GL_(2, 2), 0.d0, GL_(1, 2)*rac2, 0.d0, 0.d0]
-        else if (ndim == 3) then
-            GLvec = [GL_(1, 1), GL_(2, 2), GL_(3, 3), GL_(1, 2)*rac2, GL_(1, 3)*rac2, &
-                     GL_(2, 3)*rac2]
-        else
-            ASSERT(ASTER_FALSE)
-        end if
+!===================================================================================================
+!
+!===================================================================================================
+!
+    subroutine hhoCalculFinger(ndim, F, FingerVec)
+!
+        implicit none
+!
+        integer(kind=8), intent(in) :: ndim
+        real(kind=8), intent(in) :: F(3, 3)
+        real(kind=8), intent(out) :: FingerVec(6)
+!
+! --------------------------------------------------------------------------------------------------
+!   HHO - mechanics
+!
+!   Compute the matrix Finger = 0.5*(F.F^T-I)
+!   In ndim         : dimension
+!   In F            : deformation gradient
+!   In Fingervec        : Finger using Voigt Notation (XX, YY, ZZ, XY*rac2, XZ*rac2, YZ*rac2)
+! --------------------------------------------------------------------------------------------------
+!
+        integer(kind=8) :: i, j, k
+        real(kind=8) :: FG_(3, 3)
+! --------------------------------------------------------------------------------------------------
+!
+! ---- Compute B/2 = F^T*F/2
+!
+        FG_ = 0.d0
+        do j = 1, 3
+            do i = 1, j
+                do k = 1, 3
+                    FG_(i, j) = FG_(i, j)+F(i, k)*F(j, k)
+                end do
+                FG_(i, j) = 0.5d0*FG_(i, j)
+                FG_(j, i) = FG_(i, j)
+            end do
+        end do
+!
+        do k = 1, 3
+            FG_(k, k) = FG_(k, k)-0.5d0
+        end do
+!
+        FingerVec = hhoMatrixToVoigth(ndim, FG_)
+!
+    end subroutine
+!
+!===================================================================================================
+!
+!===================================================================================================
+!
+    subroutine hhoCalculEpsDef(ndim, F, G_incr, EDVec)
+!
+        implicit none
+!
+        integer(kind=8), intent(in) :: ndim
+        real(kind=8), intent(in) :: F(3, 3), G_incr(3, 3)
+        real(kind=8), intent(out) :: EDVec(6)
+!
+! --------------------------------------------------------------------------------------------------
+!   HHO - mechanics
+!
+!   Compute the matrix EpsDef = 0.5*(grad_x + grad_x^T) with grad_x = G_incr * F^-1
+!   In ndim         : dimension
+!   In F            : deformation gradient (for the displacement u_x)
+!   In G_inr        : gradient in the reference configuration for incremental dispacement
+!                     u_incr = u - u_x
+!   In EDvec        : EP using Voigt Notation (XX, YY, ZZ, XY*rac2, XZ*rac2, YZ*rac2)
+! --------------------------------------------------------------------------------------------------
+!
+        real(kind=8) :: ED_(3, 3), Finv(3, 3), detF, grad_x(3, 3)
+! --------------------------------------------------------------------------------------------------
+!
+        call matinv("S", 3, F, Finv, detF)
+        grad_x = matmul(G_incr, Finv)
+!
+        ED_ = 0.5d0*(grad_x+transpose(grad_x))
+!
+        EDVec = hhoMatrixToVoigth(ndim, ED_)
 !
     end subroutine
 !

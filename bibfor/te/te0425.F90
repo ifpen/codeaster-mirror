@@ -32,17 +32,17 @@ subroutine te0425(option, nomte)
     use HHO_utils_module
     implicit none
 !
-#include "asterc/r8vide.h"
+#include "jeveux.h"
 #include "asterf_types.h"
+#include "asterc/r8vide.h"
 #include "asterfort/assert.h"
 #include "asterfort/Behaviour_type.h"
 #include "asterfort/elrefe_info.h"
 #include "asterfort/HHO_size_module.h"
 #include "asterfort/jevech.h"
 #include "asterfort/pi0000.h"
-#include "asterfort/pidefo_hho.h"
+#include "asterfort/pidefo.h"
 #include "asterfort/readVector.h"
-#include "jeveux.h"
 !
     character(len=16), intent(in) :: nomte, option
 !
@@ -77,18 +77,18 @@ subroutine te0425(option, nomte)
     real(kind=8), dimension(MSIZE_CELL_MAT) :: E_0_coeff, E_pilo_coeff
     real(kind=8) :: tau, etamin, etamax, coorpg(3)
     real(kind=8) :: E_prev(nmax), E_cste(nmax), E_pilo(nmax), E_0(nmax), E_incr(nmax)
-    real(kind=8) :: copilo(5, MSIZE_QP_CELL), sigma(nmax)
+    real(kind=8) :: copilo(5), sigma(nmax)
     real(kind=8) :: G_prev(3, 3), G_incr(3, 3), G_pilo(3, 3), G_0(3, 3)
-    real(kind=8) :: F_prev(3, 3), F_incr(3, 3), F_pilo(3, 3), F_0(3, 3)
+    real(kind=8) :: F_prev(3, 3)
     real(kind=8) :: GV_prev(3), GV_incr(3), GV_0(3), GV_pilo(3), GV_cste(3)
     real(kind=8) :: var_prev, var_incr, var_0, var_pilo, var_cste
     real(kind=8) :: lag_prev, lag_incr, lag_0, lag_pilo, lag_cste
-    integer(kind=8) :: ndimsi
     integer(kind=8) :: mk_cbs, mk_fbs, mk_total_dofs, mk_gbs, mk_gbs_sym, mkb_gbs_axis
     integer(kind=8) :: gv_cbs, gv_fbs, gv_total_dofs, gv_gbs, total_dofs
     integer(kind=8) :: ipg, npg, k, neps, nmk, gv_faces_dofs, gv_cell_offset
-    integer(kind=8) :: iborne, ictau, itype, jvMaterc
+    integer(kind=8) :: iborne, ictau, itype
     character(len=16) :: pilo
+    aster_logical :: l_pred_elas
     real(kind=8), pointer :: v_copilo(:) => null()
 !
 ! --------------------------------------------------------------------------------------------------
@@ -96,7 +96,11 @@ subroutine te0425(option, nomte)
     if (option /= "PILO_PRED_DEFO" .and. option /= "PILO_PRED_ELAS") then
         ASSERT(ASTER_FALSE)
     end if
-
+!
+    call jevech('PTYPEPI', 'L', itype)
+    pilo = zk16(itype)
+    l_pred_elas = pilo == "PILO_PRED_ELAS"
+!
 ! - Get element parameters
     call elrefe_info(fami=fami, npg=npg)
 
@@ -123,6 +127,7 @@ subroutine te0425(option, nomte)
     call hhoBasisCell%initialize(hhoCell)
 
 ! - Compute Operators
+    hhoCS%l_largestrain = hhoCS%l_largestrain .and. (.not. l_pred_elas)
     call hhoCalcOpGv(hhoCell, hhoDataMk, hhoDataGv, hhoCS%l_largestrain, &
                      hhoMecaState, hhoGvState)
 !
@@ -134,10 +139,6 @@ subroutine te0425(option, nomte)
     call hhoExtrField(hhoCell, hhoDataMk, hhoDataGv, &
                       tmp_pilo, depl_pilo, vari_pilo, lagv_pilo)
 !
-    call jevech('PMATERC', 'L', jvMaterc)
-    call jevech('PTYPEPI', 'L', itype)
-!
-    pilo = zk16(itype)
     call jevech('PCDTAU', 'L', ictau)
     tau = zr(ictau)
     if (pilo .eq. 'PRED_ELAS') then
@@ -158,6 +159,7 @@ subroutine te0425(option, nomte)
     call hhoGVState%grad%dot(vari_pilo, GV_pilo_coeff)
 
 !
+    call jevech('PCOPILO', 'E', vr=v_copilo)
     copilo = r8vide()
 !
     nmk = 2*hhoCell%ndim
@@ -175,21 +177,18 @@ subroutine te0425(option, nomte)
         if (hhoCS%l_largestrain) then
             G_prev = hhoEvalMatCell(hhoCell%ndim, mk_gbs, BSCEval, E_prev_coeff)
             call hhoCalculF(G_prev, F_prev)
-            call hhoCalculGreenLagrange(hhoCell%ndim, F_prev, E_prev(1:6))
+            call hhoCalculFinger(hhoCell%ndim, F_prev, E_prev(1:6))
 !
             G_incr = hhoEvalMatCell(hhoCell%ndim, mk_gbs, BSCEval, E_incr_coeff)
-            call hhoCalculF(G_incr, F_incr)
-            call hhoCalculGreenLagrange(hhoCell%ndim, F_incr, E_incr(1:6))
+            call hhoCalculEpsDef(hhoCell%ndim, F_prev, G_incr, E_incr(1:6))
 !
             G_0 = hhoEvalMatCell(hhoCell%ndim, mk_gbs, BSCEval, E_0_coeff)
-            call hhoCalculF(G_0, F_0)
-            call hhoCalculGreenLagrange(hhoCell%ndim, F_0, E_0(1:6))
+            call hhoCalculEpsDef(hhoCell%ndim, F_prev, G_0, E_0(1:6))
 !
             E_cste(1:6) = E_incr(1:6)+E_0(1:6)
 !
             G_pilo = hhoEvalMatCell(hhoCell%ndim, mk_gbs, BSCEval, E_pilo_coeff)
-            call hhoCalculF(G_pilo, F_pilo)
-            call hhoCalculGreenLagrange(hhoCell%ndim, F_pilo, E_pilo(1:6))
+            call hhoCalculEpsDef(hhoCell%ndim, F_prev, G_pilo, E_pilo(1:6))
         else
 ! --------- Eval deformations
             E_prev(1:6) = hhoEvalSymMatCell(hhoCell%ndim, mk_gbs_sym, BSCEval, E_prev_coeff)
@@ -231,31 +230,24 @@ subroutine te0425(option, nomte)
 !
 ! --- PILOTAGE PAR L'INCREMENT DE DEFORMATION
 !
-        ndimsi = 2*hhoCell%ndim
         if (option == "PILO_PRED_ELAS") then
             sigma(1:neps) = hhoCS%sig_prev((ipg-1)*neps+1:ipg*neps)
-            do k = 4, ndimsi
+            do k = 4, nmk
                 sigma(k) = sigma(k)*rac2
             end do
             call pi0000(hhoCS%BEHInteg, hhoCS%compor, hhoCS%typmod, hhoCell%ndim, &
-                        E_prev(1:ndimsi), E_cste(1:ndimsi), E_pilo(1:ndimsi), &
-                        sigma(1:ndimsi), hhoCS%vari_prev((ipg-1)*hhoCS%lgpg+1:ipg*hhoCS%lgpg), &
-                        tau, etamin, etamax, copilo(:, ipg))
+                        E_prev(1:nmk), E_cste(1:nmk), E_pilo(1:nmk), &
+                        sigma(1:nmk), hhoCS%vari_prev((ipg-1)*hhoCS%lgpg+1:ipg*hhoCS%lgpg), &
+                        tau, etamin, etamax, copilo)
 
         else if (option == "PILO_PRED_DEFO") then
-            call pidefo_hho(hhoCS%compor, &
-                            hhoCell%ndim, ipg, F_prev, &
-                            E_prev, E_cste, E_pilo, tau, copilo)
+            call pidefo(E_prev(1:nmk), E_cste(1:nmk), E_pilo(1:nmk), tau, copilo)
 
         else
             ASSERT(ASTER_FALSE)
         end if
-    end do
 !
-    call jevech('PCOPILO', 'E', vr=v_copilo)
-!
-    do ipg = 1, npg
-        v_copilo((ipg-1)*5+1:ipg*5) = copilo(1:5, ipg)
+        v_copilo((ipg-1)*5+1:ipg*5) = copilo(1:5)
     end do
 !
 end subroutine
