@@ -25,7 +25,6 @@ SRCDIR = osp.abspath(osp.join(osp.dirname(__file__), os.pardir))
 BUILDDIR = os.environ.get("BUILDDIR", "build/mpi/release/doc")
 
 paths = [
-    osp.join(DOCDIR, "_extensions"),
     osp.join(DOCDIR, "_automatic_"),
     SRCDIR,
     osp.join(SRCDIR, "code_aster"),
@@ -81,11 +80,11 @@ autodoc_mock_imports = ["aster", "aster_core"]
 autodoc_member_order = "bysource"
 
 # -- Options for HTML output ----------------------------------------------
-html_theme = "sphinx_rtd_theme"
-html_theme_path = ["_extensions"]
+html_theme = "pydata_sphinx_theme"
 html_favicon = "img/code_aster_favicon.png"
 html_logo = "img/code_aster_200.png"
 html_static_path = ["_static"]
+html_css_files = ["custom.css"]
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
@@ -141,7 +140,7 @@ htmlhelp_basename = "code_asterdoc"
 
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
-    "papersize": "a4paper",
+    "papersize": "a4paper"
     # The font size ('10pt', '11pt' or '12pt').
     #'pointsize': '10pt',
     # Additional stuff for the LaTeX preamble.
@@ -227,30 +226,3 @@ napoleon_include_private_with_doc = True
 
 # Show todo blocks
 todo_include_todos = True
-
-
-# adapt css
-def setup(app):
-    try:
-        app.add_css_file("mystyles.css")
-    except AttributeError:
-        # version < 1.8
-        app.add_stylesheet("mystyles.css")
-
-
-# List of modules which should be ignored when checking coverage.
-# coverage_ignore_modules = []
-
-# List of functions which should be ignored when checking coverage.
-# coverage_ignore_functions = []
-
-# List of classes which should be ignored when checking coverage.
-# coverage_ignore_classes = ["UndoMenu", "UndoRedoItem"]
-
-# Set to False to not write headlines.
-# coverage_write_headline = False
-
-# Skip objects that are not documented in the source with a docstring. False by default.
-# coverage_skip_undoc_in_source = True
-
-# intersphinx_mapping = {'python': ('https://docs.python.org/2.7', None)}

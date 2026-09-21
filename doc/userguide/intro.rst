@@ -4,5 +4,5 @@
 Link to the documentation site
 ==============================
 
-The user manuals are provided as PDF files on
-`documentation page <https://www.code-aster.org/V2/doc/default/fr/index.php?man=U>`_.
+The user manuals are provided on the
+`documentation page <https://www.code-aster.org/doc/>`_.
