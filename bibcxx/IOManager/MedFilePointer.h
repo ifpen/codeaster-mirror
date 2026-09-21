@@ -52,6 +52,8 @@ class MedFilePointer {
     bool _isOpen = false;
     /** @brief true if file is open in parallel */
     bool _parallelOpen = false;
+    /** @brief file verion */
+    std::array< med_int, 3 > _fileVersion = { 0, 0, 0 };
 
     /** @brief Check that file version match lib version */
     void checkFileVersion();
