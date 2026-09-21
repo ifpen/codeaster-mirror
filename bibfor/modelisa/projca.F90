@@ -16,7 +16,7 @@
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
 
-subroutine projca(tablca, lirela, nmabet, nbmabe, mailla, &
+subroutine projca(tablca, lirela, nmabet, nbmabe, mesh, &
                   caelem, nbnobe, nunobe, icabl, nbnoca, &
                   xnoca, ynoca, znoca)
     implicit none
@@ -75,20 +75,21 @@ subroutine projca(tablca, lirela, nmabet, nbmabe, mailla, &
 #include "asterfort/jemarq.h"
 #include "asterfort/jeveuo.h"
 #include "asterfort/projkm.h"
+#include "asterfort/jeexin.h"
 #include "asterfort/reci2d.h"
 #include "asterfort/tbajli.h"
 #include "asterfort/utmess.h"
 #include "asterfort/as_deallocate.h"
 #include "asterfort/as_allocate.h"
 #include "asterfort/int_to_char8.h"
-    character(len=8) :: mailla, caelem
+    character(len=8) :: mesh, caelem
     character(len=19) :: lirela, nunobe, xnoca, ynoca, znoca, tablca
     integer(kind=8) :: nbnobe, icabl, nbmabe, nbnoca(*)
     character(len=24) :: nmabet
 !
 ! VARIABLES LOCALES
 ! -----------------
-    integer(kind=8) :: ideca, inobe, inoca, ipara, iproj, itria, jcoor, jnoca
+    integer(kind=8) :: ideca, inobe, inoca, ipara, iproj, itria, jcoor, jnoca, ier
     integer(kind=8) :: jnunob, jxca, jyca, jzca, nbcnx, nblign
     integer(kind=8) :: nbno, nbpara, nnomax, noe, noebe, numail
     real(kind=8) :: d2, d2min, dx, dy, dz, excent, normal(3), x3dca(3), xbar(3)
@@ -96,7 +97,7 @@ subroutine projca(tablca, lirela, nmabet, nbmabe, mailla, &
     complex(kind=8) :: cbid
     character(len=8) :: nnoeca, voisin(2)
     character(len=24) :: coorno, nonoca
-    aster_logical :: encore
+    aster_logical :: encore, lcolleNd, lColleEl
 !
     character(len=24) :: param(4), parcr
     integer(kind=8), pointer :: cnx_maille(:) => null()
@@ -120,8 +121,18 @@ subroutine projca(tablca, lirela, nmabet, nbmabe, mailla, &
 !
 ! 1.1 OBJETS DU MAILLAGE
 ! ---
-    coorno = mailla//'.COORDO    .VALE'
+    coorno = mesh//'.COORDO    .VALE'
     call jeveuo(coorno, 'L', jcoor)
+    lcolleNd = .false.
+    call jeexin(mesh(1:8)//'.NOMNOE', ier)
+    if (ier .ne. 0) then
+        lcolleNd = .true.
+    end if
+    lcolleEl = .false.
+    call jeexin(mesh(1:8)//'.NOMAMI', ier)
+    if (ier .ne. 0) then
+        lcolleEl = .true.
+    end if
 !
 ! 1.2 DONNEES RELATIVES AU CABLE
 ! ---
@@ -223,7 +234,7 @@ subroutine projca(tablca, lirela, nmabet, nbmabe, mailla, &
 !
 ! 2.2.2  TENTATIVE DE PROJECTION DU NOEUD CABLE
 !
-        call projkm(nmabet, nbmabe, nbnobe, mailla, caelem, dmax_cable, &
+        call projkm(nmabet, nbmabe, nbnobe, mesh, caelem, dmax_cable, &
                     nnoeca, x3dca(1), noebe, numail, nbcnx, &
                     cnx_maille, xyz_noemai, normal(1), itria, xbar(1), &
                     iproj, excent)
@@ -233,14 +244,14 @@ subroutine projca(tablca, lirela, nmabet, nbmabe, mailla, &
 !
 ! 2.2.5  DETERMINATION DES RELATIONS CINEMATIQUES
 ! .....
-        call reci2d(lirela, mailla, nnoeca, noebe, nbcnx, &
+        call reci2d(lirela, mesh, nnoeca, noebe, nbcnx, &
                     cnx_maille, normal(1), itria, xbar(1), iproj, &
                     excent)
 !
 ! 2.2.6  MISE A JOUR DE LA SD TABLE
 ! .....
-        voisin(1) = int_to_char8(numail)
-        voisin(2) = int_to_char8(noebe)
+        voisin(1) = int_to_char8(numail, lcolleEl, mesh, "MAILLE")
+        voisin(2) = int_to_char8(noebe, lcolleNd, mesh, "NOEUD")
         call tbajli(tablca, 4, param, [iproj], [excent], &
                     [cbid], voisin(1), ideca+inoca)
 !
