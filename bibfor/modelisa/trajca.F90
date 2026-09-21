@@ -15,8 +15,9 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
+! aslint: disable=W0413
 !
-subroutine trajca(tablca, mailla, icabl, nbnoca, xnoca, &
+subroutine trajca(tablca, mesh, icabl, nbnoca, xnoca, &
                   ynoca, znoca, comima, gromai)
     implicit none
 !  DESCRIPTION : INTERPOLATION DE LA TRAJECTOIRE D'UN CABLE
@@ -74,6 +75,7 @@ subroutine trajca(tablca, mailla, icabl, nbnoca, xnoca, &
 #include "asterfort/jeveuo.h"
 #include "asterfort/splin1.h"
 #include "asterfort/splin2.h"
+#include "asterfort/jeexin.h"
 #include "asterfort/spline.h"
 #include "asterfort/tbajli.h"
 #include "asterfort/trigom.h"
@@ -81,7 +83,7 @@ subroutine trajca(tablca, mailla, icabl, nbnoca, xnoca, &
 #include "asterfort/wkvect.h"
 #include "asterfort/char8_to_int.h"
 !
-    character(len=8) :: mailla
+    character(len=8) :: mesh
     character(len=19) :: xnoca, ynoca, znoca, tablca
     character(len=24) :: comima, gromai
     integer(kind=8) :: icabl, nbnoca(*)
@@ -89,7 +91,7 @@ subroutine trajca(tablca, mailla, icabl, nbnoca, xnoca, &
 ! VARIABLES LOCALES
 ! -----------------
     integer(kind=8) :: ibid, idecal, ino, ipara, iret, isub, jalph, jcoor
-    integer(kind=8) :: jnoca, jx, jy, jz, nblign, nbno
+    integer(kind=8) :: jnoca, jx, jy, jz, nblign, nbno, ier
     integer(kind=8) :: nbpara, numnoe, icmima, nbvar, nbvar2, svar, vali(3)
     real(kind=8) :: absc, alpha, corde, alphcu, d1m, d1p, dcp, d1x, d1x1
     real(kind=8) :: d1xn, d1y, d1y1, d1yn, d1z, d1z1, d1zn, d2x, d2y, d2z, dc
@@ -99,7 +101,7 @@ subroutine trajca(tablca, mailla, icabl, nbnoca, xnoca, &
     complex(kind=8) :: cbid
     character(len=3) :: k3b
     character(len=24) :: coorno, nonoca
-    aster_logical :: lsplin
+    aster_logical :: lsplin, lcolleNd
 !
     integer(kind=8) :: nbsub, jgmai
     parameter(nbsub=5)
@@ -121,6 +123,11 @@ subroutine trajca(tablca, mailla, icabl, nbnoca, xnoca, &
     call jemarq()
     cbid = (0.d0, 0.d0)
     ibid = 0
+    lcolleNd = .false.
+    call jeexin(mesh(1:8)//'.NOMNOE', ier)
+    if (ier .ne. 0) then
+        lcolleNd = .true.
+    end if
 !
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ! 1   CREATION DES OBJETS DE TRAVAIL
@@ -168,10 +175,10 @@ subroutine trajca(tablca, mailla, icabl, nbnoca, xnoca, &
     xmax = -r8maem()
     ymax = -r8maem()
     zmax = -r8maem()
-    coorno = mailla//'.COORDO    .VALE'
+    coorno = mesh//'.COORDO    .VALE'
     call jeveuo(coorno, 'L', jcoor)
     do ino = 1, nbno
-        numnoe = char8_to_int(zk8(jnoca+idecal+ino-1))
+        numnoe = char8_to_int(zk8(jnoca+idecal+ino-1), lcolleNd, mesh, "NOEUD")
         zr(jx+idecal+ino-1) = zr(jcoor+3*(numnoe-1))
         zr(jy+idecal+ino-1) = zr(jcoor+3*(numnoe-1)+1)
         zr(jz+idecal+ino-1) = zr(jcoor+3*(numnoe-1)+2)

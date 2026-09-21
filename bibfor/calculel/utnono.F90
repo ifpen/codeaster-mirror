@@ -16,9 +16,10 @@
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
 
-subroutine utnono(mess, nomma, type, nomgrp, nomobj, &
-                  iret)
+subroutine utnono(mess, mesh, type, nomgrp, nomobj, &
+                  iret, lColleNd_)
     implicit none
+#include "asterf_types.h"
 #include "jeveux.h"
 #include "asterfort/assert.h"
 #include "asterfort/codent.h"
@@ -31,10 +32,11 @@ subroutine utnono(mess, nomma, type, nomgrp, nomobj, &
 #include "asterfort/utmess.h"
 #include "asterfort/int_to_char8.h"
 !
-    character(len=8) :: nomma, nomobj
+    character(len=8) :: mesh, nomobj
     character(len=24) :: nomgrp
     character(len=*) :: mess, type
     integer(kind=8) :: iret
+    aster_logical, optional, intent(in) :: lColleNd_
 !
 !     RENVOIE LE PREMIER NOEUD OU MAILLE CONTENU DANS UN GROUP_NO
 !             OU UN GROUP_MA
@@ -54,15 +56,20 @@ subroutine utnono(mess, nomma, type, nomgrp, nomobj, &
 ! ----------------------------------------------------------------------
     character(len=24) :: valk(2)
 !
-    integer(kind=8) :: iret1, nbno, iad
+    integer(kind=8) :: iret1, nbno, iad, ier
     character(len=1) :: typm
     character(len=8) :: knbno
     character(len=16) :: typgrp
+    aster_logical :: lColleNd
 !
     call jemarq()
     iret = 10
     typm = mess(1:1)
     nomobj = ' '
+    lcolleNd = .false.
+    if (present(lColleNd_)) then
+        lColleNd = lColleNd_
+    end if
 !
     if (type(1:5) .eq. 'NOEUD') then
         typgrp = '.GROUPENO       '
@@ -72,9 +79,9 @@ subroutine utnono(mess, nomma, type, nomgrp, nomobj, &
         goto 999
     end if
 !
-    call jeexin(jexnom(nomma//typgrp, nomgrp), iret1)
+    call jeexin(jexnom(mesh//typgrp, nomgrp), iret1)
     if (iret1 .gt. 0) then
-        call jelira(jexnom(nomma//typgrp, nomgrp), 'LONUTI', nbno)
+        call jelira(jexnom(mesh//typgrp, nomgrp), 'LONUTI', nbno)
     else
         nbno = 0
     end if
@@ -107,8 +114,8 @@ subroutine utnono(mess, nomma, type, nomgrp, nomobj, &
         end if
     end if
 !
-    call jeveuo(jexnom(nomma//typgrp, nomgrp), 'L', iad)
-    nomobj = int_to_char8(zi(iad))
+    call jeveuo(jexnom(mesh//typgrp, nomgrp), 'L', iad)
+    nomobj = int_to_char8(zi(iad), lcolleNd, mesh, "NOEUD")
 !
 999 continue
     call jedema()

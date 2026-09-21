@@ -78,7 +78,7 @@ subroutine op0180()
     real(kind=8) :: trelax, valr(2), rbid
     aster_logical :: mail2d, relax, quad, eval
     character(len=3) :: k3b
-    character(len=8) :: caelem, chmat, mailla, modele, nomu, adher, analy
+    character(len=8) :: caelem, chmat, mesh, modele, nomu, adher, analy
     character(len=8) :: typanc(2), typ_ma
     character(len=16) :: cmd, concep
     character(len=19) :: carte, ligrmo, lirela, numaca, nunobe, xnoca
@@ -251,9 +251,9 @@ subroutine op0180()
 !
 ! 4.1 RECUPERATION DU NOM DU CONCEPT MAILLAGE
 ! ---
-    call dismoi('NOM_MAILLA', modele, 'MODELE', repk=mailla)
-    call dismoi('NB_MA_MAILLA', mailla, 'MAILLAGE', repi=nbmama)
-    call dismoi('NB_NO_MAILLA', mailla, 'MAILLAGE', repi=nbnoma)
+    call dismoi('NOM_MAILLA', modele, 'MODELE', repk=mesh)
+    call dismoi('NB_MA_MAILLA', mesh, 'MAILLAGE', repi=nbmama)
+    call dismoi('NB_NO_MAILLA', mesh, 'MAILLAGE', repi=nbnoma)
 !
 ! 4.2 CREATION DES OBJETS DE TRAVAIL
 ! ---
@@ -353,19 +353,19 @@ subroutine op0180()
     call wkvect(comima, 'V V R', 6, ibid)
     call wkvect(gromai, 'V V R', 3, ibid)
 !
-    call reliem(' ', mailla, 'NU_MAILLE', ' ', 0, &
+    call reliem(' ', mesh, 'NU_MAILLE', ' ', 0, &
                 1, 'GROUP_MA_BETON', 'GROUP_MA', nmabet, nbmabe)
 !
     call jeexin(ncncin, n2)
     call jeveuo(nmabet, 'L', jlimab)
 !
-    if (n2 .eq. 0) call cncinv(mailla, zi(jlimab), nbmabe, 'V', ncncin)
+    if (n2 .eq. 0) call cncinv(mesh, zi(jlimab), nbmabe, 'V', ncncin)
 !
-    call tomabe(chmat, nmabet, nbmabe, mailla, nbnoma, &
+    call tomabe(chmat, nmabet, nbmabe, mesh, nbnoma, &
                 mail2d, nbnobe, nunobe, xflu, xret, &
                 regl)
 !
-    call gromab(mailla, nmabet, nbmabe, mail2d, caelem, &
+    call gromab(mesh, nmabet, nbmabe, mail2d, caelem, &
                 gromai)
 !
     call wkvect(nunobi, 'V V I', nbnobe, ibid)
@@ -376,7 +376,7 @@ subroutine op0180()
 !
     do icabl = 1, nbcabl
         eval = .true.
-        call topoca(kbid19, mailla, icabl, nbf0, zi(jnbno), kbid19, &
+        call topoca(kbid19, mesh, icabl, nbf0, zi(jnbno), kbid19, &
                     quad, ibid, eval)
     end do
 !
@@ -413,7 +413,7 @@ subroutine op0180()
 !
 ! 4.8.1  CARACTERISATION DE LA TOPOLOGIE DU CABLE
 ! .....
-        call topoca(nomt19, mailla, icabl, nbf0, zi(jnbno), &
+        call topoca(nomt19, mesh, icabl, nbf0, zi(jnbno), &
                     numaca, quad, sens)
 !       REMPLISSAGE DES COLONNES SENS ET TYPE_MAILLE
         if (quad) then
@@ -433,12 +433,12 @@ subroutine op0180()
 !
 ! 4.8.3  INTERPOLATION DE LA TRAJECTOIRE DU CABLE
 ! .....
-        call trajca(nomt19, mailla, icabl, zi(jnbno), xnoca, &
+        call trajca(nomt19, mesh, icabl, zi(jnbno), xnoca, &
                     ynoca, znoca, comima, gromai)
 !
 ! 4.8.X   SELECTION D'UNE PARTIE DES NOEUDS DE BETON
 ! .....
-        call voisca(mailla, nbnobe, nunobe, comima, nbnobi, &
+        call voisca(mesh, nbnobe, nunobe, comima, nbnobi, &
                     nunobi)
 !
 ! 4.8.4  CALCUL DE LA TENSION LE LONG DU CABLE
@@ -461,7 +461,7 @@ subroutine op0180()
 !......  PROJECTION DU CABLE SUR LE MAILLAGE BETON
 !
         if (mail2d) then
-            call projca(nomt19, lirela, nmabet, nbmabe, mailla, &
+            call projca(nomt19, lirela, nmabet, nbmabe, mesh, &
                         caelem, nbnobi, nunobi, icabl, zi(jnbno), &
                         xnoca, ynoca, znoca)
 !
@@ -469,7 +469,7 @@ subroutine op0180()
 !......  IMMERSION DU CABLE DANS LE MAILLAGE BETON
 !
         else
-            call immeca(nomt19, lirela, mailla, nbnobi, nunobi, &
+            call immeca(nomt19, lirela, mesh, nbnobi, nunobi, &
                         icabl, zi(jnbno), xnoca, ynoca, znoca, &
                         ncncin, nmabet, gromai)
         end if
