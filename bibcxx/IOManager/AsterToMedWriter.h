@@ -89,23 +89,17 @@ class AsterToMedWriter {
 #endif
     /** @brief print MeshPtr object */
     bool printMesh( const MeshPtr &mesh, const std::filesystem::path &filename, bool local = true,
-                    const std::string &meshName = "", const std::string &mode = "a" ) {
-        return printMesh( *mesh, filename, local, meshName );
-    };
+                    const std::string &meshName = "", const std::string &mode = "a" );
 #ifdef ASTER_HAVE_MPI
     /** @brief print ParallelMeshPtr object */
     bool printMesh( const ParallelMeshPtr &mesh, const std::filesystem::path &filename,
                     bool local = true, const std::string &meshName = "",
-                    const std::string &mode = "a" ) {
-        return printMesh( *mesh, filename, local, meshName );
-    };
+                    const std::string &mode = "a" );
 
     /** @brief print ConnectionMeshPtr object */
     bool printMesh( const ConnectionMeshPtr &mesh, const std::filesystem::path &filename,
                     bool local = true, const std::string &meshName = "",
-                    const std::string &mode = "a" ) {
-        return printMesh( *mesh, filename, local, meshName );
-    };
+                    const std::string &mode = "a" );
 #endif
     /** @brief print ResultPtr object */
     bool printResult( const ResultPtr &, const std::filesystem::path &filename, bool local = true,

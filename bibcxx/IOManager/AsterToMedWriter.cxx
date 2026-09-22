@@ -186,6 +186,9 @@ std::vector< med_int > asterToMedRenumbering( const med_int &medType,
 bool AsterToMedWriter::printMesh( const Mesh &toPrint, const std::filesystem::path &filename,
                                   bool local, const std::string &meshName,
                                   const std::string &mode ) {
+    if ( !local ) {
+        throw std::runtime_error( "Parallel print not allowed with Mesh" );
+    }
     VectorLong nodeList =
         irange( (ASTERINTEGER)0, (ASTERINTEGER)( toPrint.getNumberOfNodes() - 1 ) );
     VectorLong cellList =
@@ -687,5 +690,25 @@ bool AsterToMedWriter::printResult( const ResultPtr &resu, const std::filesystem
     }
     return true;
 };
+
+bool AsterToMedWriter::printMesh( const MeshPtr &mesh, const std::filesystem::path &filename,
+                                  bool local, const std::string &meshName,
+                                  const std::string &mode ) {
+    return printMesh( *mesh, filename, local, meshName );
+};
+
+#ifdef ASTER_HAVE_MPI
+bool AsterToMedWriter::printMesh( const ParallelMeshPtr &mesh,
+                                  const std::filesystem::path &filename, bool local,
+                                  const std::string &meshName, const std::string &mode ) {
+    return printMesh( *mesh, filename, local, meshName );
+};
+
+bool AsterToMedWriter::printMesh( const ConnectionMeshPtr &mesh,
+                                  const std::filesystem::path &filename, bool local,
+                                  const std::string &meshName, const std::string &mode ) {
+    return printMesh( *mesh, filename, local, meshName );
+};
+#endif
 
 #endif
