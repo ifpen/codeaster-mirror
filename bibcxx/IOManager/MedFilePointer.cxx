@@ -98,8 +98,8 @@ int MedFilePointer::openParallel( const std::filesystem::path &filename,
     }
     _fileId = MEDparFileOpen( filename.string().c_str(), medAccessMode, comm, MPI_INFO_NULL );
     checkFileVersion();
-    if( _fileVersion[0] < 3 ) {
-        throw std::runtime_error( "Parallel opening of MED files is prohibited for files"\
+    if ( _fileVersion[0] < 3 ) {
+        throw std::runtime_error( "Parallel opening of MED files is prohibited for files"
                                   " produced by a version of MED older than 3.0." );
     }
     _isOpen = true;
