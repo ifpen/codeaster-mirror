@@ -1,0 +1,270 @@
+# coding=utf-8
+# --------------------------------------------------------------------
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
+# This file is part of code_aster.
+#
+# code_aster is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# code_aster is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
+# --------------------------------------------------------------------
+import math
+from code_aster.MacroCommands.defi_cont import DEFI_CONT
+
+## ------------------------------------
+#   MESH INFORMATION
+## ------------------------------------
+POURSUITE(CODE="OUI", ERREUR=_F(ERREUR_F="ABORT"))
+
+ma = LIRE_MAILLAGE(FORMAT="MED", UNITE=20)
+
+if refine_mesh:
+    ma = ma.refine(refine_factor)
+
+if use_quad:
+    ma = ma.convertToQuadratic()
+
+
+ma = MODI_MAILLAGE(reuse=ma, MAILLAGE=ma, ORIE_PEAU=(_F(GROUP_MA_PEAU="Escl"),))
+
+ma = DEFI_GROUP(reuse=ma, MAILLAGE=ma, CREA_GROUP_NO=(_F(GROUP_MA="Escl"),))
+
+## ------------------------------------
+#   MODEL AND MATERIAL
+## ------------------------------------
+modele = AFFE_MODELE(
+    MAILLAGE=ma,
+    AFFE=_F(
+        GROUP_MA=("Escl", "Mait", "Cube", "Depl"), PHENOMENE="MECANIQUE", MODELISATION=("D_PLAN",)
+    ),
+)
+
+acier = DEFI_MATERIAU(ELAS=_F(E=young, NU=0.3, RHO=2500))
+
+affe_mat = AFFE_MATERIAU(MAILLAGE=ma, AFFE=_F(TOUT="OUI", MATER=acier))
+
+## ------------------------------------
+#   LOADINGS
+## ------------------------------------
+ZERO = DEFI_CONSTANTE(VALE=0.0)
+
+
+def h(x):
+    if x > 0:
+        return 1.0
+    else:
+        return 0.0
+
+
+DZIMP = FORMULE(
+    NOM_PARA=("INST"), VALE="-dz* INST/TZ*h(TZ-INST) -dz*h(INST-TZ+0.001)", TZ=TZ, h=h, dz=dz
+)
+DXIMP = FORMULE(
+    NOM_PARA=("INST"),
+    VALE="dx * INST/TX*h(INST-TZ)",
+    # VALE="dx * INST/TX*h(INST)",
+    TZ=TZ,
+    h=h,
+    dx=dx,
+    TX=TX,
+)
+
+DEPL = AFFE_CHAR_CINE_F(
+    MODELE=modele,
+    MECA_IMPO=(_F(GROUP_MA=("Depl",), DX=DXIMP, DY=DZIMP), _F(GROUP_MA="Mait", DX=ZERO, DY=ZERO)),
+)
+
+## ------------------------------------
+#   CONTACT DEFINITION
+## ------------------------------------
+if use_friction:
+    contact = DEFI_CONT(
+        MODELE=modele,
+        ZONE=_F(
+            GROUP_MA_MAIT="Mait",
+            GROUP_MA_ESCL="Escl",
+            # ALGO_CONT="PENALISATION",
+            # COEF_FROT=coef,
+            # CONTACT_INIT="NON",
+            COEF_CONT=coef,
+            # TYPE_MATR_TANG="PERTURBATION",
+            FROTTEMENT="OUI",
+            TYPE_FROT="COULOMB",
+            COULOMB=coef_coulomb,
+        ),
+    )
+else:
+    contact = DEFI_CONT(
+        MODELE=modele,
+        ZONE=_F(
+            GROUP_MA_MAIT="Mait",
+            GROUP_MA_ESCL="Escl",
+            COEF_CONT=coef,
+            FROTTEMENT="NON",
+            # AIRE_TOLE=1e-2
+        ),
+    )
+
+listr = DEFI_LIST_REEL(
+    DEBUT=0.0, INTERVALLE=(_F(JUSQU_A=TZ, NOMBRE=2), _F(JUSQU_A=TX, NOMBRE=nsteps_tx))
+)
+listinst = DEFI_LIST_INST(DEFI_LIST=_F(LIST_INST=listr), ECHEC=_F(SUBD_PAS=2.0, SUBD_NIVEAU=1))
+
+## ------------------------------------
+#   NUMERICAL RESOLUTION
+## ------------------------------------
+
+evol1 = MECA_NON_LINE(
+    MODELE=modele,
+    CHAM_MATER=affe_mat,
+    EXCIT=(_F(CHARGE=DEPL),),
+    CONTACT=_F(DEFINITION=contact, ALGO_RESO_GEOM=pairing_algo),
+    COMPORTEMENT=_F(RELATION="ELAS"),
+    NEWTON=_F(REAC_ITER=1),
+    # RECH_LINEAIRE=_F(),
+    INCREMENT=_F(LIST_INST=listinst, INST_FIN=tfin),
+    CONVERGENCE=_F(RESI_GLOB_RELA=resi_glob_rela, ITER_GLOB_MAXI=iter_glob_maxi, ARRET="NON"),
+)
+
+## ------------------------------------
+#   POST-TREATMENT
+## ------------------------------------
+
+evol1 = CALC_PRESSION(reuse=evol1, RESULTAT=evol1, GROUP_MA=("Escl"), TOUT_ORDRE="OUI")
+
+IMPR_RESU(FORMAT="MED", UNITE=81, RESU=_F(RESULTAT=evol1, NOM_CHAM="DEPL", NOM_CMP=("DX", "DY")))
+
+IMPR_RESU(FORMAT="MED", UNITE=80, RESU=_F(RESULTAT=evol1))
+
+if use_friction:
+    TAB_CONT = POST_RELEVE_T(
+        ACTION=_F(
+            INTITULE="CONTACT",
+            GROUP_NO="Escl",
+            RESULTAT=evol1,
+            NOM_CHAM="DEPL",
+            LIST_INST=listr,
+            NOM_CMP=("LAGS_C", "LAGS_F1"),
+            # TOUT_CMP="OUI",
+            OPERATION="EXTRACTION",
+        )
+    )
+else:
+    TAB_CONT = POST_RELEVE_T(
+        ACTION=_F(
+            INTITULE="CONTACT",
+            GROUP_NO="Escl",
+            RESULTAT=evol1,
+            NOM_CHAM="DEPL",
+            LIST_INST=listr,
+            NOM_CMP=("LAGS_C"),
+            # TOUT_CMP="OUI",
+            OPERATION="EXTRACTION",
+        )
+    )
+
+TAB_CONT_PRES = POST_RELEVE_T(
+    ACTION=_F(
+        INTITULE="CONTACT",
+        GROUP_NO="Escl",
+        RESULTAT=evol1,
+        NOM_CHAM="PRES_NOEU",
+        LIST_INST=listr,
+        TOUT_CMP="OUI",
+        OPERATION="EXTRACTION",
+    )
+)
+
+
+IMPR_TABLE(TABLE=TAB_CONT, UNITE=30)
+IMPR_TABLE(TABLE=TAB_CONT_PRES, UNITE=31)
+
+## ------------------------------------
+#   TEST
+## ------------------------------------
+if use_friction:
+    TEST_RESU(
+        RESU=(
+            _F(
+                INST=TX,
+                TYPE_TEST="MIN",
+                RESULTAT=evol1,
+                REFERENCE="ANALYTIQUE",
+                NOM_CHAM="DEPL",
+                LEGENDE="LAGRANGE",
+                NOM_CMP="LAGS_F1",
+                VALE_REFE=0.0,
+                VALE_CALC=0.0,
+            ),
+            _F(
+                INST=TX,
+                TYPE_TEST="MAX",
+                RESULTAT=evol1,
+                REFERENCE="ANALYTIQUE",
+                NOM_CHAM="DEPL",
+                LEGENDE="LAGRANGE",
+                NOM_CMP="LAGS_F1",
+                VALE_REFE=0.0,
+                VALE_CALC=0.0,
+            ),
+            _F(
+                INST=TX,
+                TYPE_TEST="MIN",
+                RESULTAT=evol1,
+                REFERENCE="ANALYTIQUE",
+                NOM_CHAM="DEPL",
+                LEGENDE="LAGRANGE",
+                NOM_CMP="LAGS_C",
+                VALE_REFE=0.0,
+                VALE_CALC=0.0,
+            ),
+            _F(
+                INST=TX,
+                TYPE_TEST="MAX",
+                RESULTAT=evol1,
+                REFERENCE="ANALYTIQUE",
+                NOM_CHAM="DEPL",
+                LEGENDE="LAGRANGE",
+                NOM_CMP="LAGS_C",
+                VALE_REFE=0.0,
+                VALE_CALC=0.0,
+            ),
+        )
+    )
+else:
+    TEST_RESU(
+        RESU=(
+            _F(
+                INST=TX,
+                TYPE_TEST="MIN",
+                RESULTAT=evol1,
+                REFERENCE="ANALYTIQUE",
+                NOM_CHAM="DEPL",
+                LEGENDE="LAGRANGE",
+                NOM_CMP="LAGS_C",
+                VALE_REFE=0.0,
+                VALE_CALC=0.0,
+            ),
+            _F(
+                INST=TX,
+                TYPE_TEST="MAX",
+                RESULTAT=evol1,
+                REFERENCE="ANALYTIQUE",
+                NOM_CHAM="DEPL",
+                LEGENDE="LAGRANGE",
+                NOM_CMP="LAGS_C",
+                VALE_REFE=0.0,
+                VALE_CALC=0.0,
+            ),
+        )
+    )
+
+FIN()
