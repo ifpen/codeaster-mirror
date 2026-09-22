@@ -93,6 +93,11 @@ before_script:
     - if: $BUILDTYPE != "code-checking" && $BUILDTYPE != "docker"
 
 doc_html:
+  variables:
+    HAS_INTRANET: 1
+    PIP_INDEX: https://nexus.retd.edf.fr/repository/pypi-all/pypi
+    PIP_TRUSTED_HOST: nexus.retd.edf.fr
+    PIP_INDEX_URL: https://nexus.retd.edf.fr/repository/pypi-all/simple
   interruptible: true
   stage: build
   needs: ["prepare", "compile"]
@@ -104,6 +109,27 @@ doc_html:
     expire_in: 3 days
   rules:
     - if: $CI_MERGE_REQUEST_IID
+    - if: $CI_COMMIT_REF_NAME == "main" && $BUILDTYPE == "nightly"
+
+deploy_docs:
+  stage: build
+  image:
+    name: nexus.retd.edf.fr:5012/debian:trixie
+  variables:
+    REMOTE_USER: docaster
+    REMOTE_HOST: docaster.retd.edf.fr
+  needs:
+    - doc_html
+  before_script:
+    - apt-get update && apt-get install -y rsync openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY_B64" | base64 -d > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan $REMOTE_HOST >> ~/.ssh/known_hosts
+  script:
+    - rsync -avz -e "ssh" install/share/doc/html/ $REMOTE_USER@$REMOTE_HOST:/home/docaster/pages_html/docdev-$CI_COMMIT_REF_NAME/ || true
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "main" && $BUILDTYPE == "nightly"
 
 minimal_build:
   interruptible: true

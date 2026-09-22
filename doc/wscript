@@ -99,7 +99,7 @@ def check_sphinx(self):
 def _setup_doc(self):
     self.path.make_node("_static").mkdir()
     out = self.path.get_bld().abspath()
-    Logs.info("building documentation in {0}".format(out))
+    Logs.info(f"building documentation in {out}")
 
     files = self.path.parent.find_dir("code_aster").ant_glob("**/*.py")
     files.extend(self.path.ant_glob("**/*.rst"))
@@ -170,16 +170,16 @@ def build_html(self):
     )
 
     # rst are not changed when libaster is rebuilt, so force to rebuild doctrees and html files
+    builddir = self.path.parent.get_bld().abspath()
+    doctrees = osp.join(out, "doctrees")
+    htmldir = osp.join(out, "html")
     cmd = (
-        ". ${{ASTERDATADIR}}/profile.sh ; "
-        "rm -rf {1} {2} ; "
-        "BUILDDIR={0} ${{SPHINX_BUILD}} ${{SPHINX_ARGS}} "
-        "-b html -d {1} . {2}".format(
-            self.path.parent.get_bld().abspath(), osp.join(out, "doctrees"), osp.join(out, "html")
-        )
+        f". ${{ASTERDATADIR}}/profile.sh ; "
+        f"rm -rf {doctrees} {htmldir} ; "
+        f"BUILDDIR={builddir} ${{SPHINX_BUILD}} ${{SPHINX_ARGS}} -b html -d {doctrees} . {htmldir}"
     )
     self(
-        rule="bash -c '{0}'".format(cmd),
+        rule=f"bash -c '{cmd}'",
         always=self.options.force_doc,
         cwd=self.path.abspath(),
         source=files + [pylib],
@@ -192,7 +192,7 @@ def build_html(self):
     # install html files
     bld = self.path.find_or_declare("html").abspath()
     self(
-        rule="mkdir -p {1} && cp -r {0} {1}".format(bld, env.HTMLDIR),
+        rule=f"mkdir -p {env.HTMLDIR} && cp -r {bld} {env.HTMLDIR}",
         source=self.path.find_or_declare("html/index.html"),
     )
 
@@ -206,7 +206,7 @@ def run_pylibaster(task):
     exec_pyaster(task.generator.bld, script, args=[tgt], cwd=task.cwd)
 
     result = dest.abspath()
-    Logs.info("creating {0}...".format(result))
+    Logs.info(f"creating {result}...")
     shutil.copyfile(tgt, result)
     return 0
 
@@ -227,6 +227,6 @@ def run_autodoc(task):
     exec_pyaster(task.generator.bld, script, args=[], cwd=task.cwd, env=env)
     for res in task.outputs[0].ant_glob("*.rst"):
         result = res.get_src().abspath()
-        Logs.info("copying {0}...".format(result))
+        Logs.info(f"copying {result}...")
         shutil.copyfile(res.abspath(), result)
     return 0
