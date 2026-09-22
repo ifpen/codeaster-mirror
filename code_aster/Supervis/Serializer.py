@@ -456,8 +456,8 @@ def _filteringContext(context):
         # check attr needed for python<=3.6
         if hasattr(obj, "__class__") and isinstance(obj, (IOBase, MPI.Intracomm, re.Match)):
             continue
-        # if hasattr(obj, "__pickling_disabled__"):
-        #     continue
+        if hasattr(obj, "__pickling_disabled__"):
+            continue
         if ipython and name in ("_", "__", "___", "_ih", "_oh", "_dh", "In", "Out", "exit", "quit"):
             continue
         if type(obj) in (

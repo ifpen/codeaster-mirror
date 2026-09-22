@@ -15,7 +15,7 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-! aslint: disable=W1306
+! aslint: disable=W1306, W0413
 !
 ! ==================================================================================================
 !
@@ -1539,23 +1539,27 @@ contains
         sectPipe = beamElem%sectPipe
 
 ! ----- Checks
-        if (typeScal .eq. 'F') then
-            lWind = zk8(jvLoad+6) .eq. 'VENT'
-            lGlob = zk8(jvLoad+6) .eq. 'GLOBAL'
-            if (lWind) then
-                call utmess('F', 'PIPE1_44')
+        if (.not. lGravity) then
+            if (typeScal .eq. 'R') then
+                lGlob = zr(jvLoad+6) .eq. 0.d0
+                if (.not. lGlob) then
+                    call utmess('F', 'PIPE1_45')
+                end if
             end if
-            if (.not. lGlob) then
-                call utmess('F', 'PIPE1_45')
+            if (typeScal .eq. 'F') then
+                lWind = zk8(jvLoad+6) .eq. 'VENT'
+                lGlob = zk8(jvLoad+6) .eq. 'GLOBAL'
+                if (lWind) then
+                    call utmess('F', 'PIPE1_44')
+                end if
+                if (.not. lGlob) then
+                    call utmess('F', 'PIPE1_45')
+                end if
             end if
         end if
 
 ! ----- Evaluation of  components of lineic force in global base
         if (typeScal .eq. 'R') then
-            lGlob = zr(jvLoad+6) .eq. 0.d0
-            if (.not. lGlob) then
-                call utmess('F', 'PIPE1_45')
-            end if
             lCplxRealPart = ASTER_TRUE
             call evalLineLoad(typeScal, lCplxRealPart, lGravity, &
                               jvLoad, jvTime, jvGeom, &
@@ -1568,10 +1572,6 @@ contains
 ! ----- Complex algebra case
         nbComp = 1
         if (typeScal .eq. 'C') then
-            lGlob = zc(jvLoad+6) .eq. 0.d0
-            if (.not. lGlob) then
-                call utmess('F', 'PIPE1_45')
-            end if
             nbComp = 2
         end if
 

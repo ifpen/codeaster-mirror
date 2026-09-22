@@ -30,14 +30,16 @@ subroutine nmresi(mesh, list_func_acti, ds_material, &
     use NonLin_Datastructure_type
     use NonLinearDyna_type
     use Rom_Datastructure_type
-!
     implicit none
 !
+#include "asterc/r8prem.h"
 #include "asterf_types.h"
+#include "asterfort/asmpi_comm_vect.h"
 #include "asterfort/asmpi_info.h"
 #include "asterfort/assert.h"
 #include "asterfort/cnoadd.h"
 #include "asterfort/dismoi.h"
+#include "asterfort/GetResi.h"
 #include "asterfort/infdbg.h"
 #include "asterfort/isfonc.h"
 #include "asterfort/isParallelMesh.h"
@@ -47,18 +49,16 @@ subroutine nmresi(mesh, list_func_acti, ds_material, &
 #include "asterfort/mmconv.h"
 #include "asterfort/ndynlo.h"
 #include "asterfort/nmchex.h"
+#include "asterfort/nmequi.h"
 #include "asterfort/nmfext.h"
-#include "asterfort/nmimre.h"
 #include "asterfort/nmimre_dof.h"
-#include "asterfort/GetResi.h"
+#include "asterfort/nmimre.h"
 #include "asterfort/nmpcin.h"
 #include "asterfort/nmrede.h"
 #include "asterfort/nmvcmx.h"
 #include "asterfort/rescmp.h"
-#include "asterfort/romAlgoNLMecaResidual.h"
-#include "asterfort/asmpi_comm_vect.h"
 #include "asterfort/romAlgoNLCorrEFMecaResidual.h"
-#include "asterfort/nmequi.h"
+#include "asterfort/romAlgoNLMecaResidual.h"
 #include "asterfort/utmess.h"
 #include "asterfort/vector_update_ghost_values.h"
 !
@@ -155,9 +155,8 @@ subroutine nmresi(mesh, list_func_acti, ds_material, &
     if (niv .ge. 2) then
         call utmess('I', 'MECANONLINE13_65')
     end if
-!
+
 ! - Initialisations
-!
     profch = ' '
     varc_prev = ' '
     disp_prev = ' '
@@ -193,9 +192,8 @@ subroutine nmresi(mesh, list_func_acti, ds_material, &
     vale_equi = 0.d0
     vale_refe = 0.d0
     vale_varc = 0.d0
-!
+
 ! - Active functionnalities
-!
     l_stat = ndynlo(sddyna, 'STATIQUE')
     l_resi_refe = isfonc(list_func_acti, 'RESI_REFE')
     l_resi_comp = isfonc(list_func_acti, 'RESI_COMP')
@@ -209,9 +207,8 @@ subroutine nmresi(mesh, list_func_acti, ds_material, &
     l_no_disp = .not. (ndynlo(sddyna, 'FORMUL_DEPL') .or. l_stat)
     l_disp = ASTER_TRUE
     l_parallel_mesh = isParallelMesh(mesh)
-!
+
 ! - Get hat variables
-!
     call nmchex(hval_incr, 'VALINC', 'DEPMOI', disp_prev)
     call nmchex(hval_incr, 'VALINC', 'COMMOI', varc_prev)
     call nmchex(hval_veasse, 'VEASSE', 'CNDIPI', cndipi)
@@ -271,9 +268,8 @@ subroutine nmresi(mesh, list_func_acti, ds_material, &
     cnrefp = cnrefe
     cndfdp = cndfdo
 #endif
-!
+
 ! - Compute lack of balance forces
-!
     cnequi = '&&CNCHAR.DONN'
     call nmequi(l_disp, l_pilo, l_macr, cnequi, &
                 cnfinp, cnfexp, cndirp, cnsstr, &
@@ -284,16 +280,14 @@ subroutine nmresi(mesh, list_func_acti, ds_material, &
         call jeveuo(cnequi//'.VALE', 'L', vr=vale)
         call vector_update_ghost_values(vale, nume_dof(1:14)//'.NUME', 'BIDIR')
     end if
-!
+
 ! - Compute RESI_COMP_RELA
-!
     if (l_resi_comp) then
         call rescmp(ds_system%cncomp, cnequi, &
                     r_comp_vale, r_comp_name, r_comp_indx)
     end if
-!
+
 ! - Access to fields
-!
     call jeveuo(cnfinp(1:19)//'.VALE', 'L', vr=v_cnfint)
     call jeveuo(cndirp(1:19)//'.VALE', 'L', vr=v_cndiri)
     call jeveuo(cnfexp(1:19)//'.VALE', 'L', vr=v_cnfext)
@@ -304,9 +298,8 @@ subroutine nmresi(mesh, list_func_acti, ds_material, &
         call jeveuo(cnrefp(1:19)//'.VALE', 'L', vr=v_cnrefe)
     end if
     call jeveuo(cnequi(1:19)//'.VALE', 'L', vr=v_cnequi)
-!
+
 ! - Compute
-!
     if (l_parallel_mesh) then
         call jeveuo(profch(1:19)//'.PDDL', 'L', vi=v_pddl)
         call asmpi_info(rank=mrank)
@@ -366,9 +359,7 @@ subroutine nmresi(mesh, list_func_acti, ds_material, &
         call asmpi_comm_vect('MPI_MAX', 'R', scr=r_refe_vale)
     end if
 
-!
 ! - Evaluate residuals in applying HYPER-REDUCTION
-!
     if (l_rom) then
         ds_algorom%eref_rom = r_equi_vale
         if (ds_algorom%phase .eq. 'HROM') then
@@ -381,22 +372,20 @@ subroutine nmresi(mesh, list_func_acti, ds_material, &
             ASSERT(ASTER_FALSE)
         end if
     end if
-!
+
 ! - Results
-!
     call asmpi_comm_vect('MPI_MAX', 'R', scr=r_equi_vale)
     call asmpi_comm_vect('MPI_MAX', 'R', scr=r_char_vale)
     call asmpi_comm_vect('MPI_MAX', 'R', scr=r_varc_vale)
-    if (r_char_vale .gt. 0.d0) then
+    if (abs(r_char_vale) .gt. r8prem()) then
         r_rela_vale = r_equi_vale/r_char_vale
         r_rela_indx = r_equi_indx
     else
         r_rela_vale = -1.d0
         r_rela_indx = 0
     end if
-!
+
 ! - Contact with generalized Newton
-!
     if (l_cont_cont .or. l_cont_lac) then
         call mmconv(mesh, ds_contact, &
                     hval_incr, hval_algo, &
@@ -408,9 +397,8 @@ subroutine nmresi(mesh, list_func_acti, ds_material, &
             ds_conv%l_stop_pene = ASTER_FALSE
         end if
     end if
-!
+
 ! - Save informations about residuals into convergence datastructure
-!
     call nmimre_dof(nume_dof, ds_conv, &
                     r_rela_vale, r_equi_vale, r_refe_vale, r_comp_vale, r_fric_vale, r_geom_vale, &
                     r_rela_indx, r_equi_indx, r_refe_indx, r_comp_name, r_comp_indx, r_fric_name, &
@@ -424,8 +412,8 @@ subroutine nmresi(mesh, list_func_acti, ds_material, &
                  l_resi_test_=l_rela)
     call GetResi(ds_conv, type='RESI_GLOB_MAXI', user_para_=resi_glob_maxi)
 
-! --- VERIFICATION QUE LES VARIABLES DE COMMANDE INITIALES CONDUISENT
-! --- A DES FORCES NODALES NULLES
+! - VERIFICATION QUE LES VARIABLES DE COMMANDE INITIALES CONDUISENT
+! - A DES FORCES NODALES NULLES
     if (l_varc_init) then
         if (l_rela) then
             if (r_char_vale .gt. resi_glob_rela) then
