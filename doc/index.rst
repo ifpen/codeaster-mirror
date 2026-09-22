@@ -1,9 +1,9 @@
 .. code_aster documentation
 
 
-########################
-code_aster documentation
-########################
+#########################
+Developer's documentation
+#########################
 
 *****************
 Table of contents

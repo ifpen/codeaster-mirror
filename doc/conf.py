@@ -45,6 +45,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.inheritance_diagram",
     "sphinx.ext.napoleon",
+    "sphinx.ext.extlinks",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -55,7 +56,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "code_aster"
-copyright = "1989-%s, EDF R&D - www.code-aster.org" % time.strftime("%Y")
+copyright = "1989-%s, EDF - www.code-aster.org" % time.strftime("%Y")
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -139,7 +140,7 @@ texinfo_documents = [
     (
         "index",
         "code_aster",
-        "code_aster Documentation",
+        "Embedded Documentation",
         "code_aster",
         "code_aster",
         "One line description of project.",
@@ -153,3 +154,10 @@ napoleon_include_private_with_doc = True
 
 # Show todo blocks
 todo_include_todos = True
+
+# --- Variables
+MAINDOC_URL = "https://www.code-aster.org/doc"
+if os.environ.get("HAS_INTRANET", "0") == "1":
+    MAINDOC_URL = "https://docaster.retd.edf.fr/main"
+
+extlinks = {"docaster": (MAINDOC_URL + "%s", MAINDOC_URL + "%s")}
