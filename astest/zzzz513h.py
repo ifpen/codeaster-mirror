@@ -293,8 +293,12 @@ if HAS_MATPLOTLIB and os.getenv("DISPLAY"):
             fig.tight_layout()
 
             # --- EXPORT PGF ---
-            fig.savefig(f"convergence_{norm}.pgf")
-            fig.savefig(f"convergence_{norm}.pdf")
+            try:
+                fig.savefig(f"convergence_{norm}.pgf")
+                fig.savefig(f"convergence_{norm}.pdf")
+            except AttributeError as exc:
+                print(f"PGF/PDF export disabled: {exc}")
+
             plt.close(fig)
 
 # close

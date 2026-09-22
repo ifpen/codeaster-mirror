@@ -798,7 +798,7 @@ AFFE_CHAR_MECA = OPER(
             APPA_TOLE=SIMP(statut="f", typ="R", defaut=1e-8, val_min=0.0),
             AIRE_TOLE=SIMP(statut="f", typ="R", defaut=1e-8, val_min=0.0),
             TYPE_APPA=SIMP(
-                statut="f", typ="TXM", defaut="FORCEBRUTE", into=("RAPIDE", "FORCEBRUTE", "PANG")
+                statut="f", typ="TXM", defaut="RAPIDE", into=("RAPIDE", "FORCEBRUTE", "PANG")
             ),
         ),
     ),

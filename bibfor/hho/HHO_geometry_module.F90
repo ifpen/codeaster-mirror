@@ -35,6 +35,7 @@ module HHO_geometry_module
 #include "asterfort/elrfvf.h"
 #include "asterfort/provec.h"
 #include "MeshTypes_type.h"
+#include "asterfort/HHO_size_module.h"
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -46,8 +47,10 @@ module HHO_geometry_module
 ! --------------------------------------------------------------------------------------------------
 !
     public :: barycenter, hhoFaceInitCoor, hhoGeomBasis, hhoGeomDerivBasis
-    public :: hhoLocalBasisFace, hhoNormalFace2, hhoNormalFace3, hhoNormalFaceQP
+    public :: hhoLocalTangentBasisFace, hhoNormalFace2, hhoNormalFace3, hhoNormalFaceQP
     public :: hhoSplitSimplex, hho_transfo_3d, hho_transfo_quad, hhoIsJacobCst, prod_vec
+    public :: hhoTangentFaceQP, hhoLocalBasisFaceQP, hhoGeomGradFaceQP
+    public :: hhoCrossProductMatrix, hhoPlaneNormalRotation
     private :: hho_jaco_cst_quad, hho_jaco_cst_3d
     private :: hhoNormalFace2d, well_oriented, hhoNormalFace1d, find_lowest_vertex
 !
@@ -204,21 +207,10 @@ contains
 !  Out normal            :: outward normal
 ! --------------------------------------------------------------------------------------------------
 !
-        character(len=8) :: ts
-        real(kind=8) :: coor(3, MT_NNOMAX2D)
+        real(kind=8) :: tau1(3), tau2(3)
 !  -------------------------------------------------------------------------------------------------
-        normal = 0.d0
-        call CellNameL2S(hhoFace%typema, ts)
-        coor(1:3, 1:4) = hhoFace%coorno(1:3, 1:4)
-!
-        call apnorm(hhoFace%nbnodes, ts, hhoFace%ndim+1, coor, qp_param(1), &
-                    qp_param(2), normal)
-!
-        if (norm2(hhoFace%normal) > 0.5d0) then
-            if (.not. well_oriented(hhoFace%normal, normal)) then
-                normal = -normal
-            end if
-        end if
+
+        call hhoLocalBasisFaceQP(hhoFace, qp_param, tau1, tau2, normal)
 !
     end function
 !
@@ -374,7 +366,86 @@ contains
 !
 !===================================================================================================
 !
-    function hhoLocalBasisFace(hhoFace) result(axes)
+    subroutine hhoLocalBasisFaceQP(hhoFace, qp_param, tau1, tau2, normal, jaco)
+!
+        implicit none
+!
+        type(HHO_Face), intent(in) :: hhoFace
+        real(kind=8), dimension(2), intent(in) :: qp_param
+        real(kind=8), dimension(3), intent(out) :: tau1, tau2, normal
+        real(kind=8), optional, intent(out) :: jaco
+!
+! --------------------------------------------------------------------------------------------------
+!  In coorno             :: coordinates of the nodes
+!  In nbnodes            :: number of nodes
+!  In barycenter_face    :: barycenter of the face
+!  In barycenter_cell    :: barycenter of the cell
+!  Out normal            :: outward normal
+! --------------------------------------------------------------------------------------------------
+!
+        character(len=8) :: ts
+        real(kind=8) :: coor(3, MT_NNOMAX2D), tau(3), noor
+!  -------------------------------------------------------------------------------------------------
+        normal = 0.d0
+        call CellNameL2S(hhoFace%typema, ts)
+        coor(1:3, 1:4) = hhoFace%coorno(1:3, 1:4)
+!
+        call apnorm(hhoFace%nbnodes, ts, hhoFace%ndim+1, coor, qp_param(1), &
+                    qp_param(2), normal, tau1, tau2, noor)
+!
+        if (norm2(hhoFace%normal) > 0.5d0) then
+            if (.not. well_oriented(hhoFace%normal, normal)) then
+                ASSERT(hhoFace%reorientation)
+                normal = -normal
+                if (hhoFace%ndim == 1) then
+                    tau1 = -tau1
+                    tau2 = 0.d0
+                else
+                    tau = tau1
+                    tau1 = tau2
+                    tau2 = tau
+                end if
+            end if
+        end if
+!
+        if (present(jaco)) then
+            jaco = noor
+        end if
+!
+    end subroutine
+!
+!===================================================================================================
+!
+!===================================================================================================
+!
+    subroutine hhoTangentFaceQP(hhoFace, qp_param, tau1, tau2)
+!
+        implicit none
+!
+        type(HHO_Face), intent(in) :: hhoFace
+        real(kind=8), dimension(2), intent(in) :: qp_param
+        real(kind=8), dimension(3), intent(out) :: tau1, tau2
+!
+! --------------------------------------------------------------------------------------------------
+!  In coorno             :: coordinates of the nodes
+!  In nbnodes            :: number of nodes
+!  In barycenter_face    :: barycenter of the face
+!  In barycenter_cell    :: barycenter of the cell
+!  Out normal            :: outward normal
+! --------------------------------------------------------------------------------------------------
+!
+        real(kind=8) ::  normal(3)
+!  -------------------------------------------------------------------------------------------------
+!
+        call hhoLocalBasisFaceQP(hhoFace, qp_param, tau1, tau2, normal)
+!
+    end subroutine
+!
+!===================================================================================================
+!
+!===================================================================================================
+!
+    function hhoLocalTangentBasisFace(hhoFace) result(axes)
 !
         implicit none
 !
@@ -970,5 +1041,111 @@ contains
         end select
 !
     end function
+!
+!===================================================================================================
+!
+!===================================================================================================
+!
+    subroutine hhoGeomGradFaceQP(hhoFace, qp_param, nb_basis, BSEvalNodes, geomGrad)
+!
+        implicit none
+!
+        type(HHO_Face), intent(in) :: hhoFace
+        real(kind=8), dimension(2), intent(in) :: qp_param
+        integer(kind=8), intent(in) :: nb_basis
+        real(kind=8), intent(in) :: BSEvalNodes(MSIZE_FACE_SCAL, 9)
+        real(kind=8), intent(out) :: geomGrad(2, MSIZE_FACE_SCAL)
+!
+! --------------------------------------------------------------------------------------------------
+!  In coorno             :: coordinates of the nodes
+!  In nbnodes            :: number of nodes
+!  In barycenter_face    :: barycenter of the face
+!  In barycenter_cell    :: barycenter of the cell
+!  Out normal            :: outward normal
+! --------------------------------------------------------------------------------------------------
+!
+        integer(kind=8) :: jbasis, ino
+        real(kind=8) :: dNGeo(3, 8), qp(3)
+!
+!------------------------------------------------------------------------------------------------
+! Derivative of the Lagrange geometry with respect to HHO coefficients
+!------------------------------------------------------------------------------------------------
+!
+        dNGeo = 0.d0
+        qp = (/qp_param(1), qp_param(2), 0.d0/)
+        call hhoGeomDerivBasis(hhoFace%typema, qp, dNGeo)
+!
+! --- Renumber derivatives consistently with hhoTangentFaceQP
+!
+        if (hhoFace%reorientation) then
+            if (hhoFace%ndim == 1) then
+                dNGeo(1, 1:8) = -dNGeo(1, 1:8)
+            else
+                dNGeo(3, 1:8) = dNGeo(1, 1:8)
+                dNGeo(1, 1:8) = dNGeo(2, 1:8)
+                dNGeo(2, 1:8) = dNGeo(3, 1:8)
+                dNGeo(3, 1:8) = 0.d0
+            end if
+        end if
+!
+        geomGrad = 0.d0
+        do jbasis = 1, nb_basis
+            do ino = 1, hhoFace%nbnodes
+                geomGrad(1, jbasis) = geomGrad(1, jbasis)+ &
+                                      dNGeo(1, ino)*BSEvalNodes(jbasis, ino)
+!
+                if (hhoFace%ndim == 2) then
+                    geomGrad(2, jbasis) = geomGrad(2, jbasis) &
+                                          +dNGeo(2, ino)*BSEvalNodes(jbasis, ino)
+                end if
+            end do
+        end do
+!
+    end subroutine
+!
+!===================================================================================================
+!
+!===================================================================================================
+!
+    subroutine hhoCrossProductMatrix(vector, crossMatrix)
+!
+        implicit none
+!
+!------------------------------------------------------------------------------------------------
+! Cross-product matrix associated with current vector
+!
+! crossMatrix * v = vector x v
+!------------------------------------------------------------------------------------------------
+!
+!
+        real(kind=8), dimension(3), intent(in) :: vector
+        real(kind=8), dimension(3, 3), intent(out) :: crossMatrix
+!
+        crossMatrix = 0.d0
+!
+        crossMatrix(1, 2) = -vector(3)
+        crossMatrix(1, 3) = vector(2)
+        crossMatrix(2, 1) = vector(3)
+        crossMatrix(2, 3) = -vector(1)
+        crossMatrix(3, 1) = -vector(2)
+        crossMatrix(3, 2) = vector(1)
+!
+    end subroutine hhoCrossProductMatrix
+!
+!===================================================================================================
+!
+!===================================================================================================
+!
+    subroutine hhoPlaneNormalRotation(rotation2D)
+!
+        implicit none
+!
+        real(kind=8), dimension(2, 2), intent(out) :: rotation2D
+!
+        rotation2D = 0.d0
+        rotation2D(1, 2) = 1.d0
+        rotation2D(2, 1) = -1.d0
+!
+    end subroutine hhoPlaneNormalRotation
 !
 end module

@@ -17,7 +17,7 @@
 ! --------------------------------------------------------------------
 
 subroutine apnorm(elem_nbnode, elem_code, elem_dime, elem_coor, &
-                  ksi1, ksi2, elem_norm, elem_tau1, elem_tau2)
+                  ksi1, ksi2, elem_norm, elem_tau1, elem_tau2, elem_noor)
 !
     implicit none
 !
@@ -34,7 +34,7 @@ subroutine apnorm(elem_nbnode, elem_code, elem_dime, elem_coor, &
     real(kind=8), intent(in) :: ksi1
     real(kind=8), intent(in) :: ksi2
     real(kind=8), intent(out) :: elem_norm(3)
-    real(kind=8), intent(out), optional :: elem_tau1(3), elem_tau2(3)
+    real(kind=8), intent(out), optional :: elem_tau1(3), elem_tau2(3), elem_noor
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -77,6 +77,10 @@ subroutine apnorm(elem_nbnode, elem_code, elem_dime, elem_coor, &
 !
     if (present(elem_tau2)) then
         elem_tau2 = tau2
+    end if
+!
+    if (present(elem_noor)) then
+        elem_noor = noor
     end if
 !
 end subroutine

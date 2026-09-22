@@ -283,6 +283,10 @@ ASTERINTEGER FiniteElementDescriptor::getElemTypeNume( const std::string &elemTy
 
 std::string FiniteElementDescriptor::getElemTypeName( const ASTERINTEGER &elemTypeNume ) const {
 
+    if ( elemTypeNume <= 0 ) {
+        raiseAsterError( "Finite element type has to strictly positive." );
+    }
+
     JeveuxChar32 objName( " " );
     JeveuxChar24 elemTypeName;
     std::string cata = "&CATA.TE.NOMTE";

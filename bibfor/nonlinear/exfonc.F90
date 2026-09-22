@@ -425,9 +425,6 @@ subroutine exfonc(listFuncActi, ds_algopara, solver, ds_contact, &
         if (l_vibr_mode .or. l_buckling) then
             call utmess('F', 'MECANONLINE5_68')
         end if
-        if (l_undead) then
-            call utmess('F', 'MECANONLINE5_69')
-        end if
         if (lResiCompRela) then
             call utmess('F', 'MECANONLINE5_73')
         end if

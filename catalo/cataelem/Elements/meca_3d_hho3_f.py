@@ -43,77 +43,6 @@ CHHOBS = LocatedComponents(
 )
 
 
-EDEPLPG = LocatedComponents(
-    phys=PHY.DEPL_R, type="ELGA", location="RIGI", components=("DX", "DY", "DZ")
-)
-
-
-CEPSINF = LocatedComponents(
-    phys=PHY.EPSI_F, type="ELEM", components=("EPXX", "EPYY", "EPZZ", "EPXY", "EPXZ", "EPYZ")
-)
-
-
-CEPSINR = LocatedComponents(
-    phys=PHY.EPSI_R, type="ELEM", components=("EPXX", "EPYY", "EPZZ", "EPXY", "EPXZ", "EPYZ")
-)
-
-
-CFORCEF = LocatedComponents(phys=PHY.FORC_F, type="ELEM", components=("FX", "FY", "FZ"))
-
-
-CFORCER = LocatedComponents(phys=PHY.FORC_R, type="ELEM", components=("FX", "FY", "FZ"))
-
-
-NFORCER = LocatedComponents(phys=PHY.FORC_R, type="ELNO", components=("FX", "FY", "FZ"))
-
-
-NGEOMER = LocatedComponents(phys=PHY.GEOM_R, type="ELNO", components=("X", "Y", "Z"))
-
-
-EGGEOP_R = LocatedComponents(
-    phys=PHY.GEOM_R, type="ELGA", location="RIGI", components=("X", "Y", "Z", "W")
-)
-
-
-EGGEOM_R = LocatedComponents(
-    phys=PHY.GEOM_R, type="ELGA", location="RIGI", components=("X", "Y", "Z")
-)
-
-
-CTEMPSR = LocatedComponents(phys=PHY.INST_R, type="ELEM", components=("INST",))
-
-
-EGNEUT_F = LocatedComponents(phys=PHY.NEUT_F, type="ELGA", location="RIGI", components=("X[30]",))
-
-
-ERAYONM = LocatedComponents(phys=PHY.NEUT_R, type="ELEM", components=("X1",))
-
-
-CEFOND = LocatedComponents(phys=PHY.NEUT_R, type="ELEM", components=("X1",))
-
-
-ECASECT = LocatedComponents(phys=PHY.NEUT_R, type="ELEM", components=("X[10]",))
-
-
-EMNEUT_R = LocatedComponents(phys=PHY.NEUT_R, type="ELEM", components=("X[30]",))
-
-
-EGNEUT_R = LocatedComponents(phys=PHY.NEUT_R, type="ELGA", location="RIGI", components=("X[30]",))
-
-
-CPRESSF = LocatedComponents(phys=PHY.PRES_F, type="ELEM", components=("PRES",))
-
-
-CPRES_R = LocatedComponents(phys=PHY.PRES_R, type="ELEM", components=("PRES",))
-
-
-EPRESNO = LocatedComponents(phys=PHY.PRES_R, type="ELNO", components=("PRES",))
-
-
-ECONTNO = LocatedComponents(
-    phys=PHY.SIEF_R, type="ELNO", components=("SIXX", "SIYY", "SIZZ", "SIXY", "SIXZ", "SIYZ")
-)
-
 DEPLHHO = LocatedComponents(phys=PHY.DEPL_R, type="ELNO", components=("DX", "DY", "DZ"))
 
 MVECTUR = ArrayOfComponents(phys=PHY.VDEP_R, locatedComponents=DDL_MECA)
@@ -135,9 +64,9 @@ class MECA3DQU9_HHO3_F(Element):
         OP.CHAR_MECA_PRES_F(
             te=459,
             para_in=(
-                (SP.PGEOMER, NGEOMER),
-                (SP.PPRESSF, CPRESSF),
-                (SP.PINSTR, CTEMPSR),
+                (SP.PGEOMER, LC.EGEOM3D),
+                (SP.PPRESSF, LC.CPRE3DF),
+                (SP.PINSTR, LC.MTEMPSR),
                 (OP.CHAR_MECA_PRES_F.PCHHOBS, CHHOBS),
             ),
             para_out=((SP.PVECTUR, MVECTUR),),
@@ -145,8 +74,19 @@ class MECA3DQU9_HHO3_F(Element):
         OP.CHAR_MECA_PRES_R(
             te=459,
             para_in=(
-                (SP.PGEOMER, NGEOMER),
-                (SP.PPRESSR, EPRESNO),
+                (SP.PGEOMER, LC.EGEOM3D),
+                (SP.PPRESSR, LC.EPRE3DR),
+                (OP.CHAR_MECA_PRES_R.PCHHOBS, CHHOBS),
+            ),
+            para_out=((SP.PVECTUR, MVECTUR),),
+        ),
+        OP.CHAR_MECA_PRSU_R(
+            te=459,
+            para_in=(
+                (SP.PDEPLMR, DDL_MECA),
+                (SP.PDEPLPR, DDL_MECA),
+                (SP.PGEOMER, LC.EGEOM3D),
+                (SP.PPRESSR, LC.EPRE3DR),
                 (OP.CHAR_MECA_PRES_R.PCHHOBS, CHHOBS),
             ),
             para_out=((SP.PVECTUR, MVECTUR),),
@@ -154,9 +94,9 @@ class MECA3DQU9_HHO3_F(Element):
         OP.CHAR_MECA_FF2D3D(
             te=459,
             para_in=(
-                (SP.PFF2D3D, CFORCEF),
-                (SP.PGEOMER, NGEOMER),
-                (SP.PINSTR, CTEMPSR),
+                (SP.PFF2D3D, LC.CFOR3DF),
+                (SP.PGEOMER, LC.EGEOM3D),
+                (SP.PINSTR, LC.MTEMPSR),
                 (OP.CHAR_MECA_FF2D3D.PCHHOBS, CHHOBS),
             ),
             para_out=((SP.PVECTUR, MVECTUR),),
@@ -164,14 +104,27 @@ class MECA3DQU9_HHO3_F(Element):
         OP.CHAR_MECA_FR2D3D(
             te=459,
             para_in=(
-                (SP.PFR2D3D, NFORCER),
-                (SP.PGEOMER, NGEOMER),
+                (SP.PFR2D3D, LC.NFOR3DR),
+                (SP.PGEOMER, LC.EGEOM3D),
                 (OP.CHAR_MECA_FR2D3D.PCHHOBS, CHHOBS),
             ),
             para_out=((SP.PVECTUR, MVECTUR),),
         ),
+        OP.CHAR_MECA_FRSU23(
+            te=459,
+            para_in=(
+                (SP.PDEPLMR, DDL_MECA),
+                (SP.PDEPLPR, DDL_MECA),
+                (SP.PFR2D3D, LC.NFOR3DR),
+                (SP.PGEOMER, LC.EGEOM3D),
+                (OP.CHAR_MECA_FRSU23.PCHHOBS, CHHOBS),
+            ),
+            para_out=((SP.PVECTUR, MVECTUR),),
+        ),
         OP.COOR_ELGA(
-            te=488, para_in=((SP.PGEOMER, NGEOMER),), para_out=((OP.COOR_ELGA.PCOORPG, EGGEOP_R),)
+            te=488,
+            para_in=((SP.PGEOMER, LC.EGEOM3D),),
+            para_out=((OP.COOR_ELGA.PCOORPG, LC.EGGAU3D),),
         ),
         OP.HHO_COND_MECA(
             te=574,
@@ -186,7 +139,7 @@ class MECA3DQU9_HHO3_F(Element):
         OP.HHO_DEPL_MECA(
             te=427,
             para_in=(
-                (SP.PGEOMER, NGEOMER),
+                (SP.PGEOMER, LC.EGEOM3D),
                 (SP.PDEPLPR, DDL_MECA),
                 (OP.HHO_DEPL_MECA.PCHHOBS, CHHOBS),
             ),
@@ -200,11 +153,22 @@ class MECA3DQU9_HHO3_F(Element):
             para_in=((OP.NSPG_NBVA.PCOMPOR, LC.CCOMPO2),),
             para_out=((SP.PDCEL_I, LC.EDCEL_I),),
         ),
+        OP.RIGI_MECA_PRSU_R(
+            te=561,
+            para_in=(
+                (SP.PDEPLMR, DDL_MECA),
+                (SP.PDEPLPR, DDL_MECA),
+                (SP.PGEOMER, LC.EGEOM3D),
+                (SP.PPRESSR, LC.EPRE3DR),
+                (OP.RIGI_MECA_PRSU_R.PCHHOBS, CHHOBS),
+            ),
+            para_out=((SP.PMATUNS, MMATUNS),),
+        ),
         OP.TOU_INI_ELEM(
             te=99,
             para_out=(
-                (SP.PFORC_R, CFORCER),
-                (OP.TOU_INI_ELEM.PPRES_R, CPRES_R),
+                (SP.PFORC_R, LC.CFOR3DR),
+                (OP.TOU_INI_ELEM.PPRES_R, LC.CPRE3DR),
                 (OP.TOU_INI_ELEM.PTEMP_R, LC.CTEMPER),
                 (SP.PNEUT_F, LC.CNTINIF),
                 (SP.PNEUT_R, LC.CNTINIR),
@@ -214,8 +178,8 @@ class MECA3DQU9_HHO3_F(Element):
         OP.TOU_INI_ELGA(
             te=99,
             para_out=(
-                (OP.TOU_INI_ELGA.PDEPL_R, EDEPLPG),
-                (OP.TOU_INI_ELGA.PGEOM_R, EGGEOM_R),
+                (OP.TOU_INI_ELGA.PDEPL_R, LC.EGDEP3D),
+                (OP.TOU_INI_ELGA.PGEOM_R, LC.EGGEO3D),
                 (OP.TOU_INI_ELGA.PPRES_R, LC.EPRESGA),
                 (OP.TOU_INI_ELGA.PNEUT_F, LC.EGTINIF),
                 (OP.TOU_INI_ELGA.PNEUT_R, LC.EGTINIR),
@@ -225,12 +189,13 @@ class MECA3DQU9_HHO3_F(Element):
         OP.TOU_INI_ELNO(
             te=99,
             para_out=(
-                (OP.TOU_INI_ELNO.PGEOM_R, NGEOMER),
-                (OP.TOU_INI_ELNO.PPRES_R, EPRESNO),
-                (OP.TOU_INI_ELNO.PSIEF_R, ECONTNO),
+                (OP.TOU_INI_ELNO.PGEOM_R, LC.EGEOM3D),
                 (OP.TOU_INI_ELNO.PNEUT_F, LC.ENTINIF),
                 (OP.TOU_INI_ELNO.PNEUT_R, LC.ENTINIR),
                 (OP.TOU_INI_ELNO.PNEUT_I, LC.ENTINII),
+                (OP.TOU_INI_ELNO.PPRES_R, LC.EPRE3DR),
+                (OP.TOU_INI_ELNO.PSIEF_R, LC.ESIG3DR),
+                (OP.TOU_INI_ELNO.PFORC_R, LC.ENFOR3R),
             ),
         ),
     )

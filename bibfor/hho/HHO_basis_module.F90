@@ -365,7 +365,7 @@ contains
         end if
 !
         if (this%type == BASIS_CARTESIAN) then
-            axes = hhoLocalBasisFace(hhoFace)
+            axes = hhoLocalTangentBasisFace(hhoFace)
         else
             axes = hhoFace%axes
         end if

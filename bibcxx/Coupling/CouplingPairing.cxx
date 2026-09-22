@@ -395,6 +395,13 @@ void CouplingPairing::createVirtualElemForCoupling(
             }
 
             // Get slave and master cell type
+
+            if ( ( *typeFE )[slavCellUsedNume] <= 0 ) {
+                UTMESS( "F", "COUPLAGE_4", {}, { slavCellUsedNume }, {} );
+            }
+            if ( ( *typeFE )[mastCellNume] <= 0 ) {
+                UTMESS( "F", "COUPLAGE_5", {}, { mastCellNume }, {} );
+            }
             const auto slavCellTypeName = fed->getElemTypeName( ( *typeFE )[slavCellUsedNume] );
             const auto mastCellTypeName = fed->getElemTypeName( ( *typeFE )[mastCellNume] );
 

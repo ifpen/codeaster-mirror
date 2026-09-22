@@ -30,7 +30,7 @@ module MeshPairing_module
 ! ==================================================================================================
     implicit none
 ! ==================================================================================================
-    public :: fastPair, robustPair, pairDeallocate, pairAllocate
+    public :: fastPair, robustPair, pairDeallocate, pairAllocate, pairResize
     public :: inteCellArea, intePoinCoor, quadPoinCoor
     public :: getPairJV, getInteJV, pairAdd
     private :: pairGetStartCells, getClosestNodesFromCell, getCellsFromNode
@@ -86,6 +86,7 @@ module MeshPairing_module
         real(kind=8) :: distRatio = 0.d0
 ! ----- Number of pairs
         integer(kind=8) :: nbPair = 0
+        integer(kind=8) :: nbPairMax = 0
 ! ----- Pointer to pairs
         integer(kind=8), pointer :: pair(:) => null()
 ! ----- Pointer to list of intersection points
@@ -2371,6 +2372,7 @@ contains
         type(MESH_PAIRING), intent(inout) :: meshPairing
 !   ------------------------------------------------------------------------------------------------
 !
+        meshPairing%nbPairMax = pairDime
         AS_ALLOCATE(vi=meshPairing%pair, size=2*pairDime)
         AS_ALLOCATE(vi=meshPairing%nbPoinInte, size=pairDime)
         AS_ALLOCATE(vr=meshPairing%poinInte, size=2*pairDime*MAX_NB_INTE)
@@ -2390,9 +2392,56 @@ contains
         type(MESH_PAIRING), intent(inout) :: meshPairing
 !   ------------------------------------------------------------------------------------------------
 !
+        meshPairing%nbPairMax = 0
+        meshPairing%nbPair = 0
         AS_DEALLOCATE(vi=meshPairing%pair)
         AS_DEALLOCATE(vi=meshPairing%nbPoinInte)
         AS_DEALLOCATE(vr=meshPairing%poinInte)
+!
+!   ------------------------------------------------------------------------------------------------
+    end subroutine
+! --------------------------------------------------------------------------------------------------
+!
+! pairResize
+!
+! Resize objects for pairing
+!
+! --------------------------------------------------------------------------------------------------
+    subroutine pairResize(meshPairing, new_size)
+!   ------------------------------------------------------------------------------------------------
+! ----- Parameters
+        type(MESH_PAIRING), intent(inout) :: meshPairing
+        integer(kind=8), intent(in) :: new_size
+!   ------------------------------------------------------------------------------------------------
+!
+        integer(kind=8) :: nbPairOld
+        integer(kind=8), pointer :: pair(:) => null()
+        integer(kind=8), pointer :: nbPoinInte(:) => null()
+        real(kind=8), pointer :: poinInte(:) => null()
+!
+        if (new_size > meshPairing%nbPairMax) then
+            nbPairOld = meshPairing%nbPair
+!
+            AS_ALLOCATE(vi=pair, size=2*nbPairOld)
+            AS_ALLOCATE(vi=nbPoinInte, size=nbPairOld)
+            AS_ALLOCATE(vr=poinInte, size=2*nbPairOld*MAX_NB_INTE)
+!
+            pair(1:2*nbPairOld) = meshPairing%pair(1:2*nbPairOld)
+            nbPoinInte(1:nbPairOld) = meshPairing%nbPoinInte(1:nbPairOld)
+            poinInte(1:2*nbPairOld*MAX_NB_INTE) = meshPairing%poinInte(1:2*nbPairOld*MAX_NB_INTE)
+!
+            call pairDeallocate(meshPairing)
+            call pairAllocate(new_size, meshPairing)
+!
+            meshPairing%nbPair = nbPairOld
+            meshPairing%pair(1:2*nbPairOld) = pair(1:2*nbPairOld)
+            meshPairing%nbPoinInte(1:nbPairOld) = nbPoinInte(1:nbPairOld)
+            meshPairing%poinInte = poinInte(1:2*nbPairOld*MAX_NB_INTE)
+!
+            AS_DEALLOCATE(vi=pair)
+            AS_DEALLOCATE(vi=nbPoinInte)
+            AS_DEALLOCATE(vr=poinInte)
+        end if
 !
 !   ------------------------------------------------------------------------------------------------
     end subroutine
@@ -2417,6 +2466,9 @@ contains
 !   ------------------------------------------------------------------------------------------------
 !
         iPair = meshPairing%nbPair+1
+        if (meshPairing%nbPairMax < iPair) then
+            call pairResize(meshPairing, 2*meshPairing%nbPairMax)
+        end if
         ASSERT(nbPoinInte .le. MAX_NB_INTE)
         meshPairing%nbPair = meshPairing%nbPair+1
         meshPairing%pair(2*(meshPairing%nbPair-1)+1) = cellSlavNume

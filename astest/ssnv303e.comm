@@ -43,6 +43,8 @@ matfield = AFFE_MATERIAU(AFFE=_F(MATER=(mater,), TOUT="OUI"), MODELE=model)
 clamp = AFFE_CHAR_CINE(MECA_IMPO=_F(DX=0.0, DY=0.0, DZ=0.0, GROUP_MA=("FaceLeft",)), MODELE=model)
 
 load = AFFE_CHAR_MECA(FORCE_FACE=_F(FZ=400.0, GROUP_MA=("FaceRight",)), MODELE=model)
+fake0 = AFFE_CHAR_MECA(FORCE_FACE=_F(FZ=400.0, GROUP_MA=("FaceRight",)), MODELE=model)
+fake1 = AFFE_CHAR_MECA(FORCE_FACE=_F(FZ=-400.0, GROUP_MA=("FaceRight",)), MODELE=model)
 
 # Calcul plastique linéaire
 rampUnit = DEFI_FONCTION(NOM_PARA="INST", VALE=(0.0, 0.0, 1.0, 1.0))
@@ -61,6 +63,8 @@ resuElas = STAT_NON_LINE(
     EXCIT=(
         _F(CHARGE=clamp, TYPE_CHARGE="FIXE_CSTE"),
         _F(CHARGE=load, FONC_MULT=rampUnit, TYPE_CHARGE="FIXE_CSTE"),
+        _F(CHARGE=fake0, FONC_MULT=rampUnit, TYPE_CHARGE="SUIV"),
+        _F(CHARGE=fake1, FONC_MULT=rampUnit, TYPE_CHARGE="SUIV"),
     ),
     INCREMENT=_F(LIST_INST=times),
     SOLVEUR=_F(METHODE="MUMPS", NPREC=9),

@@ -51,6 +51,7 @@ module HHO_init_module
 !
 !
     public :: hhoInfoInitCell, hhoInfoInitFace, hhoInitFacesOfCell, hhoInfoInitCellAndFace
+    public :: hhoUpdateCoordinatesFace
     private :: hhoGeomData, hhoGeomFace, hhoDataInit, hhoFaceInit, hhoCellInit
 !
 contains
@@ -391,6 +392,7 @@ contains
 ! --------------------------------------------------------------------------------------------------
 !
         integer(kind=8) :: numsorted(9), ino
+        real(kind=8) :: normal_curr(3)
         ASSERT(nbnodes .le. 4)
 !
 ! --- Init: be carefull the order to call the functions is important
@@ -405,6 +407,12 @@ contains
             hhoFace%normal = hhoNormalFace3(hhoFace, barycenter_cell)
         else
             hhoFace%normal = hhoNormalFace2(typma, nodes_coor)
+        end if
+        normal_curr = hhoNormalFace2(hhoFace%typema, hhoFace%coorno(1:3, 1:4))
+        if (dot_product(hhoFace%normal, normal_curr) >= 0.d0) then
+            hhoFace%reorientation = ASTER_FALSE
+        else
+            hhoFace%reorientation = ASTER_TRUE
         end if
         hhoFace%measure = hhoMeasureFace(hhoFace)
         hhoFace%diameter = hhoDiameterFace(hhoFace)
@@ -1012,6 +1020,51 @@ contains
             end do
             hhoCell%l_face_init = ASTER_TRUE
         end if
+    end subroutine
+!
+!===================================================================================================
+!
+!===================================================================================================
+!
+    subroutine hhoUpdateCoordinatesFace(disp_nodes, hhoFace)
+!
+        implicit none
+!
+        real(kind=8), intent(in) :: disp_nodes(3, 9)
+        type(HHO_Face), intent(inout) :: hhoFace
+!
+! --------------------------------------------------------------------------------------------------
+!
+! HHO - generic tools
+!
+! Update coordinate of a face and recompute quantities
+!
+! --------------------------------------------------------------------------------------------------
+!
+! Out hhoFace           : a HHO face
+! --------------------------------------------------------------------------------------------------
+!
+        integer(kind=8) :: ino
+        real(kind=8), dimension(3, 9) :: nodes_coor, normal_curr(3)
+
+        do ino = 1, hhoFace%nbnodes
+            hhoFace%coorno(1:3, ino) = hhoFace%coorno(1:3, ino)+ &
+                                       disp_nodes(1:3, ino)
+            nodes_coor(1:3, hhoFace%nodes_loc(ino)) = hhoFace%coorno(1:3, ino)
+        end do
+!
+        hhoFace%barycenter = barycenter(hhoFace%coorno, hhoFace%nbnodes)
+        hhoFace%normal = hhoNormalFace2(hhoFace%typema, nodes_coor)
+        normal_curr = hhoNormalFace2(hhoFace%typema, hhoFace%coorno(1:3, 1:4))
+        if (dot_product(hhoFace%normal, normal_curr) >= 0.d0) then
+            hhoFace%reorientation = ASTER_FALSE
+        else
+            hhoFace%reorientation = ASTER_TRUE
+        end if
+        hhoFace%measure = hhoMeasureFace(hhoFace)
+        hhoFace%diameter = hhoDiameterFace(hhoFace)
+        hhoFace%axes = hhoLocalAxesFace(hhoFace)
+        hhoFace%l_jaco_cst = hhoIsJacobCst(hhoFace%typema, hhoFace%coorno, hhoFace%ndim+1)
 !
     end subroutine
 !
