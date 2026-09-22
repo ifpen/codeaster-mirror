@@ -86,54 +86,20 @@ html_logo = "img/code_aster_200.png"
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
 
-# Add any extra paths that contain custom files (such as robots.txt or
-# .htaccess) here, relative to this directory. These files are copied
-# directly to the root of the documentation.
-# html_extra_path = []
+html_theme_options = {
+    "use_edit_page_button": False,
+    "navbar_start": ["navbar-logo"],
+    "navbar_align": "content",
+    "navigation_with_keys": True,
+    # "footer_start": ["copyright"],
+    # "footer_end": ["sphinx-theme-version"],
+}
 
-# If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
-# using the given strftime format.
 html_last_updated_fmt = "%b %d, %Y"
 
-# If true, SmartyPants will be used to convert quotes and dashes to
-# typographically correct entities.
-# html_use_smartypants = True
-
-# Custom sidebar templates, maps document names to template names.
-# html_sidebars = {}
-
-# Additional templates that should be rendered to pages, maps page names to
-# template names.
-# html_additional_pages = {}
-
-# If false, no module index is generated.
-# html_domain_indices = True
-
-# If false, no index is generated.
-# html_use_index = True
-
-# If true, the index is split into individual pages for each letter.
-# html_split_index = False
-
-# If true, links to the reST sources are added to the pages.
 html_show_sourcelink = False
 html_copy_source = False
 
-# If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
-# html_show_sphinx = True
-
-# If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
-# html_show_copyright = True
-
-# If true, an OpenSearch description file will be output, and all pages will
-# contain a <link> tag referring to it.  The value of this option must be the
-# base URL from which the finished HTML is served.
-# html_use_opensearch = ''
-
-# This is the file name suffix for HTML files (e.g. ".xhtml").
-# html_file_suffix = None
-
-# Output file base name for HTML help builder.
 htmlhelp_basename = "code_asterdoc"
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -153,27 +119,6 @@ latex_elements = {
 latex_documents = [
     ("index", "code_aster.tex", "code\\_aster Documentation", "code\\_aster", "manual")
 ]
-
-# The name of an image file (relative to this directory) to place at the top of
-# the title page.
-# latex_logo = None
-
-# For "manual" documents, if this is true, then toplevel headings are parts,
-# not chapters.
-# latex_use_parts = False
-
-# If true, show page references after internal links.
-# latex_show_pagerefs = False
-
-# If true, show URL addresses after external links.
-# latex_show_urls = False
-
-# Documents to append as an appendix to all manuals.
-# latex_appendices = []
-
-# If false, no module index is generated.
-# latex_domain_indices = True
-
 
 # -- Options for manual page output ---------------------------------------
 
@@ -202,26 +147,8 @@ texinfo_documents = [
     )
 ]
 
-# Documents to append as an appendix to all manuals.
-# texinfo_appendices = []
-
-# If false, no module index is generated.
-# texinfo_domain_indices = True
-
-# How to display URL addresses: 'footnote', 'no', or 'inline'.
-# texinfo_show_urls = 'footnote'
-
-# If true, do not generate a @detailmenu in the "Top" node's menu.
-# texinfo_no_detailmenu = False
-
-# -- Options for napoleon extension  --------------------------------------
-
-# If true, enables generation of the documentation for special class methods
-# like __eq__, __get__, __repr__, etc.
 napoleon_include_special_with_doc = True
 
-# If true, enables generation of the documentation for private class methods,
-# i.e. methods that start with single underscore: e.g. _func()
 napoleon_include_private_with_doc = True
 
 # Show todo blocks

@@ -5,6 +5,11 @@
 Generate automodule blocks.
 """
 
+import argparse
+import os
+import os.path as osp
+from collections import OrderedDict
+
 EPILOG = """
 EXAMPLES:
     Generate a file like ``supervis.rst``::
@@ -15,11 +20,6 @@ EXAMPLES:
 
         python3 generate_rst.py --objects
 """
-
-import argparse
-import os
-import os.path as osp
-from collections import OrderedDict
 
 SECTIONS = ("DataStructure",)
 

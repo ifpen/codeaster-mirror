@@ -1,0 +1,191 @@
+table {
+  border-width: 1px;
+  border-style: solid;
+  width: 90%;
+}
+
+/*
+  override bootstrap table colors
+  see https://github.com/pydata/pydata-sphinx-theme/pull/1711
+  fixed in 0.15.3
+  */
+.table {
+  /* background */
+  --bs-table-bg: transparent;
+  /* ensure text and bullets are visible */
+  --bs-table-color: var(--pst-color-text-base);
+}
+
+td {
+  border-width: 1px;
+}
+
+.bd-main .bd-content .bd-article-container {
+  max-width: 98%;
+  /* default is 60em */
+}
+
+.bd-page-width {
+  max-width: 98%;
+  /* default is 88rem */
+}
+
+html {
+  --pst-font-family-heading: Cambria, Georgia, Times,
+    var(--pst-font-family-base-system);
+}
+
+/* official code_aster logo colors */
+html[data-theme="light"] {
+  --pst-color-primary: #3b7dc0;
+  --pst-color-secondary: #1d3a70;
+}
+
+html[data-theme="dark"] {
+  --bs-body-color: #9ca4af;
+  --pst-color-primary: #608dbb;
+  --pst-color-secondary: #476da1;
+}
+
+/* Style général des admonitions */
+.admonition {
+  border-radius: 8px;
+  padding: 12px;
+  margin: 15px 0;
+  font-size: 16px;
+  /* Texte plus grand */
+  border-left: 6px solid transparent;
+}
+
+/* Titre des admonitions */
+.admonition .admonition-title {
+  font-weight: bold;
+  font-size: 18px;
+  /* Titre plus grand */
+  padding: 8px 12px;
+  border-radius: 6px 6px 0 0;
+  margin: -12px -12px 12px -12px;
+}
+
+/* === Couleurs personnalisées === */
+
+/* Bleu */
+.admonition.block-blue {
+  background-color: #e6f0ff;
+  border-left-color: #007acc;
+}
+
+.admonition.block-blue .admonition-title {
+  background-color: #007acc;
+  color: white;
+}
+
+/* Vert */
+.admonition.block-green {
+  background-color: #e6ffe6;
+  border-left-color: #00cc66;
+}
+
+.admonition.block-green .admonition-title {
+  background-color: #00cc66;
+  color: white;
+}
+
+/* Violet */
+.admonition.block-purple {
+  background-color: #f3e6ff;
+  border-left-color: #9933cc;
+}
+
+.admonition.block-purple .admonition-title {
+  background-color: #9933cc;
+  color: white;
+}
+
+/* Orange */
+.admonition.block-orange {
+  background-color: #fff0e6;
+  border-left-color: #ff6600;
+}
+
+.admonition.block-orange .admonition-title {
+  background-color: #ff6600;
+  color: white;
+}
+
+/* Rose */
+.admonition.block-pink {
+  background-color: #ffe6f0;
+  border-left-color: #ff3399;
+}
+
+.admonition.block-pink .admonition-title {
+  background-color: #ff3399;
+  color: white;
+}
+
+/* Turquoise */
+.admonition.block-cyan {
+  background-color: #e6ffff;
+  border-left-color: #00cccc;
+}
+
+.admonition.block-cyan .admonition-title {
+  background-color: #00cccc;
+  color: white;
+}
+
+/* Rouge */
+.admonition.block-red {
+  background-color: #ffe6e6;
+  border-left-color: #cc0000;
+}
+
+.admonition.block-red .admonition-title {
+  background-color: #cc0000;
+  color: white;
+}
+
+/* Gris */
+.admonition.block-gray {
+  background-color: #f2f2f2;
+  border-left-color: #666666;
+}
+
+.admonition.block-gray .admonition-title {
+  background-color: #666666;
+  color: white;
+}
+
+/* === Mode sombre === */
+html[data-theme="dark"] .admonition.block-blue {
+  background-color: #1e2a38;
+}
+
+html[data-theme="dark"] .admonition.block-green {
+  background-color: #1f2e1f;
+}
+
+html[data-theme="dark"] .admonition.block-purple {
+  background-color: #2a1f2e;
+}
+
+html[data-theme="dark"] .admonition.block-orange {
+  background-color: #2e241f;
+}
+
+html[data-theme="dark"] .admonition.block-pink {
+  background-color: #2e1f24;
+}
+
+html[data-theme="dark"] .admonition.block-cyan {
+  background-color: #1f2e2e;
+}
+
+html[data-theme="dark"] .admonition.block-red {
+  background-color: #2e1f1f;
+}
+
+html[data-theme="dark"] .admonition.block-gray {
+  background-color: #2a2a2a;
+}

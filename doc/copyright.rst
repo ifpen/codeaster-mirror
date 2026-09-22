@@ -22,4 +22,4 @@ Copyright © 2005 IFPEN - M. Guitton
 
 
 The list of the most of the contributors to the project is available in a file
-named :file:`CONTRIBUTORS`.
+named :file:`CONTRIBUTORS` in the ``src`` repository.
