@@ -45,8 +45,8 @@ out = "build"
 install_suffix = os.environ.get("WAF_DEFAULT_VARIANT") or os.environ.get("WAF_SUFFIX", "mpi")
 default_prefix = "../install/%s" % install_suffix
 
-if sys.version_info < (3, 6):
-    Logs.error("Python 3.6 or newer is required.")
+if sys.version_info < (3, 11):
+    Logs.error("Python 3.11 or newer is required.")
     sys.exit(1)
 
 
@@ -54,37 +54,34 @@ def options(self):
     orig_get_usage = self.parser.get_usage
 
     def _usage():
-        return orig_get_usage() + os.linesep.join(
-            (
-                "",
-                "Environment variables:",
-                "  CC             : C compiler",
-                "  FC             : Fortran compiler",
-                "  CXX            : C++ compiler",
-                "  DEFINES        : extra preprocessor defines",
-                "  LINKFLAGS      : extra linker options",
-                "  CFLAGS         : extra C compilation options",
-                "  CXXFLAGS       : extra C++ compilation options",
-                "  FCFLAGS        : extra Fortran compilation options",
-                "  {C,CXX,FC}FLAGS_ASTER_DEBUG may be used to add options only in debug mode",
-                '  LIBPATH_x, LIB_x, INCLUDES_x, PYPATH_x : paths for component "x" for libs, '
-                "includes, python modules",
-                "  CONFIG_PARAMETERS_name=value: extra configuration parameters "
-                "(for config.yaml/json)",
-                "  WAFBUILD_ENV   : environment file to be included in runtime environment file",
-                "  PREFIX         : default installation prefix to be used, "
-                "if no --prefix option is given.",
-                "  ASTER_BLAS_INT_SIZE  : kind of integers to use in the fortran blas/lapack "
-                "calls (4 or 8, default is 4)",
-                "  ASTER_MUMPS_INT_SIZE : kind of integers to use in the fortran mumps calls "
-                " (4 or 8, default is 4)",
-                "  CATALO_CMD     : command line used to build the elements catalog. "
-                "It is just inserted before the executable "
-                "(may define additional environment variables or a wrapper that takes "
-                "all arguments, see catalo/wscript)",
-                "",
-            )
-        )
+        return orig_get_usage() + os.linesep.join((
+            "",
+            "Environment variables:",
+            "  CC             : C compiler",
+            "  FC             : Fortran compiler",
+            "  CXX            : C++ compiler",
+            "  DEFINES        : extra preprocessor defines",
+            "  LINKFLAGS      : extra linker options",
+            "  CFLAGS         : extra C compilation options",
+            "  CXXFLAGS       : extra C++ compilation options",
+            "  FCFLAGS        : extra Fortran compilation options",
+            "  {C,CXX,FC}FLAGS_ASTER_DEBUG may be used to add options only in debug mode",
+            '  LIBPATH_x, LIB_x, INCLUDES_x, PYPATH_x : paths for component "x" for libs, '
+            "includes, python modules",
+            "  CONFIG_PARAMETERS_name=value: extra configuration parameters (for config.yaml/json)",
+            "  WAFBUILD_ENV   : environment file to be included in runtime environment file",
+            "  PREFIX         : default installation prefix to be used, "
+            "if no --prefix option is given.",
+            "  ASTER_BLAS_INT_SIZE  : kind of integers to use in the fortran blas/lapack "
+            "calls (4 or 8, default is 4)",
+            "  ASTER_MUMPS_INT_SIZE : kind of integers to use in the fortran mumps calls "
+            " (4 or 8, default is 4)",
+            "  CATALO_CMD     : command line used to build the elements catalog. "
+            "It is just inserted before the executable "
+            "(may define additional environment variables or a wrapper that takes "
+            "all arguments, see catalo/wscript)",
+            "",
+        ))
 
     self.parser.get_usage = _usage
 

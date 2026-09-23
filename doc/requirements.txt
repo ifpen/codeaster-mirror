@@ -1,2 +1,4 @@
-sphinx<7
-numpy
+numpy<2
+docutils>=0.21.2
+sphinx>=7.4.7,<9
+pydata-sphinx-theme>=0.16

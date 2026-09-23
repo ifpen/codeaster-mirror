@@ -25,7 +25,6 @@ SRCDIR = osp.abspath(osp.join(osp.dirname(__file__), os.pardir))
 BUILDDIR = os.environ.get("BUILDDIR", "build/mpi/release/doc")
 
 paths = [
-    osp.join(DOCDIR, "_extensions"),
     osp.join(DOCDIR, "_automatic_"),
     SRCDIR,
     osp.join(SRCDIR, "code_aster"),
@@ -46,6 +45,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.inheritance_diagram",
     "sphinx.ext.napoleon",
+    "sphinx.ext.extlinks",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -56,7 +56,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "code_aster"
-copyright = "1989-%s, EDF R&D - www.code-aster.org" % time.strftime("%Y")
+copyright = "1989-%s, EDF - www.code-aster.org" % time.strftime("%Y")
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -81,67 +81,33 @@ autodoc_mock_imports = ["aster", "aster_core"]
 autodoc_member_order = "bysource"
 
 # -- Options for HTML output ----------------------------------------------
-html_theme = "sphinx_rtd_theme"
-html_theme_path = ["_extensions"]
+html_theme = "pydata_sphinx_theme"
 html_favicon = "img/code_aster_favicon.png"
 html_logo = "img/code_aster_200.png"
 html_static_path = ["_static"]
+html_css_files = ["custom.css"]
 
-# Add any extra paths that contain custom files (such as robots.txt or
-# .htaccess) here, relative to this directory. These files are copied
-# directly to the root of the documentation.
-# html_extra_path = []
+html_theme_options = {
+    "use_edit_page_button": False,
+    "navbar_start": ["navbar-logo"],
+    "navbar_align": "content",
+    "navigation_with_keys": True,
+    # "footer_start": ["copyright"],
+    # "footer_end": ["sphinx-theme-version"],
+}
 
-# If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
-# using the given strftime format.
 html_last_updated_fmt = "%b %d, %Y"
 
-# If true, SmartyPants will be used to convert quotes and dashes to
-# typographically correct entities.
-# html_use_smartypants = True
-
-# Custom sidebar templates, maps document names to template names.
-# html_sidebars = {}
-
-# Additional templates that should be rendered to pages, maps page names to
-# template names.
-# html_additional_pages = {}
-
-# If false, no module index is generated.
-# html_domain_indices = True
-
-# If false, no index is generated.
-# html_use_index = True
-
-# If true, the index is split into individual pages for each letter.
-# html_split_index = False
-
-# If true, links to the reST sources are added to the pages.
 html_show_sourcelink = False
 html_copy_source = False
 
-# If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
-# html_show_sphinx = True
-
-# If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
-# html_show_copyright = True
-
-# If true, an OpenSearch description file will be output, and all pages will
-# contain a <link> tag referring to it.  The value of this option must be the
-# base URL from which the finished HTML is served.
-# html_use_opensearch = ''
-
-# This is the file name suffix for HTML files (e.g. ".xhtml").
-# html_file_suffix = None
-
-# Output file base name for HTML help builder.
 htmlhelp_basename = "code_asterdoc"
 
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
-    "papersize": "a4paper",
+    "papersize": "a4paper"
     # The font size ('10pt', '11pt' or '12pt').
     #'pointsize': '10pt',
     # Additional stuff for the LaTeX preamble.
@@ -154,27 +120,6 @@ latex_elements = {
 latex_documents = [
     ("index", "code_aster.tex", "code\\_aster Documentation", "code\\_aster", "manual")
 ]
-
-# The name of an image file (relative to this directory) to place at the top of
-# the title page.
-# latex_logo = None
-
-# For "manual" documents, if this is true, then toplevel headings are parts,
-# not chapters.
-# latex_use_parts = False
-
-# If true, show page references after internal links.
-# latex_show_pagerefs = False
-
-# If true, show URL addresses after external links.
-# latex_show_urls = False
-
-# Documents to append as an appendix to all manuals.
-# latex_appendices = []
-
-# If false, no module index is generated.
-# latex_domain_indices = True
-
 
 # -- Options for manual page output ---------------------------------------
 
@@ -195,7 +140,7 @@ texinfo_documents = [
     (
         "index",
         "code_aster",
-        "code_aster Documentation",
+        "Embedded Documentation",
         "code_aster",
         "code_aster",
         "One line description of project.",
@@ -203,54 +148,16 @@ texinfo_documents = [
     )
 ]
 
-# Documents to append as an appendix to all manuals.
-# texinfo_appendices = []
-
-# If false, no module index is generated.
-# texinfo_domain_indices = True
-
-# How to display URL addresses: 'footnote', 'no', or 'inline'.
-# texinfo_show_urls = 'footnote'
-
-# If true, do not generate a @detailmenu in the "Top" node's menu.
-# texinfo_no_detailmenu = False
-
-# -- Options for napoleon extension  --------------------------------------
-
-# If true, enables generation of the documentation for special class methods
-# like __eq__, __get__, __repr__, etc.
 napoleon_include_special_with_doc = True
 
-# If true, enables generation of the documentation for private class methods,
-# i.e. methods that start with single underscore: e.g. _func()
 napoleon_include_private_with_doc = True
 
 # Show todo blocks
 todo_include_todos = True
 
+# --- Variables
+MAINDOC_URL = "https://www.code-aster.org/doc"
+if os.environ.get("HAS_INTRANET", "0") == "1":
+    MAINDOC_URL = "https://docaster.retd.edf.fr/main"
 
-# adapt css
-def setup(app):
-    try:
-        app.add_css_file("mystyles.css")
-    except AttributeError:
-        # version < 1.8
-        app.add_stylesheet("mystyles.css")
-
-
-# List of modules which should be ignored when checking coverage.
-# coverage_ignore_modules = []
-
-# List of functions which should be ignored when checking coverage.
-# coverage_ignore_functions = []
-
-# List of classes which should be ignored when checking coverage.
-# coverage_ignore_classes = ["UndoMenu", "UndoRedoItem"]
-
-# Set to False to not write headlines.
-# coverage_write_headline = False
-
-# Skip objects that are not documented in the source with a docstring. False by default.
-# coverage_skip_undoc_in_source = True
-
-# intersphinx_mapping = {'python': ('https://docs.python.org/2.7', None)}
+extlinks = {"docaster": (MAINDOC_URL + "%s", MAINDOC_URL + "%s")}
