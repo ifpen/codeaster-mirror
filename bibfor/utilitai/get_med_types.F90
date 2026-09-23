@@ -58,11 +58,13 @@ subroutine get_med_types(mesh, vect_types)
         call gnomsd_xx(vect_types)
     end if
 
-    call wkvect(vect_types, 'V V I', nbcell, vi=typmmed)
-    call jeveuo(mesh//'.TYPMAIL', 'L', vi=typmast)
-    do i = 1, nbcell
-        typmmed(i) = typgeo(typmast(i))
-    end do
+    if (nbcell .ne. 0) then
+        call wkvect(vect_types, 'V V I', nbcell, vi=typmmed)
+        call jeveuo(mesh//'.TYPMAIL', 'L', vi=typmast)
+        do i = 1, nbcell
+            typmmed(i) = typgeo(typmast(i))
+        end do
+    end if
 
     call jedema()
 
