@@ -176,9 +176,10 @@ SIG0 = CREA_CHAMP(
 # ***********************************************************************
 #    ESSAI TRIAXIAL DRAINE: PASSAGE REPERE GLOBAL -> LOCAL
 # ***********************************************************************
-CARAEL = AFFE_CARA_ELEM(
-    MODELE=MODELE, MASSIF=_F(GROUP_MA="ECHAN", ANGL_REP=(0.0, 45.0, 0.0)), INFO=1
+cham_orie = DEFI_REPERE(
+    MODELE=MODELE, DEFI=_F(GROUP_MA="ECHAN", SYST_COOR="CARTESIEN", ANGL_NAUT=(0, 45, 0))
 )
+CARAEL = AFFE_CARA_ELEM(MODELE=MODELE, MASSIF=_F(TOUT="OUI", CHAM_ORIE=cham_orie))
 
 DEFLIST = DEFI_LIST_INST(
     DEFI_LIST=_F(LIST_INST=TEMPS1),
