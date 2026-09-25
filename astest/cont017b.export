@@ -1,0 +1,10 @@
+P time_limit 60
+P memory_limit 512
+P ncpus 1
+P mpi_nbcpu 1
+P mpi_nbnoeud 1
+P testlist submit verification sequential
+
+F comm cont017b.comm D 1
+F comm cont017a.com1 D 1
+F mmed cont017a.med D 20

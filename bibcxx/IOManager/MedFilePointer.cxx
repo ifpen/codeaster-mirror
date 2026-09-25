@@ -3,7 +3,7 @@
  * @brief Implementation de MedFilePointer
  * @author Nicolas Sellenet
  * @section LICENCE
- *   Copyright (C) 1991 - 2025  EDF R&D                www.code-aster.org
+ *   Copyright (C) 1991 - 2026  EDF www.code-aster.org
  *
  *   This file is part of Code_Aster.
  *
@@ -20,8 +20,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Code_Aster.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* person_in_charge: nicolas.sellenet at edf.fr */
 
 #include "IOManager/MedFilePointer.h"
 
@@ -45,6 +43,7 @@ med_idt MedFilePointer::getFileId() const {
 void MedFilePointer::checkFileVersion() {
     med_int fileMajor, fileMinor, fileRelease;
     MEDfileNumVersionRd( _fileId, &fileMajor, &fileMinor, &fileRelease );
+    _fileVersion = { fileMajor, fileMinor, fileRelease };
     med_int libMajor, libMinor, libRelease;
     MEDlibraryNumVersion( &libMajor, &libMinor, &libRelease );
     if ( fileMajor > libMajor || ( fileMajor == libMajor && fileMinor > libMinor ) ||
@@ -94,6 +93,10 @@ int MedFilePointer::openParallel( const std::filesystem::path &filename,
     }
     _fileId = MEDparFileOpen( filename.string().c_str(), medAccessMode, comm, MPI_INFO_NULL );
     checkFileVersion();
+    if ( _fileVersion[0] < 3 ) {
+        throw std::runtime_error( "Parallel opening of MED files is prohibited for files"
+                                  " produced by a version of MED older than 3.0." );
+    }
     _isOpen = true;
     _parallelOpen = true;
     return 0;

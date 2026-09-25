@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -61,6 +61,11 @@ subroutine te0352(nomopt, nomte)
 
 ! - Get Parameters
     call laParam(parameters)
+
+    if ((parameters%vari_cont == CONT_VARI_ROBU) .and. &
+        (parameters%l_fric)) then
+        ASSERT(parameters%coef_cont(1) == parameters%coef_fric(1))
+    end if
 
 ! - Use finite difference Jacobian
     diff_num = (parameters%jac_type .gt. 0)

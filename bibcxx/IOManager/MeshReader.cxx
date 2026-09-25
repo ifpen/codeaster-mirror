@@ -413,6 +413,9 @@ void MeshReader::_readMesh( BaseMeshPtr toReturn, MedFileReader &fr, const std::
         for ( const auto &cellFamId : curNFam ) {
             if ( cellFamId != 0 ) {
                 cellFamily[cellFamId + familyOffset].push_back( index + 1 );
+                if ( cellFamId < 0 ) {
+                    throw std::runtime_error( "Error in MED families." );
+                }
             }
             ++index;
         }
@@ -470,6 +473,9 @@ void MeshReader::_readMesh( BaseMeshPtr toReturn, MedFileReader &fr, const std::
             // Group informations are only needed in non IncompleteMesh case
             for ( const auto &cellFamId : curFam ) {
                 if ( cellFamId != 0 ) {
+                    if ( cellFamId > 0 ) {
+                        throw std::runtime_error( "Error in MED families." );
+                    }
                     cellFamily[cellFamId + familyOffset].push_back( index + cumElem );
                 }
                 ++index;
