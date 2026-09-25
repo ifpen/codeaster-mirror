@@ -138,7 +138,7 @@ evol1 = MECA_NON_LINE(
 #   POST-TREATMENT
 ## ------------------------------------
 
-evol1 = CALC_PRESSION(reuse=evol1, RESULTAT=evol1, GROUP_MA=("Escl"), TOUT_ORDRE="OUI")
+evol1 = CALC_PRESSION(MAILLAGE=ma, reuse=evol1, RESULTAT=evol1, GROUP_MA=("Escl"), TOUT_ORDRE="OUI")
 
 IMPR_RESU(FORMAT="MED", UNITE=81, RESU=_F(RESULTAT=evol1, NOM_CHAM="DEPL", NOM_CMP=("DX", "DY")))
 
