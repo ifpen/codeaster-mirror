@@ -281,13 +281,14 @@ evol_me = STAT_NON_LINE(
     INCREMENT=_F(LIST_INST=inst_me),
     NEWTON=_F(MATRICE="TANGENTE", REAC_ITER=1),
     SOLVEUR=_F(ELIM_LAGR="NON"),
-    CONVERGENCE=_F(
-        RESI_REFE_RELA=1.0e-3,
-        SIGM_REFE=100,
-        EFFORT_REFE=700,
-        MOMENT_REFE=4900,
-        LAGR_REFE=1.0e-3,
-        ITER_GLOB_MAXI=10,
+    CONVERGENCE=_F(RESI_REFE_RELA=1.0e-3, ITER_GLOB_MAXI=10),
+    CONVERGENCE_REFE=(
+        _F(GROUP_MA="massif", SIGM=100, LAGR=1.0e-3),
+        _F(GROUP_MA="coque", EFFORT=700, MOMENT=4900),
+        _F(GROUP_MA="grille", SIGM=100),
+        _F(GROUP_MA="grille_excentree", SIGM=100),
+        _F(GROUP_MA="barre", SIGM=700),
+        _F(GROUP_MA="ressort", EFFORT=700),
     ),
     OBSERVATION=(
         _F(

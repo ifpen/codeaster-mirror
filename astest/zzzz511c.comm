@@ -284,7 +284,7 @@ evol_me = STAT_NON_LINE(
         _F(GROUP_MA="coque", EFFORT=700, MOMENT=4900),
         _F(GROUP_MA="grille", SIGM=1000),
         _F(GROUP_MA="grille_excentree", SIGM=1000),
-        _F(GROUP_MA="barre", EFFORT=700),
+        _F(GROUP_MA="barre", SIGM=700),
         _F(GROUP_MA="ressort", EFFORT=700),
     ),
     OBSERVATION=(

@@ -300,9 +300,9 @@ contains
                 call ComputePlasticity(self, eps, kam, epm, state, ka, ep, sig, deps_sig, &
                                        dphi_sig, deps_vi, dphi_vi)
             else if (self%uniax) then
-                    call ComputePlasticity1D(self, eps(1), kam, epm(1), state, ka, ep(1), sig(1), &
+                call ComputePlasticity1D(self, eps(1), kam, epm(1), state, ka, ep(1), sig(1), &
                                          deps_sig(1, 1))
-                else
+            else
                 call ComputePlasticity(self, eps, kam, epm, state, ka, ep, sig, deps_sig, &
                                        vdum1, vdum2, rdum)
             end if
