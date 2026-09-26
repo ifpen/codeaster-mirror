@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -21,6 +21,7 @@ import os
 import os.path as osp
 import platform
 import shutil
+import subprocess
 from functools import partial
 
 from waflib import Logs, Task, TaskGen, Utils
@@ -69,6 +70,16 @@ def pre_build_catalo(self):
     self.source = [ojb]  # bypass the execution of process_source
 
 
+# to be limited to a few well known variables
+def _eval_shell_var(var_expr: str | list[str]):
+    """Evaluate an environment variable using the shell (to support "${VAR:-default}")."""
+    var_expr = ":".join(Utils.to_list(var_expr))
+    var_value = subprocess.run(
+        ["sh", "-c", f'printf "%s" "{var_expr}"'], capture_output=True, text=True
+    ).stdout
+    return var_value
+
+
 class printcata(Task.Task):
     def run(self):
         """Execute the command"""
@@ -77,7 +88,8 @@ class printcata(Task.Task):
         # add src/code_aster + catalo in PYTHONPATH
         add_to_env_paths(bld, environ, "PYTHONPATH", self.env["CODEASTERPATH"])
         add_to_env_paths(bld, environ, "PYTHONPATH", self.env["CATALOPATH"])
-        add_to_env_paths(bld, environ, "LD_PRELOAD", self.env["CONFIG_ENV_LD_PRELOAD"])
+        ldpreload = _eval_shell_var(self.env["CONFIG_ENV_LD_PRELOAD"])
+        add_to_env_paths(bld, environ, "LD_PRELOAD", ldpreload)
         opts = os.environ.get("ASAN_OPTIONS", self.env["ASAN_DEFAULT_OPTIONS"] or "")
         environ["ASAN_OPTIONS"] = opts
         exec_pyaster(
@@ -144,7 +156,8 @@ def build_cata_ele(self, ojb, elem1, install_path):
         if "32" in platform.architecture()[0]:
             memlim = 2047
         environ = os.environ.copy()
-        add_to_env_paths(self, environ, "LD_PRELOAD", self.env["CONFIG_ENV_LD_PRELOAD"])
+        ldpreload = _eval_shell_var(self.env["CONFIG_ENV_LD_PRELOAD"])
+        add_to_env_paths(self, environ, "LD_PRELOAD", ldpreload)
         opts = os.environ.get("ASAN_OPTIONS", self.env["ASAN_DEFAULT_OPTIONS"] or "")
         environ["ASAN_OPTIONS"] = opts
         exec_pyaster(
