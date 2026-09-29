@@ -302,14 +302,18 @@ subroutine op0167()
         if (nbCell .ne. nbCellIn) then
             call utmess('A', 'MESH1_4', sk=keywfact)
         end if
-        call jeveuo(jvCellNume, 'L', vi=listCellNume)
+        if (nbCell > 0) then
+            call jeveuo(jvCellNume, 'L', vi=listCellNume)
+        else
+            ASSERT(isParallelMesh(meshIn))
+        end if
         call cmlqlq(meshIn, meshOut, nbCell, listCellNume)
         goto 350
     end if
 !
 ! --------------------------------------------------------------------------------------------------
 !
-!   For "LINE_Cubi"
+!   For "LINE_CUBI"
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -328,7 +332,11 @@ subroutine op0167()
         if (nbCell .ne. nbCellIn) then
             call utmess('A', 'MESH1_4', sk=keywfact)
         end if
-        call jeveuo(jvCellNume, 'L', vi=listCellNume)
+        if (nbCell > 0) then
+            call jeveuo(jvCellNume, 'L', vi=listCellNume)
+        else
+            ASSERT(isParallelMesh(meshIn))
+        end if
         call cmlclc(meshIn, meshOut, nbCell, listCellNume)
         goto 350
     end if
@@ -362,7 +370,11 @@ subroutine op0167()
             end if
 !
             call getelem(meshIn, keywfact, 1, 'F', jvCellNume, nbCell)
-            call jeveuo(jvCellNume, 'L', vi=listCellNume)
+            if (nbCell > 0) then
+                call jeveuo(jvCellNume, 'L', vi=listCellNume)
+            else
+                ASSERT(isParallelMesh(meshIn))
+            end if
             if (nbCell .ne. nbCellIn) then
                 call utmess('A', 'MESH1_4', sk=keywfact)
             end if
@@ -412,7 +424,11 @@ subroutine op0167()
 
 ! --------- Get parameters
             call getelem(meshIn, keywfact, iocc, 'F', jvCellNume, nbCell)
-            call jeveuo(jvCellNume, 'L', vi=listCellNume)
+            if (nbCell > 0) then
+                call jeveuo(jvCellNume, 'L', vi=listCellNume)
+            else
+                ASSERT(isParallelMesh(meshIn))
+            end if
 
 ! --------- Convert cells
             call meshSolidShell%convert_cells(nbCell, listCellNume, ASTER_FALSE)
@@ -449,7 +465,11 @@ subroutine op0167()
         if (nbCell .ne. nbCellIn) then
             call utmess('A', 'MESH1_4', sk=keywfact)
         end if
-        call jeveuo(jvCellNume, 'L', vi=listCellNume)
+        if (nbCell > 0) then
+            call jeveuo(jvCellNume, 'L', vi=listCellNume)
+        else
+            ASSERT(isParallelMesh(meshIn))
+        end if
         call cmqlql(meshIn, meshOut, nbCell, listCellNume)
         goto 350
     end if
@@ -472,7 +492,11 @@ subroutine op0167()
         end if
         keywfact = 'MODI_HHO'
         call getelem(meshIn, keywfact, 1, 'F', jvCellNume, nbCell)
-        call jeveuo(jvCellNume, 'L', vi=listCellNume)
+        if (nbCell > 0) then
+            call jeveuo(jvCellNume, 'L', vi=listCellNume)
+        else
+            ASSERT(isParallelMesh(meshIn))
+        end if
         call cmhho(meshIn, meshOut, nbCell, listCellNume)
         goto 350
     end if
