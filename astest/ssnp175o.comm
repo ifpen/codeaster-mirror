@@ -89,8 +89,6 @@ RES = CALC_CHAMP(
     reuse=RES, RESULTAT=RES, CONTRAINTE=("SIEF_NOEU", "SIEF_ELNO", "SIGM_NOEU", "SIGM_ELNO")
 )
 
-RES.printMedFile("/home/C00976/tmp/ssnp175o.rmed")
-
 TEST_RESU(
     RESU=(
         _F(
