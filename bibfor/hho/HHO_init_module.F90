@@ -51,8 +51,8 @@ module HHO_init_module
 !
 !
     public :: hhoInfoInitCell, hhoInfoInitFace, hhoInitFacesOfCell, hhoInfoInitCellAndFace
-    public :: hhoUpdateCoordinatesFace
-    private :: hhoGeomData, hhoGeomFace, hhoDataInit, hhoFaceInit, hhoCellInit
+    public :: hhoUpdateCoordinatesFace, hhoCellInit
+    private :: hhoGeomData, hhoGeomFace, hhoDataInit, hhoFaceInit
 !
 contains
 !
@@ -65,9 +65,9 @@ contains
         implicit none
 !
         real(kind=8), dimension(3, 27), intent(out)  :: nodes_coor
-        integer(kind=8), intent(out)                        :: nbnodes
-        character(len=8), intent(out)               :: typma
-        integer(kind=8), intent(out)                        :: elem_dim
+        integer(kind=8), intent(out)                 :: nbnodes
+        character(len=8), intent(out)                :: typma
+        integer(kind=8), intent(out)                 :: elem_dim
 !
 ! --------------------------------------------------------------------------------------------------
 !
