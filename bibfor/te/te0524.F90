@@ -58,11 +58,12 @@ subroutine te0524(nomopt, nomte)
 ! --- Compute coupling residual
 !
         call readVector('PDEPLMR', nbDoFs, disp_prev)
+        ! this is incremental displacement
         call readVector('PDEPLPR', nbDoFs, disp_curr)
         call daxpy_1(nbDoFs, 1.d0, disp_prev, disp_curr)
         rhs = 0.d0
         do i = ndim+1, nbDoFs
-            rhs(i) = -disp_curr(i)
+            rhs(i) = disp_curr(i)
         end do
 !
 ! --- Write vector

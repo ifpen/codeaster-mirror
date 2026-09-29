@@ -256,7 +256,7 @@ void CouplingPairing::createVirtualElemForOrphelanNodesForCoupling(
     auto mesh = getMesh();
     ASTERINTEGER modelDim = _model->getGeometricDimension();
 
-    ASTERINTEGER iCplPair = 0;
+    ASTERINTEGER iCplPair = this->getNumberOfPairs();
 
     const auto fed = _model->getFiniteElementDescriptor();
 
@@ -592,9 +592,16 @@ FieldOnCellsRealPtr CouplingPairing::getPairingField() const {
     ASTERINTEGER nbPair = 0;
     for ( ASTERINTEGER iGrel = 0; iGrel < nbGrel; iGrel++ ) {
         auto nbElem = data->getNumberOfElements( iGrel );
-        AS_ASSERT( data->getSizeOfFieldOfElement( iGrel ) == Offset::SIZE );
         auto liel = ( *grel )[iGrel + 1];
         liel->updateValuePointer();
+        const auto typeFE = ( *liel )[liel->size() - 1];
+        const auto nameFE = _fed->getElemTypeName( typeFE );
+        if ( nameFE == "CL_POI2D" || nameFE == "CL_POI3D" ) {
+            AS_ASSERT( data->getSizeOfFieldOfElement( iGrel ) == 0 );
+            continue;
+        }
+        AS_ASSERT( data->getSizeOfFieldOfElement( iGrel ) == Offset::SIZE );
+
         // Loop on elements
         for ( ASTERINTEGER iElem = 0; iElem < nbElem; iElem++ ) {
             // Get mesh cell index
@@ -624,7 +631,7 @@ FieldOnCellsRealPtr CouplingPairing::getPairingField() const {
                 }
 
                 // Coefficient of penalization
-                ( *data )[shift + Offset ::COEF_PENA] = zone->getCoefficient();
+                ( *data )[shift + Offset::COEF_PENA] = zone->getCoefficient();
 
                 // For Nitsche
                 if ( zone->getMethod() == CouplingMethod::Nitsche ) {
