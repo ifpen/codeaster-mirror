@@ -56,6 +56,7 @@ module LoadKinematic_module
 #include "asterfort/getvtx.h"
 #include "asterfort/int_to_char8.h"
 #include "asterfort/jedetr.h"
+#include "asterfort/jeexin.h"
 #include "asterfort/jelira.h"
 #include "asterfort/jeveuo.h"
 #include "asterfort/jexnom.h"
@@ -905,10 +906,16 @@ contains
         real(kind=8) :: nodeMastCoef
         integer(kind=8), pointer :: pjefNb(:) => null(), pjefNu(:) => null()
         real(kind=8), pointer :: pjefCf(:) => null()
-
+        aster_logical :: lcolle
+        integer(kind=8) :: ier
 !   ------------------------------------------------------------------------------------------------
 !
         mesh = meshZ
+        lcolle = .false.
+        call jeexin(meshZ(1:8)//'.NOMNOE', ier)
+        if (ier .ne. 0) then
+            lcolle = .true.
+        end if
 
 ! - Acces to link parameters
         call jelira(corres//'.PJEF_NB', 'LONMAX', nbLink)
@@ -930,7 +937,7 @@ contains
 
 ! ----- Current slave node
             nodeSlavNume = iLink
-            nodeSlavName = int_to_char8(nodeSlavNume)
+            nodeSlavName = int_to_char8(nodeSlavNume, lcolle, meshZ, "NOEUD")
 
 ! ----- Coefficient for slave node
             kineListRela%nodeName(1) = nodeSlavName
@@ -943,7 +950,7 @@ contains
             do iNodeMast = 1, nbNodeMast
                 nodeMastNume = pjefNu(shifNodeMast+iNodeMast)
                 nodeMastCoef = pjefCf(shifNodeMast+iNodeMast)
-                nodeMastName = int_to_char8(nodeMastNume)
+                nodeMastName = int_to_char8(nodeMastNume, lcolle, meshZ, "NOEUD")
 !           SI LA RELATION EST UNE TAUTOLOGIE, ON NE L'ECRIT PAS :
                 if (nodeMastNume .eq. nodeSlavNume) then
                     if (abs(kineListRela%coefMultReal(iNodeMast+1)-1.0d0) .lt. 1.0d-02) then
@@ -1091,9 +1098,16 @@ contains
         integer(kind=8) :: iDofMast, iDofSlav, iEqua
         integer(kind=8), pointer :: pjefNu(:) => null(), pjefNb(:) => null()
         real(kind=8), pointer :: pjefCf(:) => null()
+        aster_logical :: lcolle
+        integer(kind=8) :: ier
 !   ------------------------------------------------------------------------------------------------
 !
         mesh = meshZ
+        lcolle = .false.
+        call jeexin(meshZ(1:8)//'.NOMNOE', ier)
+        if (ier .ne. 0) then
+            lcolle = .true.
+        end if
 
 ! - Acces to link parameters
         call jelira(corres//'.PJEF_NB', 'LONMAX', nbLink)
@@ -1109,7 +1123,7 @@ contains
 
 ! ----- Current slave node
             nodeSlavNume = iLink
-            nodeSlavName = int_to_char8(nodeSlavNume)
+            nodeSlavName = int_to_char8(nodeSlavNume, lcolle, meshZ, "NOEUD")
 
 ! ----- Set local coordinate system
             if (useNormal) then
@@ -1149,7 +1163,7 @@ contains
                     do iNodeMast = 1, nbNodeMast
                         nodeMastNume = pjefNu(shifNodeMast+iNodeMast)
                         nodeMastCoef = pjefCf(shifNodeMast+iNodeMast)
-                        nodeMastName = int_to_char8(nodeMastNume)
+                        nodeMastName = int_to_char8(nodeMastNume, lcolle, meshZ, "NOEUD")
                         if (nodeMastNume .eq. nodeSlavNume) then
                             if (abs(nodeMastCoef-1.0d0) .lt. 1.0d-02) then
                                 call utmess('A', 'CHARGES7_1')
@@ -1207,9 +1221,9 @@ contains
                                       reshape((/3, 2, &
                                                 1, 3, &
                                                 2, 1/), (/2, 3/))
-        aster_logical :: lCoque3d
+        aster_logical :: lCoque3d, lcolle
         integer(kind=8) :: iNodeMast, iNodeMastDisp, iNodeMastRota
-        integer(kind=8) :: iLink, iDime, iTerm, shiftNodeMast
+        integer(kind=8) :: iLink, iDime, iTerm, shiftNodeMast, ier
         integer(kind=8) :: nbLink, nodeSlavNume, nodeMastNume, cellMastNume
         character(len=8) :: nodeSlavName, nodeMastName, dofName
         character(len=8) :: mesh, elrefa
@@ -1222,6 +1236,12 @@ contains
 !   ------------------------------------------------------------------------------------------------
 !
         mesh = meshZ
+
+        lcolle = .false.
+        call jeexin(meshZ(1:8)//'.NOMNOE', ier)
+        if (ier .ne. 0) then
+            lcolle = .true.
+        end if
 
 ! - Acces to link parameters
         call jelira(corres//'.PJEF_NB', 'LONMAX', nbLink)
@@ -1244,7 +1264,7 @@ contains
 
 ! ----- Current slave node
             nodeSlavNume = iLink
-            nodeSlavName = int_to_char8(nodeSlavNume)
+            nodeSlavName = int_to_char8(nodeSlavNume, lcolle, meshZ, "NOEUD")
 
 ! ----- Number of master nodes
             nbNodeMast = pjefNb(iLink)
@@ -1308,7 +1328,7 @@ contains
                 do iNodeMastDisp = 1, nbNodeMastDisp
                     nodeMastNume = pjefNu(shiftNodeMast+iNodeMastDisp)
                     nodeMastCoef = ff(iNodeMastDisp)
-                    nodeMastName = int_to_char8(nodeMastNume)
+                    nodeMastName = int_to_char8(nodeMastNume, lcolle, meshZ, "NOEUD")
                     if (nodeMastNume .eq. nodeSlavNume) then
                         if (abs(nodeMastCoef-1.0d0) .lt. 1.0d-02) then
                             call utmess('A', 'CHARGES7_1')
@@ -1325,7 +1345,7 @@ contains
                 do iNodeMastRota = 1, nbNodeMastRota
                     nodeMastNume = pjefNu(shiftNodeMast+iNodeMastRota)
                     nodeMastCoef = pjefCf(shiftNodeMast+iNodeMastRota)
-                    nodeMastName = int_to_char8(nodeMastNume)
+                    nodeMastName = int_to_char8(nodeMastNume, lcolle, meshZ, "NOEUD")
                     kineListRela%nodeName(iTerm-1+1) = nodeMastName
                     kineListRela%nodeName(iTerm-1+2) = nodeMastName
                     kineListRela%dofName(iTerm-1+1) = dofRotaName(1, iDime)
@@ -1382,7 +1402,7 @@ contains
         character(len=8), parameter :: dofDispName(3) = (/'DX', 'DY', 'DZ'/)
         integer(kind=8) :: iNodeMast, iNodeMastSup, iNodeMastInf, iTerm, iDime
         integer(kind=8) :: shiftNodeMast, shiftNodeMastSup, shiftNodeMastInf, cellMastNume
-        integer(kind=8) :: iLink, nbLink, nodeSlavNume, nodeMastNume
+        integer(kind=8) :: iLink, nbLink, nodeSlavNume, nodeMastNume, ier
         character(len=8) :: nodeSlavName, nodeMastName, dofName
         character(len=8) :: mesh
         real(kind=8) :: nodeMastCoef, thickness, normalVect(3), mat33(3, 3)
@@ -1395,9 +1415,16 @@ contains
         integer(kind=8), pointer :: pjef2Nu(:) => null(), pjef2Nb(:) => null()
         real(kind=8), pointer :: pjef2Cf(:) => null()
         real(kind=8), pointer :: thickNormal(:) => null()
+        aster_logical :: lcolle
 !   ------------------------------------------------------------------------------------------------
 !
         mesh = meshZ
+
+        lcolle = .false.
+        call jeexin(meshZ(1:8)//'.NOMNOE', ier)
+        if (ier .ne. 0) then
+            lcolle = .true.
+        end if
 
 ! - Acces to link parameters
         call jelira(corres//'.PJEF_NB', 'LONMAX', nbLink)
@@ -1429,7 +1456,7 @@ contains
 
 ! ----- Current slave node
             nodeSlavNume = iLink
-            nodeSlavName = int_to_char8(nodeSlavNume)
+            nodeSlavName = int_to_char8(nodeSlavNume, lcolle, meshZ, "NOEUD")
 
 ! ----- Number of master nodes
             nbNodeMast = pjefNb(iLink)
@@ -1454,7 +1481,7 @@ contains
                 do iNodeMast = 1, nbNodeMast
                     nodeMastNume = pjefNu(shiftNodeMast+iNodeMast)
                     nodeMastCoef = pjefCf(shiftNodeMast+iNodeMast)
-                    nodeMastName = int_to_char8(nodeMastNume)
+                    nodeMastName = int_to_char8(nodeMastNume, lcolle, meshZ, "NOEUD")
                     if (nodeMastNume .eq. nodeSlavNume) then
                         if (abs(nodeMastCoef-1.0d0) .lt. 1.0d-02) then
                             call utmess('A', 'CHARGES7_1')
@@ -1507,7 +1534,7 @@ contains
             do iNodeMastSup = 1, nbNodeMastSup
                 nodeMastNume = pjef1Nu(shiftNodeMastSup+iNodeMastSup)
                 nodeMastCoef = pjef1Cf(shiftNodeMastSup+iNodeMastSup)
-                nodeMastName = int_to_char8(nodeMastNume)
+                nodeMastName = int_to_char8(nodeMastNume, lcolle, meshZ, "NOEUD")
                 iTerm = iTerm+1
                 kineListRela%nodeName(iTerm) = nodeMastName
                 kineListRela%dofName(iTerm) = 'DX'
@@ -1526,7 +1553,7 @@ contains
             do iNodeMastInf = 1, nbNodeMastInf
                 nodeMastNume = pjef2Nu(shiftNodeMastInf+iNodeMastInf)
                 nodeMastCoef = pjef2Cf(shiftNodeMastInf+iNodeMastInf)
-                nodeMastName = int_to_char8(nodeMastNume)
+                nodeMastName = int_to_char8(nodeMastNume, lcolle, meshZ, "NOEUD")
                 iTerm = iTerm+1
                 kineListRela%nodeName(iTerm) = nodeMastName
                 kineListRela%dofName(iTerm) = 'DX'
@@ -1566,7 +1593,7 @@ contains
             do iNodeMastSup = 1, nbNodeMastSup
                 nodeMastNume = pjef1Nu(shiftNodeMastSup+iNodeMastSup)
                 nodeMastCoef = pjef1Cf(shiftNodeMastSup+iNodeMastSup)
-                nodeMastName = int_to_char8(nodeMastNume)
+                nodeMastName = int_to_char8(nodeMastNume, lcolle, meshZ, "NOEUD")
                 iTerm = iTerm+1
                 kineListRela%nodeName(iTerm) = nodeMastName
                 kineListRela%dofName(iTerm) = 'DX'
@@ -1585,7 +1612,7 @@ contains
             do iNodeMastInf = 1, nbNodeMastInf
                 nodeMastNume = pjef2Nu(shiftNodeMastInf+iNodeMastInf)
                 nodeMastCoef = pjef2Cf(shiftNodeMastInf+iNodeMastInf)
-                nodeMastName = int_to_char8(nodeMastNume)
+                nodeMastName = int_to_char8(nodeMastNume, lcolle, meshZ, "NOEUD")
                 iTerm = iTerm+1
                 kineListRela%nodeName(iTerm) = nodeMastName
                 kineListRela%dofName(iTerm) = 'DX'
@@ -1648,10 +1675,16 @@ contains
         real(kind=8), pointer :: meshVale(:) => null()
         integer(kind=8), pointer :: pjefNu(:) => null(), pjefNb(:) => null(), pjefM1(:) => null()
         real(kind=8), pointer :: pjefCf(:) => null(), pjefCo(:) => null()
-        aster_logical :: TakeDof
+        aster_logical :: TakeDof, lcolle
+        integer(kind=8) :: ier
 !   ------------------------------------------------------------------------------------------------
 !
         mesh = meshZ
+        lcolle = .false.
+        call jeexin(meshZ(1:8)//'.NOMNOE', ier)
+        if (ier .ne. 0) then
+            lcolle = .true.
+        end if
 
 ! - Access to link parameters
         call jelira(corres//'.PJEF_NB', 'LONMAX', nbLink)
@@ -1674,7 +1707,7 @@ contains
 
 ! ----- Current slave node
             nodeSlavNume = iLink
-            nodeSlavName = int_to_char8(nodeSlavNume)
+            nodeSlavName = int_to_char8(nodeSlavNume, lcolle, meshZ, "NOEUD")
 
 ! ----- Number of master nodes
             nbNodeMast = pjefNb(iLink)
@@ -1721,7 +1754,7 @@ contains
                 do iNodeMast = 1, nbNodeMast
                     nodeMastNume = pjefNu(shiftNodeMast+iNodeMast)
                     nodeMastCoef = pjefCf(shiftNodeMast+iNodeMast)
-                    nodeMastName = int_to_char8(nodeMastNume)
+                    nodeMastName = int_to_char8(nodeMastNume, lcolle, meshZ, "NOEUD")
                     if (nodeMastNume .eq. nodeSlavNume) then
                         if (abs(nodeMastCoef-1.0d0) .lt. 1.0d-02) then
                             call utmess('A', 'CHARGES7_1')
@@ -1774,7 +1807,7 @@ contains
                 do iNodeMast = 1, nbNodeMast
                     nodeMastNume = pjefNu(shiftNodeMast+iNodeMast)
                     nodeMastCoef = pjefCf(shiftNodeMast+iNodeMast)
-                    nodeMastName = int_to_char8(nodeMastNume)
+                    nodeMastName = int_to_char8(nodeMastNume, lcolle, meshZ, "NOEUD")
                     if (nodeMastNume .eq. nodeSlavNume) then
                         if (abs(nodeMastCoef-1.0d0) .lt. 1.0d-02) then
                             call utmess('A', 'CHARGES7_1')
@@ -1845,11 +1878,18 @@ contains
         character(len=1) :: dofUnknown
         integer(kind=8), parameter :: nbDofRota = 3
         character(len=8), pointer :: dofRotaName(:) => null()
+        aster_logical :: lcolle
+        integer(kind=8) :: ier
 
 !   ------------------------------------------------------------------------------------------------
 !
         valeType = valeTypeZ
         ASSERT(valeType .eq. 'REEL')
+        lcolle = .false.
+        call jeexin(mesh(1:8)//'.NOMNOE', ier)
+        if (ier .ne. 0) then
+            lcolle = .true.
+        end if
 
 ! - List of rotation DOF
         AS_ALLOCATE(vk8=dofRotaName, size=nbDofRota)
@@ -1903,7 +1943,7 @@ contains
 
 ! --------- Current slave node
                 node2Nume = iNode2
-                node2Name = int_to_char8(node2Nume)
+                node2Name = int_to_char8(node2Nume, lcolle, mesh, "NOEUD")
                 cell1Nume = cell1List(node2Nume)
                 if (cell1Nume .eq. 0) cycle
                 if (hasExcent) then
@@ -1952,7 +1992,7 @@ contains
 
 ! ----------------- Current master node
                         node1Nume = node1List(idecal+iNode1)
-                        node1Name = int_to_char8(node1Nume)
+                        node1Name = int_to_char8(node1Nume, lcolle, mesh, "NOEUD")
                         coeffi = nodeCoef(idecal+iNode1)
                         if (node1Nume .eq. node2Nume) then
                             call utmess("A", "CHARGES7_13")
