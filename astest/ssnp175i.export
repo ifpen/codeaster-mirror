@@ -6,5 +6,4 @@ P mpi_nbnoeud 1
 P testlist submit verification sequential
 
 F comm ssnp175i.comm D 1
-F mmed ssnp170e.mmed D 20
-F libr ssnp175a_func.py D 51
+F mmed ssnp175b.mmed D 20

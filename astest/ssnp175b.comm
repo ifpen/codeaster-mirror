@@ -19,14 +19,17 @@
 
 from code_aster.Commands import *
 from code_aster import CA
-from ssnp175a_func import create_grp_2d
+from code_aster.CA import MPI
 
 DEBUT(CODE="OUI", DEBUG=_F(SDVERI="OUI"), INFO=1)
 
-Mail0 = LIRE_MAILLAGE(UNITE=20, FORMAT="MED")
+nbproc = MPI.ASTER_COMM_WORLD.Get_size()
+rank = MPI.ASTER_COMM_WORLD.Get_rank()
 
-Mail = create_grp_2d(Mail0)
-
+if nbproc > 1:
+    Mail = LIRE_MAILLAGE(UNITE=20, FORMAT="MED", PARTITIONNEUR="PTSCOTCH")
+else:
+    Mail = LIRE_MAILLAGE(UNITE=20, FORMAT="MED")
 
 Mail = MODI_MAILLAGE(
     reuse=Mail,
@@ -65,7 +68,10 @@ RACCORD = AFFE_CHAR_MECA(
         METHODE="PENALISATION",
         COEF_PENA=E,
     ),
-    DDL_IMPO=(_F(GROUP_MA="Sym_Bas", DX=0), _F(GROUP_MA="Encast", DY=0)),
+)
+
+DDL_IMPO = AFFE_CHAR_MECA(
+    MODELE=MODI, INFO=1, DDL_IMPO=(_F(GROUP_MA="Sym_Bas", DX=0), _F(GROUP_MA="Encast", DY=0))
 )
 
 
@@ -82,7 +88,12 @@ RES = MECA_NON_LINE(
     INFO=1,
     MODELE=MODI,
     CHAM_MATER=AFFE,
-    EXCIT=(_F(CHARGE=CINE_FEM), _F(CHARGE=CHAR_PRES, FONC_MULT=RAMPE), _F(CHARGE=RACCORD)),
+    EXCIT=(
+        _F(CHARGE=CINE_FEM),
+        _F(CHARGE=CHAR_PRES, FONC_MULT=RAMPE),
+        _F(CHARGE=RACCORD),
+        _F(CHARGE=DDL_IMPO),
+    ),
     NEWTON=_F(MATRICE="TANGENTE", REAC_ITER=1),
     INCREMENT=_F(LIST_INST=lisi),
     COMPORTEMENT=_F(RELATION="ELAS", DEFORMATION="PETIT", TOUT="OUI"),
@@ -178,7 +189,7 @@ RES2 = MECA_STATIQUE(
     INFO=1,
     MODELE=MODI,
     CHAM_MATER=AFFE,
-    EXCIT=(_F(CHARGE=CINE_FEM), _F(CHARGE=CHAR_PRES), _F(CHARGE=RACCORD)),
+    EXCIT=(_F(CHARGE=CINE_FEM), _F(CHARGE=CHAR_PRES), _F(CHARGE=RACCORD), _F(CHARGE=DDL_IMPO)),
     INST=1.0,
 )
 
