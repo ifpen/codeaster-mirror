@@ -101,7 +101,8 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor( const std::string &nam
     std::map< int, int > vNodesSet;
     ASTERINTEGER globalVNodeNumber = 0, nbElemToKeep = 0, totalSizeToKeep = 0;
     ASTERINTEGER localVNodeNumber = 0;
-    VectorInt tmpVec( 4, 0 );
+    // 400 - maximum number of nodes of a cell
+    VectorInt tmpVec( 400, 0 );
     for ( int num2 = 0; num2 < owner.size(); ++num2 ) {
         const int &curOwner = owner[num2];
         if ( curOwner == rank ) {
@@ -133,6 +134,7 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor( const std::string &nam
         int pos = 0, curOwner = -1, oldCurOwner;
         bool allElemNodesToKeep = false;
         VectorInt curOwners;
+        const auto nbNodesElem = meshElem.getNumberOfNodes();
         for ( auto numNode : meshElem ) {
             // Si on est sur un noeud tardif...
             if ( numNode < 0 ) {
@@ -161,8 +163,9 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor( const std::string &nam
                 virtualCellToKeep.push_back( numElem );
                 _virtualCellToKeep[numElem] = nbElemToKeep - 1;
                 --nbElemToKeep;
-                for ( const auto &num2 : tmpVec ) {
-                    ++totalSizeToKeep;
+                totalSizeToKeep += nbNodesElem;
+                for ( ASTERINTEGER ino = 0; ino < nbNodesElem; ++ino ) {
+                    const auto num2 = tmpVec[ino];
                     if ( addedVirtualNodes.count( num2 ) == 0 ) {
                         addedVirtualNodes[num2] = DNInformations();
                         if ( vNodesSet.count( num2 ) == 0 ) {
@@ -183,7 +186,8 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor( const std::string &nam
                     }
                 }
             } else {
-                for ( const auto &num2 : tmpVec ) {
+                for ( ASTERINTEGER ino = 0; ino < nbNodesElem; ++ino ) {
+                    const auto num2 = tmpVec[ino];
                     if ( vNodesSet.count( num2 ) == 0 ) {
                         vNodesSet[num2] = globalVNodeNumber;
                         ++globalVNodeNumber;
@@ -441,7 +445,6 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor(
     std::map< int, int > vNodesSet;
     ASTERINTEGER globalVNodeNumber = 0, nbElemToKeep = 0, totalSizeToKeep = 0;
     ASTERINTEGER localVNodeNumber = 0;
-    VectorInt tmpVec( 4, 0 );
     for ( int num2 = 0; num2 < owner.size(); ++num2 ) {
         const int &curOwner = owner[num2];
         if ( curOwner == rank ) {
