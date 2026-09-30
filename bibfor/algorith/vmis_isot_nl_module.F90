@@ -616,7 +616,7 @@ contains
         integer(kind=8) :: ite, itev
         real(kind=8)    :: presig
         real(kind=8)    :: mve, dkas, rks, rvs, mvs, dka
-        real(kind=8)    :: tel, telq, dep
+        real(kind=8)    :: tel, telq, dep, sg
         real(kind=8)    :: equ, dka_equ, dv_equ, rv, res, rvx, mh
         real(kind=8)    :: deps_telq, dtelq_ka, deps_ka, dka_mv
         type(newton_state):: mem
@@ -625,6 +625,7 @@ contains
 !   Contrainte elastique
         tel = self%mat%troismu_yng*(eps-epm)
         telq = abs(tel)
+        sg = sign(1.d0, tel)
 
 !   Copie des informations dans self pour utilisation des fonctions du module
         self%kam = kam
@@ -707,7 +708,7 @@ contains
         end if
 
         state = 1
-        dep = dka*sign(1.d0, tel)
+        dep = dka*sg
 
 800     continue
         ka = kam+dka
@@ -739,7 +740,7 @@ contains
             ! Regime plastique
         else
             ! Quantites liees a la contrainte elastique
-            deps_telq = self%mat%troismu_yng*sign(1.d0, tel)
+            deps_telq = sg*self%mat%troismu_yng
 
             ! Variations de kappa
             dka_mv = dka_m_hat(self, kam+dka)-dka_visco(self, dka)
@@ -747,7 +748,7 @@ contains
             deps_ka = dtelq_ka*deps_telq
 
             ! Operateurs tangents
-            deps_t = self%mat%troismu_yng*(1.d0-sign(1.d0, tel*deps_ka))
+            deps_t = self%mat%troismu_yng*(1.d0-sg*deps_ka)
         end if
 
 999     continue

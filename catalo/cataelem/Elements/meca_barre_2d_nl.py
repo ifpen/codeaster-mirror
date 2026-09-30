@@ -548,13 +548,17 @@ class MEBA2DSE2(Element):
         ),
         OP.REFE_FORC_NODA(
             te=559,
-            para_in=((SP.PRESIREF, LC.CRESIREF), (SP.PRESICMP, LC.CRESICMP)),
+            para_in=(
+                (SP.PCAGNBA, LC.CCAGNBA),
+                (SP.PRESIREF, LC.CRESIREF),
+                (SP.PRESICMP, LC.CRESICMP),
+            ),
             para_out=((SP.PVECTUR, MVECTUR),),
         ),
         # OP.REPERE_LOCAL(
         #     te=135,
         #     para_in=((OP.REPERE_LOCAL.PCAORIE, CCAORIE),),
-        #     para_out=((SP.PREPLO1, LC.CGEOM3D), (SP.PREPLO2, LC.CGEOM3D), (SP.PREPLO3, LC.CGEOM3D)),
+        #     para_out=((SP.PREPLO1, LC.CGEOM2D), (SP.PREPLO2, LC.CGEOM2D), (SP.PREPLO3, LC.CGEOM2D)),
         # ),
         OP.RIGI_MECA(
             te=549,
@@ -635,7 +639,7 @@ class MEBA2DSE2(Element):
         OP.TOU_INI_ELEM(
             te=99,
             para_out=(
-                (OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM3D),
+                (OP.TOU_INI_ELEM.PGEOM_R, LC.CGEOM2D),
                 (OP.TOU_INI_ELEM.PTEMP_R, LC.CTEMPER),
                 (SP.PNEUT_F, LC.CNTINIF),
                 (SP.PNEUT_R, LC.CNTINIR),
