@@ -17,6 +17,7 @@ variables:
   NPROC_MAX: 12
   FF_DISABLE_UMASK_FOR_DOCKER_EXECUTOR: "true"
   PIXI_HOME: ${CI_PROJECT_DIR}/.pixi
+  PIXI_TLS_ROOT_CERTS: "system"
   # WEEKLY_RUN should be set in scheduled pipeline
   WEEKLY_RUN: "unset"
   TZ: "Europe/Paris"
@@ -399,8 +400,8 @@ compile_pixi:
     - job: prepare_pixi
       optional: true
   script:
-    - pixi list --explicit
     - ls -la ${PIXI_HOME} || true
+    - pixi list --explicit
     - pixi run .gitlabci/compile.sh
 
 verification_test_pixi:

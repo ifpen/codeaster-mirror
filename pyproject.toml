@@ -68,7 +68,7 @@ line-ending = "auto"
 
 [tool.pixi.workspace]
 channels = ["conda-forge"]
-conda-pypi-map = { conda-forge = ".mapping.json" }
+conda-pypi-map = false
 platforms = ["linux-64"]
 
 [tool.pixi.tasks]
@@ -102,7 +102,7 @@ blas = { version = "*", build = "openblas" }
 scalapack = ">=2.2.0,<3"
 # libs
 hdf5 = ">=1.14,<2"
-libmed = { version = "4.1.*", build = "mpi_openmpi*" }
+libmed = { version = ">=4.1,<5", build = "mpi_openmpi*" }
 libptscotch = ">7"
 metis = ">=5.1.0,<6"
 mfront = "<5.0"
