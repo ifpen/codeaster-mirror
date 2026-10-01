@@ -31,6 +31,7 @@ class sd_cham_elem_s(AsBase):
     CESC = AsVK8()
     CESV = AsVect(type=Parmi("C", "K", "R", "I"))
     CESL = AsVL()
+    CESM = AsVI()
 
     def exists(self):
         return self.CESK.exists
@@ -56,3 +57,4 @@ class sd_cham_elem_s(AsBase):
         assert self.CESD.lonmax == 5 + 4 * nbma
         assert self.CESC.lonmax == nbcmp
         assert self.CESL.lonmax == nbval
+        assert self.CESM.lonmax == 2 * nbma
