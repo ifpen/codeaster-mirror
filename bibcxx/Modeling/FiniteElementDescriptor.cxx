@@ -3,7 +3,7 @@
  * @brief Implementation de FiniteElementDescriptor
  * @author Nicolas Sellenet
  * @section LICENCE
- *   Copyright (C) 1991 - 2025  EDF R&D                www.code-aster.org
+ *   Copyright (C) 1991 - 2026  EDF www.code-aster.org
  *
  *   This file is part of Code_Aster.
  *
@@ -136,6 +136,11 @@ const JeveuxContiguousCollectionLong &FiniteElementDescriptor::getVirtualCellsDe
 ASTERINTEGER FiniteElementDescriptor::getNumberOfVirtualNodes() const {
     _numberOfDelayedNumberedConstraintNodes->updateValuePointer();
     return ( *_numberOfDelayedNumberedConstraintNodes )[0];
+};
+
+ASTERINTEGER FiniteElementDescriptor::getNumberOfGroupsOfElements() const {
+    _listOfGroupsOfElements->build();
+    return _listOfGroupsOfElements->size();
 };
 
 void FiniteElementDescriptor::setNumberOfVirtualNodes( const ASTERINTEGER nbNodes ) {
