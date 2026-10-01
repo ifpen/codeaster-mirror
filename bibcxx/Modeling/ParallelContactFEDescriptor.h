@@ -42,7 +42,7 @@
 class ParallelContactFEDescriptor : public FiniteElementDescriptor {
   protected:
     /** @brief Matching numbering between keeped delayed elements and base elements */
-    VectorLong _contactFEDToKeep;
+    VectorLong _virtualCellToKeep;
     /** @brief All joints */
     JointsPtr _joints;
     /** @brief Delayed nodes owner */
@@ -55,10 +55,12 @@ class ParallelContactFEDescriptor : public FiniteElementDescriptor {
     JeveuxVectorLong _globalNumberingVirtualNodes;
     FiniteElementDescriptorPtr _FEDesc;
     /** @brief Element matching in element group list */
-    VectorOfVectorsLong _lielMatching;
+    VectorOfVectorsLong _cellMatching;
+    /** @brief LIEL matching in element group list */
+    VectorLong _lielMatching;
     /** @brief True if delayed node has component */
-    JeveuxVectorLong _localDelayedIdToGlobalNodeId;
-    JeveuxVectorLong _globalNodeIdToLocalDelayed;
+    JeveuxVectorLong _localVirtualIdToGlobalNodeId;
+    JeveuxVectorLong _globalNodeIdToLocalVirtual;
     /** @brief connection mesh name */
     JeveuxVectorChar24 _cMeshName;
 
@@ -86,7 +88,7 @@ class ParallelContactFEDescriptor : public FiniteElementDescriptor {
      * @brief Get vector of delayed elements keeped from the base FiniteElementDescriptor
      * @return reference on VectorLong
      */
-    const VectorLong &getVirtualCellsToKeep() const { return _contactFEDToKeep; };
+    const VectorLong &getVirtualCellsToKeep() const { return _virtualCellToKeep; };
 
     /**
      * @brief Get vector of joints between subdomains
@@ -105,7 +107,9 @@ class ParallelContactFEDescriptor : public FiniteElementDescriptor {
      * @brief Get the mapping between local and global numbering of cells
      * @return JeveuxVector of the indirection
      */
-    const VectorOfVectorsLong &getCellMatching() const { return _lielMatching; }
+    const VectorOfVectorsLong &getCellMatching() const { return _cellMatching; }
+
+    const auto &getListOfGroupsOfElementsMatching() const { return _lielMatching; }
 
     /**
      * @typedef ParallelContactFEDescriptorPtr

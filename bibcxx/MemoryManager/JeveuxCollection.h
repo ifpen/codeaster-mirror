@@ -138,6 +138,9 @@ class JeveuxCollectionClass : public JeveuxObjectClass,
                             JeveuxCollectionObjectSizes objectSizes = Variable,
                             const std::string &name = "", ASTERINTEGER totalSize = 0 ) {
         ASTERINTEGER taille = size;
+        if ( taille <= 0 ) {
+            AS_ABORT( "JeveuxCollection " + _name + " allocate null size" );
+        }
         _capacity = size;
         const std::string strJeveuxBase = "G";
         const ASTERINTEGER intType = AllowedJeveuxType< ValueType >::numTypeJeveux;

@@ -264,7 +264,10 @@ function nbddlMaxMa(nume_ddlz, matr_assez, nbmat, v_name_mat) result(maxDDLMa)
                             lligrel_cp = (tco(1) .eq. 'LIGREL_CP')
                         end if
                         if (lligrel_cp) then
-                            call jeveuo(jexnum(nume_ddl//'.NUME.CRCO', ilinu), 'L', vi=v_crco)
+                            call asmpi_info(size=msize)
+                            if (msize > 1) then
+                                call jeveuo(jexnum(nume_ddl//'.NUME.CRCO', ilinu), 'L', vi=v_crco)
+                            end if
                             ilinu_ref = v_refp(ilinu)
                         end if
                         call jeexin(nomligrel//'.NTCM', iret)

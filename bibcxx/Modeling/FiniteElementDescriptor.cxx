@@ -165,6 +165,11 @@ ASTERINTEGER FiniteElementDescriptor::getNumberOfVirtualNodes() const {
     return ( *_numberOfDelayedNumberedConstraintNodes )[0];
 };
 
+ASTERINTEGER FiniteElementDescriptor::getNumberOfGroupsOfElements() const {
+    _listOfGroupsOfElements->build();
+    return _listOfGroupsOfElements->size();
+};
+
 void FiniteElementDescriptor::setNumberOfVirtualNodes( const ASTERINTEGER nbNodes ) {
 
     if ( !_numberOfDelayedNumberedConstraintNodes.exists() ) {

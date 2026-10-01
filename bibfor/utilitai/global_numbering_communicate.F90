@@ -82,7 +82,6 @@ subroutine global_numbering_communicate(nume_equa)
     integer(kind=8), pointer :: v_tag(:) => null()
     integer(kind=8), pointer :: v_dom(:) => null()
     integer(kind=8), pointer :: v_gco(:) => null()
-    integer(kind=8), pointer :: v_crco(:) => null()
     integer(kind=8), pointer :: v_refp(:) => null()
     integer(kind=4), pointer :: v_pgid(:) => null()
     integer(kind=8), pointer :: v_lilt(:) => null()
@@ -359,10 +358,6 @@ subroutine global_numbering_communicate(nume_equa)
             lligrel_cp = (tco(1) .eq. 'LIGREL_CP')
         end if
         if (lligrel_cp) then
-            call jeexin(jexnum(nume_equa//'.CRCO', ili), iret)
-            if (iret .ne. 0) then
-                call jeveuo(jexnum(nume_equa//'.CRCO', ili), 'L', vi=v_crco)
-            end if
             ili2 = v_refp(ili)
         else
             ili2 = ili

@@ -34,6 +34,8 @@
 #include "LinearAlgebra/ElementaryVector.h"
 #include "Modeling/ParallelContactFEDescriptor.h"
 
+ElementaryTermRealPtr transfertToParallelFEDesc( const ElementaryTermRealPtr,
+                                                 const ParallelContactFEDescriptorPtr );
 ElementaryMatrixDisplacementRealPtr
 transfertToParallelFEDesc( const ElementaryMatrixDisplacementRealPtr,
                            const ParallelContactFEDescriptorPtr );

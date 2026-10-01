@@ -173,9 +173,9 @@ std::vector< T > set_difference( std::vector< T > &vec1, std::vector< T > &vec2 
 }
 
 template < typename T >
-void print( T &vec ) {
+void print( const T &vec ) {
     std::cout << "Size: " << vec.size() << std::endl;
-    for ( auto &e : vec ) {
+    for ( const auto &e : vec ) {
         std::cout << e << ", ";
     }
     std::cout << std::endl;

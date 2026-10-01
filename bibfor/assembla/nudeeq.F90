@@ -36,6 +36,7 @@ subroutine nudeeq(mesh, nb_node_mesh, nb_node_subs, nume_ddl, nb_equa, &
 #include "asterfort/as_deallocate.h"
 #include "asterfort/as_allocate.h"
 #include "asterfort/int_to_char8.h"
+#include "asterfort/asmpi_info.h"
 !
 !
     character(len=8), intent(in) :: mesh
@@ -107,6 +108,7 @@ subroutine nudeeq(mesh, nb_node_mesh, nb_node_subs, nume_ddl, nb_equa, &
     integer(kind=8) :: nb_node, ncmpmx, nddlb, nec, nob
     integer(kind=8) :: i_node, i_cmp_glob, i_cmp_chck
     aster_logical :: lligrel_cp
+    mpi_int :: msize
     integer(kind=8), pointer :: lnobloq(:) => null()
     integer(kind=8), pointer :: p_nueq(:) => null()
     integer(kind=8), pointer :: p_deeq(:) => null()
@@ -154,7 +156,10 @@ subroutine nudeeq(mesh, nb_node_mesh, nb_node_subs, nume_ddl, nb_equa, &
                 lligrel_cp = (tco(1) .eq. 'LIGREL_CP')
             end if
             if (lligrel_cp) then
-                call jeveuo(nomli//'.LOGL', 'L', vi=p_logl)
+                call asmpi_info(size=msize)
+                if (msize > 1) then
+                    call jeveuo(nomli//'.LOGL', 'L', vi=p_logl)
+                end if
             end if
         end if
         if (length_prno .gt. 0) then

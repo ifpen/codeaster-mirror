@@ -50,7 +50,7 @@ ParallelFiniteElementDescriptor::ParallelFiniteElementDescriptor(
     VectorInt virtualCellToKeep;
     VectorInt meshNodesToKeep( owner.size(), -1 );
     ASTERINTEGER nbOldVirtualNodes = FEDesc->getNumberOfVirtualNodes();
-    _contactFEDToKeep = VectorLong( explorer.size(), 1 );
+    _virtualCellToKeep = VectorLong( explorer.size(), 1 );
     VectorInt virtualNodesToKeep( nbOldVirtualNodes, -1 );
     VectorInt virtualNodesNumbering( nbOldVirtualNodes, -1 );
     VectorInt virtualNodesMult( nbOldVirtualNodes, 0 );
@@ -114,7 +114,7 @@ ParallelFiniteElementDescriptor::ParallelFiniteElementDescriptor(
         // Si l'element est a conserver, on le note
         if ( keepElem ) {
             virtualCellToKeep.push_back( numElem );
-            _contactFEDToKeep[numElem] = nbElemToKeep - 1;
+            _virtualCellToKeep[numElem] = nbElemToKeep - 1;
             --nbElemToKeep;
         }
     }
@@ -210,8 +210,8 @@ ParallelFiniteElementDescriptor::ParallelFiniteElementDescriptor(
         for ( const auto &colObj : liel ) {
             bool addedElem = false;
             for ( const auto &val : colObj ) {
-                if ( _contactFEDToKeep[-val - 1] != 1 ) {
-                    toLiel[nbCollObj - 1].push_back( _contactFEDToKeep[-val - 1] );
+                if ( _virtualCellToKeep[-val - 1] != 1 ) {
+                    toLiel[nbCollObj - 1].push_back( _virtualCellToKeep[-val - 1] );
                     addedElem = true;
                     ++totalCollSize;
                 }
