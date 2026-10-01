@@ -1,6 +1,8 @@
 from __future__ import annotations
 from packaging.version import Version
 import enum
+import math
+import medcoupling as mc
 
 # state file generated using paraview version 5.11.2
 import paraview
@@ -16,14 +18,17 @@ from paraview.simple import (
     GetActiveSource,
     GetScalarBar,
     Calculator,
+    ExtractGroup,
     GetActiveView,
     GetColorTransferFunction,
     ColorBy,
     HideScalarBarIfNotNeeded,
+    PythonAnnotation,
     Render,
     Show,
     Hide,
     UpdatePipeline,
+    
 )
 
 #### disable automatic camera reset on 'Show'
@@ -55,7 +60,232 @@ def get_available_point_arrays(source) -> dict[str, "PointData"]:
 def get_available_components(point_fields_data, field_name: str) -> list[str]:
     ai = point_fields_data.GetArrayInformation(field_name)
     return [ai.GetComponentName(compo_num) for compo_num in range(ai.GetNumberOfComponents())]
+def create_cut_labels(base_source, view):
+    parent_filter = base_source
 
+    groups_source = ExtractGroup(
+        registrationName="LABELS",
+        Input=parent_filter
+    )
+
+    groups_display = Show(
+        groups_source,
+        view,
+        'UnstructuredGridRepresentation'
+    )
+    groups_display.Representation = 'Surface'
+
+    file_name = base_source.FileNames[0]
+    data = mc.MEDFileMesh.New(file_name)
+
+    group_names = data.getGroupsNames()
+    coords = data.getCoords()
+
+    # Number of coordinate components: 2 for a 2D mesh, 3 for a 3D mesh
+    space_dim = coords.getNumberOfComponents()
+
+    print("Number of coordinate components:", space_dim)
+
+    labels = []
+
+    for g in group_names:
+
+        if not g.startswith("CUT_"):
+            continue
+
+        nodes = data.getNodeGroupArr(g)
+
+        # Security
+        if nodes is None or len(nodes) == 0:
+            continue
+
+        group_coords = coords[nodes]
+
+        # ------------------------------------------------------------
+        # Compute the center
+        # ------------------------------------------------------------
+        center = [
+            sum(p[i] for p in group_coords) / len(group_coords)
+            for i in range(space_dim)
+        ]
+
+        # ------------------------------------------------------------
+        # Look for the farthest point from the center
+        # ------------------------------------------------------------
+        max_dist = -1.0
+        end_point = group_coords[0]
+
+        for p in group_coords:
+
+            dist = sum(
+                (p[i] - center[i]) ** 2
+                for i in range(space_dim)
+            )
+
+            if dist > max_dist:
+                max_dist = dist
+                end_point = p
+
+        # ------------------------------------------------------------
+        # Coordinates of the selected point
+        # ------------------------------------------------------------
+        cx = end_point[0]
+        cy = end_point[1]
+
+        # In 2D, z = 0
+        if space_dim >= 3:
+            cz = end_point[2]
+        else:
+            cz = 0.0
+
+        # ------------------------------------------------------------
+        # Bounding box
+        # ------------------------------------------------------------
+        xmin = min(p[0] for p in group_coords)
+        xmax = max(p[0] for p in group_coords)
+
+        ymin = min(p[1] for p in group_coords)
+        ymax = max(p[1] for p in group_coords)
+
+        if space_dim >= 3:
+            zmin = min(p[2] for p in group_coords)
+            zmax = max(p[2] for p in group_coords)
+        else:
+            zmin = 0.0
+            zmax = 0.0
+
+        # ------------------------------------------------------------
+        # Diagonal of the bounding box
+        # ------------------------------------------------------------
+        group_diag = math.sqrt(
+            (xmax - xmin) ** 2 +
+            (ymax - ymin) ** 2 +
+            (zmax - zmin) ** 2
+        )
+
+        # Avoid zero offset for degenerate groups
+        if group_diag < 1e-12:
+            group_diag = 1.0
+
+        # ------------------------------------------------------------
+        # Position with respect to the camera
+        # ------------------------------------------------------------
+        camera = view.GetActiveCamera()
+        cam_pos = camera.GetPosition()
+
+        vx = cam_pos[0] - cx
+        vy = cam_pos[1] - cy
+        vz = cam_pos[2] - cz
+
+        norm = math.sqrt(
+            vx * vx +
+            vy * vy +
+            vz * vz
+        )
+
+        if norm > 1e-12:
+            vx /= norm
+            vy /= norm
+            vz /= norm
+
+        # ------------------------------------------------------------
+        # Small offset in front of the line
+        # ------------------------------------------------------------
+        eps = 0.005 * group_diag
+
+        cx2 = cx + eps * vx
+        cy2 = cy + eps * vy
+        cz2 = cz + eps * vz
+
+        # ------------------------------------------------------------
+        # Add text
+        # ------------------------------------------------------------
+        python_annotation = PythonAnnotation(
+            registrationName=g.upper(),
+            Input=groups_source
+        )
+
+        python_annotation.Expression = '"%s"' % g.upper()
+
+        python_annotation_display = Show(
+            python_annotation,
+            view,
+            'TextSourceRepresentation'
+        )
+
+        python_annotation_display.TextPropMode = 'Billboard 3D Text'
+
+        python_annotation_display.BillboardPosition = [
+            cx2,
+            cy2,
+            cz2
+        ]
+
+        python_annotation_display.Color = [
+            0.0,
+            0.0,
+            0.0
+        ]
+
+        python_annotation_display.FontSize = 15
+
+        labels.append({
+            "source": python_annotation,
+            "display": python_annotation_display,
+            "center": (cx2, cy2, cz2),
+            "size": group_diag
+        })
+
+    # ------------------------------------------------------------
+    # Manage the size of the labels
+    # ------------------------------------------------------------
+    camera = view.GetActiveCamera()
+
+    reference_scale = camera.GetParallelScale()
+    reference_fontsize = 15
+
+    def update_labels(caller=None, event=None):
+
+        camera = view.GetActiveCamera()
+
+        scale = camera.GetParallelScale()
+
+        if scale < 1e-12:
+            return
+
+        fontsize = int(
+            reference_fontsize *
+            reference_scale /
+            scale
+        )
+
+        fontsize = max(8, min(fontsize, 11))
+
+        for label in labels:
+
+            label["display"].FontSize = fontsize
+            label["display"].UpdateVTKObjects()
+
+        view.StillRender()
+
+    # Hide labels initially
+    for label in labels:
+        Hide(label["source"], view)
+
+    # Update labels when the view is rendered
+    interactor = view.GetInteractor()
+
+    interactor.AddObserver(
+        "RenderEvent",
+        update_labels
+    )
+
+    update_labels()
+
+    # Hide the group
+    Hide(groups_source, view)
+
+    return labels
 
 def main():
     base_source = GetActiveSource()
@@ -79,6 +309,7 @@ def main():
     point_fields_data = base_source.PointData.GetFieldData()
 
     parent_filter = base_source
+
 
     line_source = Calculator(registrationName="LINES", Input=parent_filter)
     line_display = Show(line_source, view, )
@@ -182,6 +413,7 @@ def main():
             extract_compo_display.SetScalarBarVisibility(view, True)
             Hide(extract_compo, view)
 
+    create_cut_labels(base_source, view)
     Render(view)
     UpdatePipeline()
 
