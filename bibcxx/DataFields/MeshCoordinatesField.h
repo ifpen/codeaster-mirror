@@ -31,6 +31,11 @@
 #include "MemoryManager/NumpyAccess.h"
 #include "Meshes/Node.h"
 
+#include <pybind11/numpy.h>
+#include <pybind11/pybind11.h>
+
+namespace py = pybind11;
+
 template < typename >
 class FieldOnNodes;
 
@@ -196,16 +201,7 @@ class MeshCoordinatesField : public DataField {
     /**
      * @brief Get _valuesList as NumPy array
      */
-    py::object toNumpy() {
-        npy_intp dims[2] = { _valuesList->size() / 3, 3 };
-        PyObject *values = PyArray_SimpleNewFromData( 2, dims, npy_type< JeveuxVectorReal >::value,
-                                                      _valuesList->getDataPtr() );
-        AS_ASSERT( values != NULL );
-        PyArray_CLEARFLAGS( (PyArrayObject *)values, NPY_ARRAY_OWNDATA );
-
-        py::object ret = py::reinterpret_steal< py::object >( values );
-        return ret;
-    }
+    py::array_t< ASTERDOUBLE > toNumpy();
 
     /**
      * @brief Surcharge de l'operateur []
