@@ -1283,6 +1283,20 @@ ElementaryMatrixDisplacementRealPtr DiscreteComputation::getMechanicalCouplingMa
         return ET;
     };
 
+    auto transfertField = []( const auto &load, const FieldOnNodesRealPtr &field ) {
+#ifdef ASTER_HAVE_MPI
+        if constexpr ( std::is_same_v< std::decay_t< decltype( load ) >,
+                                       ParallelMechanicalLoadRealPtr > ) {
+            const auto cMesh = std::dynamic_pointer_cast< ConnectionMesh >(
+                load->getParallelCouplingFEDescriptor()
+                    ->getSupportFiniteElementDescriptor()
+                    ->getMesh() );
+            return transferToConnectionMesh( field, cMesh );
+        }
+#endif
+        return field;
+    };
+
     auto impl = [&]( auto loads ) {
         for ( const auto &load : loads ) {
 
@@ -1297,8 +1311,8 @@ ElementaryMatrixDisplacementRealPtr DiscreteComputation::getMechanicalCouplingMa
 
                 // Set input field
                 calcul->addInputField( "PGEOMER", fed->getMesh()->getCoordinates() );
-                calcul->addInputField( "PDEPLMR", displ_prev );
-                calcul->addInputField( "PDEPLPR", displ_step );
+                calcul->addInputField( "PDEPLMR", transfertField( load, displ_prev ) );
+                calcul->addInputField( "PDEPLPR", transfertField( load, displ_step ) );
                 calcul->addInputField( "PPAIRR", pairing );
                 calcul->addHHOField( model );
 

@@ -28,6 +28,7 @@ subroutine assvec(jvBase, vectAsseZ, &
 #include "asterc/indik8.h"
 #include "asterfort/asmpi_barrier.h"
 #include "asterfort/asmpi_comm_jev.h"
+#include "asterfort/asmpi_info.h"
 #include "asterfort/assert.h"
 #include "asterfort/asseVectField.h"
 #include "asterfort/asseVectSuper.h"
@@ -131,6 +132,7 @@ subroutine assvec(jvBase, vectAsseZ, &
     character(len=24), pointer :: v_tco(:) => null()
     integer(kind=8) :: coefPond
     aster_logical :: maskInve
+    mpi_int :: msize
 
 ! --------------------------------------------------------------------------------------------------
 #define zzngel(ligrelNume) adli(1+3*(ligrelNume-1))
@@ -366,7 +368,10 @@ subroutine assvec(jvBase, vectAsseZ, &
                     lligrel_cp = (v_tco(1) .eq. 'LIGREL_CP')
                 end if
                 if (lligrel_cp) then
-                    call jeveuo(jexnum(numeCrcoJv, liliNume), 'L', vi=v_crco)
+                    call asmpi_info(size=msize)
+                    if (msize > 1) then
+                        call jeveuo(jexnum(numeCrcoJv, liliNume), 'L', vi=v_crco)
+                    end if
                     liliNume2 = v_refp(liliNume)
                 else
                     liliNume2 = liliNume

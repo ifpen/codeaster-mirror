@@ -19,14 +19,10 @@
 
 from code_aster.Commands import *
 from code_aster import CA
-from ssnp175a_func import create_grp_3d
 
 DEBUT(CODE="OUI", DEBUG=_F(SDVERI="OUI"), INFO=1)
 
-Mail0 = LIRE_MAILLAGE(UNITE=20, FORMAT="MED")
-
-Mail = create_grp_3d(Mail0)
-
+Mail = LIRE_MAILLAGE(UNITE=20, FORMAT="MED")
 
 Mail = MODI_MAILLAGE(
     reuse=Mail,

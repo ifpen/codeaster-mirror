@@ -77,6 +77,7 @@ FieldOnNodesRealPtr transferToConnectionMesh( const FieldOnNodesRealPtr toTransf
                                               const ConnectionMeshPtr cMesh ) {
     auto sFON = toSimpleFieldOnNodes( toTransfer );
     sFON->updateValuePointers();
+    AS_ASSERT( cMesh );
 
     const auto &comp = sFON->getComponents();
     const auto rank = getMPIRank();
@@ -84,27 +85,24 @@ FieldOnNodesRealPtr transferToConnectionMesh( const FieldOnNodesRealPtr toTransf
     VectorString uniqueCmp;
     std::map< std::string, int > namePosIn, namePosAll;
     VectorLong indirection( comp.size(), 0. );
-    if ( nbProcs > 1 ) {
-        VectorString allComp;
-        for ( int i = 0; i < comp.size(); ++i )
-            namePosIn[comp[i]] = i;
-        AsterMPI::all_gather( comp, allComp );
-        SetString addedCmp;
-        for ( int i = 0; i < allComp.size(); ++i ) {
-            const auto &cmpName = allComp[i];
-            if ( addedCmp.count( cmpName ) == 0 ) {
-                uniqueCmp.push_back( cmpName );
-                namePosAll[cmpName] = uniqueCmp.size() - 1;
-            }
-            addedCmp.insert( cmpName );
+
+    VectorString allComp;
+    for ( int i = 0; i < comp.size(); ++i )
+        namePosIn[comp[i]] = i;
+    AsterMPI::all_gather( comp, allComp );
+    SetString addedCmp;
+    for ( int i = 0; i < allComp.size(); ++i ) {
+        const auto &cmpName = allComp[i];
+        if ( addedCmp.count( cmpName ) == 0 ) {
+            uniqueCmp.push_back( cmpName );
+            namePosAll[cmpName] = uniqueCmp.size() - 1;
         }
-        for ( const auto &cmpName : comp ) {
-            const auto &pos1 = namePosIn[cmpName];
-            const auto &pos2 = namePosAll[cmpName];
-            indirection[pos1] = pos2;
-        }
-    } else {
-        throw std::runtime_error( "Must not be used in sequential" );
+        addedCmp.insert( cmpName );
+    }
+    for ( const auto &cmpName : comp ) {
+        const auto &pos1 = namePosIn[cmpName];
+        const auto &pos2 = namePosAll[cmpName];
+        indirection[pos1] = pos2;
     }
 
     SimpleFieldOnNodesRealPtr rSFON = std::make_shared< SimpleFieldOnNodesReal >(

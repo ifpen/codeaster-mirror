@@ -85,106 +85,106 @@ lisi = DEFI_LIST_REEL(DEBUT=0, INTERVALLE=_F(JUSQU_A=1, PAS=0.5))
 RAMPE = DEFI_FONCTION(NOM_PARA="INST", VALE=(0, 0, 1, 1))
 
 
-# RES = MECA_NON_LINE(
-#     INFO=1,
-#     MODELE=MODI,
-#     CHAM_MATER=AFFE,
-#     EXCIT=(
-#         _F(CHARGE=CINE_FEM),
-#         _F(CHARGE=CHAR_PRES, FONC_MULT=RAMPE),
-#         _F(CHARGE=RACCORD),
-#         _F(CHARGE=DDL_IMPO2),
-#     ),
-#     NEWTON=_F(MATRICE="TANGENTE", REAC_ITER=1),
-#     INCREMENT=_F(LIST_INST=lisi),
-#     COMPORTEMENT=_F(RELATION="ELAS", DEFORMATION="PETIT", TOUT="OUI"),
-#     SOLVEUR=_F(METHODE="MUMPS", RESI_RELA=1.0e-6, PCENT_PIVOT=30),
-#     CONVERGENCE=_F(RESI_GLOB_MAXI=1.0e-6, ITER_GLOB_MAXI=3),
-# )
+RES = MECA_NON_LINE(
+    INFO=1,
+    MODELE=MODI,
+    CHAM_MATER=AFFE,
+    EXCIT=(
+        _F(CHARGE=CINE_FEM),
+        _F(CHARGE=CHAR_PRES, FONC_MULT=RAMPE),
+        _F(CHARGE=RACCORD),
+        _F(CHARGE=DDL_IMPO2),
+    ),
+    NEWTON=_F(MATRICE="TANGENTE", REAC_ITER=1),
+    INCREMENT=_F(LIST_INST=lisi),
+    COMPORTEMENT=_F(RELATION="ELAS", DEFORMATION="PETIT", TOUT="OUI"),
+    SOLVEUR=_F(METHODE="MUMPS", RESI_RELA=1.0e-6, PCENT_PIVOT=30),
+    CONVERGENCE=_F(RESI_GLOB_MAXI=1.0e-6, ITER_GLOB_MAXI=3),
+)
 
-# RES = CALC_CHAMP(
-#     reuse=RES, RESULTAT=RES, CONTRAINTE=("SIEF_NOEU", "SIEF_ELNO", "SIGM_NOEU", "SIGM_ELNO")
-# )
+RES = CALC_CHAMP(
+    reuse=RES, RESULTAT=RES, CONTRAINTE=("SIEF_NOEU", "SIEF_ELNO", "SIGM_NOEU", "SIGM_ELNO")
+)
 
 
-# TEST_RESU(
-#     RESU=(
-#         _F(
-#             INST=1.0,
-#             TYPE_TEST="MIN",
-#             RESULTAT=RES,
-#             REFERENCE="ANALYTIQUE",
-#             NOM_CHAM="SIEF_NOEU",
-#             LEGENDE="SIEF_NOEU",
-#             NOM_CMP="SIYY",
-#             VALE_REFE=-25.0,
-#             VALE_CALC=-25.0000000000001,
-#             PRECISION=0.05,
-#         ),
-#         _F(
-#             INST=1.0,
-#             TYPE_TEST="MAX",
-#             RESULTAT=RES,
-#             REFERENCE="ANALYTIQUE",
-#             NOM_CHAM="SIEF_NOEU",
-#             LEGENDE="SIEF_NOEU",
-#             NOM_CMP="SIYY",
-#             VALE_REFE=-25.0,
-#             VALE_CALC=-24.99999999999956,
-#             PRECISION=1e-4,
-#         ),
-#         _F(
-#             INST=1.0,
-#             TYPE_TEST="MIN",
-#             RESULTAT=RES,
-#             REFERENCE="ANALYTIQUE",
-#             NOM_CHAM="SIGM_NOEU",
-#             LEGENDE="SIYY",
-#             NOM_CMP="SIYY",
-#             VALE_REFE=-25.0,
-#             VALE_CALC=-25.0000000000001,
-#             PRECISION=1e-4,
-#         ),
-#         _F(
-#             INST=1.0,
-#             TYPE_TEST="MAX",
-#             RESULTAT=RES,
-#             REFERENCE="ANALYTIQUE",
-#             NOM_CHAM="SIGM_NOEU",
-#             LEGENDE="SIYY",
-#             NOM_CMP="SIYY",
-#             VALE_REFE=-25.0,
-#             VALE_CALC=-24.99999999999956,
-#             PRECISION=1e-4,
-#         ),
-#         _F(
-#             INST=1.0,
-#             TYPE_TEST="MIN",
-#             RESULTAT=RES,
-#             REFERENCE="ANALYTIQUE",
-#             NOM_CHAM="SIGM_NOEU",
-#             LEGENDE="SIXY",
-#             NOM_CMP="SIXY",
-#             CRITERE="ABSOLU",
-#             ORDRE_GRANDEUR=1e-5,
-#             VALE_REFE=0.0,
-#             VALE_CALC=0.0,
-#         ),
-#         _F(
-#             INST=1.0,
-#             TYPE_TEST="MAX",
-#             RESULTAT=RES,
-#             REFERENCE="ANALYTIQUE",
-#             NOM_CHAM="SIGM_NOEU",
-#             LEGENDE="SIXY",
-#             NOM_CMP="SIXY",
-#             CRITERE="ABSOLU",
-#             ORDRE_GRANDEUR=1e-5,
-#             VALE_REFE=0.0,
-#             VALE_CALC=0.0,
-#         ),
-#     )
-# )
+TEST_RESU(
+    RESU=(
+        _F(
+            INST=1.0,
+            TYPE_TEST="MIN",
+            RESULTAT=RES,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIEF_NOEU",
+            LEGENDE="SIEF_NOEU",
+            NOM_CMP="SIYY",
+            VALE_REFE=-25.0,
+            VALE_CALC=-25.0000000000001,
+            PRECISION=0.05,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MAX",
+            RESULTAT=RES,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIEF_NOEU",
+            LEGENDE="SIEF_NOEU",
+            NOM_CMP="SIYY",
+            VALE_REFE=-25.0,
+            VALE_CALC=-24.99999999999956,
+            PRECISION=1e-4,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MIN",
+            RESULTAT=RES,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIGM_NOEU",
+            LEGENDE="SIYY",
+            NOM_CMP="SIYY",
+            VALE_REFE=-25.0,
+            VALE_CALC=-25.0000000000001,
+            PRECISION=1e-4,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MAX",
+            RESULTAT=RES,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIGM_NOEU",
+            LEGENDE="SIYY",
+            NOM_CMP="SIYY",
+            VALE_REFE=-25.0,
+            VALE_CALC=-24.99999999999956,
+            PRECISION=1e-4,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MIN",
+            RESULTAT=RES,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIGM_NOEU",
+            LEGENDE="SIXY",
+            NOM_CMP="SIXY",
+            CRITERE="ABSOLU",
+            ORDRE_GRANDEUR=1e-5,
+            VALE_REFE=0.0,
+            VALE_CALC=0.0,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MAX",
+            RESULTAT=RES,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIGM_NOEU",
+            LEGENDE="SIXY",
+            NOM_CMP="SIXY",
+            CRITERE="ABSOLU",
+            ORDRE_GRANDEUR=1e-5,
+            VALE_REFE=0.0,
+            VALE_CALC=0.0,
+        ),
+    )
+)
 
 RES2 = MECA_STATIQUE(
     INFO=1,
