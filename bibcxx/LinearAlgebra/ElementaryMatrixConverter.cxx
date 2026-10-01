@@ -35,6 +35,9 @@ ElementaryTermRealPtr transfertToParallelFEDesc( const ElementaryTermRealPtr cur
     const auto nbGrelC = fEDesc->getNumberOfGroupsOfElements();
     const auto nbGrelP = pFEDesc->getNumberOfGroupsOfElements();
 
+    // fEDesc->debugPrint();
+    // pFEDesc->debugPrint();
+
     AS_ASSERT( nbGrelP <= nbGrelC );
 
     ElementaryTermRealPtr termToReturn = std::make_shared< ElementaryTermReal >();
@@ -61,6 +64,9 @@ ElementaryTermRealPtr transfertToParallelFEDesc( const ElementaryTermRealPtr cur
             const int matrixTermNbC = valueNb / cellNbC;
             AS_ASSERT( matrixTermNbC * cellNbC == valueNb );
             const int valueNbP = matrixTermNbC * cellNbP;
+            // std::cout << "ET: " << iC << ", " << iP << ", " << valueNb << ", " << matrixTermNbC
+            //           << std::endl;
+            // std::cout << cellNbC << ", " << cellNbP << std::endl;
 
             AS_ASSERT( valueNbP > 0 );
             const auto elemPIdx = iP + 1;

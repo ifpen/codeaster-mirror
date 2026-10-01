@@ -370,6 +370,12 @@ bool ListOfLoads::hasPairingField() const {
             return true;
         }
     }
+    for ( auto &load : _listOfParallelMechanicalLoadsReal ) {
+        const auto pairing = load->getPairingField();
+        if ( pairing && pairing->exists() ) {
+            return true;
+        }
+    }
 
     return false;
 };
