@@ -104,6 +104,8 @@ class AssemblyMatrix : public BaseAssemblyMatrix {
      */
     AssemblyMatrix( const PhysicalProblemPtr phys_prob );
 
+    AssemblyMatrix( const BaseDOFNumberingPtr dofNume );
+
     /**
      * @brief Constructeur
      */
@@ -415,10 +417,14 @@ AssemblyMatrix< ValueType, PhysicalQuantity >::AssemblyMatrix( const std::string
       _ccva( JeveuxVector< ValueType >( getName() + ".CCVA" ) ) {};
 
 template < class ValueType, PhysicalQuantityEnum PhysicalQuantity >
-AssemblyMatrix< ValueType, PhysicalQuantity >::AssemblyMatrix( const PhysicalProblemPtr phys_prob )
+AssemblyMatrix< ValueType, PhysicalQuantity >::AssemblyMatrix( const BaseDOFNumberingPtr dofNume )
     : AssemblyMatrix() {
-    setDOFNumbering( phys_prob->getDOFNumbering() );
+    setDOFNumbering( dofNume );
 };
+
+template < class ValueType, PhysicalQuantityEnum PhysicalQuantity >
+AssemblyMatrix< ValueType, PhysicalQuantity >::AssemblyMatrix( const PhysicalProblemPtr phys_prob )
+    : AssemblyMatrix( phys_prob->getDOFNumbering() ) {};
 
 template < class ValueType, PhysicalQuantityEnum PhysicalQuantity >
 AssemblyMatrix< ValueType, PhysicalQuantity >::AssemblyMatrix( const std::string &name,

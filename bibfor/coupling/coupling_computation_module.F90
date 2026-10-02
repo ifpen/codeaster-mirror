@@ -72,6 +72,7 @@ module coupling_computation_module
     public :: cplCmpStressFEMHHOMat, cplCmpGradLiftFEMHHOMatVec
     private :: cplEvalElasPara, cplEvalMatrHB, cplEvalMatrHBn
     private :: cplCmpProjFEM2HHOFaceFullScal, cplGetQuadOrderFEMLocal
+    public :: cplCmpProjFEM2HHOFaceFullRHSScal
 !
 ! -- Section 6 projected penalty.
 !    .true.  => use Pi_F^k(u_CG) - u_F in the penalty term.
@@ -234,6 +235,96 @@ contains
         type(HHO_Face), intent(in) :: hhoFaceMa
         type(HHO_Data), intent(in) :: hhoDataMa
         real(kind=8), intent(out) :: projFEM2HHO(MAX_BS_CG, MSIZE_FACE_SCAL)
+        integer(kind=8), intent(out) :: fbs, nbDoFsFE
+!
+!===================================================================================================
+!    Compute the L2 projection coefficients Pi_F^k(phi_i^CG) on the whole HHO face F.
+!
+!===================================================================================================
+!
+        type(HHO_Quadrature) :: hhoQuadFace
+        type(FE_Basis) :: FEBasis
+        real(kind=8) :: FuncValuesQP(MAX_QP_FACE, MAX_BS_CG)
+        real(kind=8) :: BSEval(MAX_BS_CG)
+        real(kind=8) :: coor_qp_fe(3), ksi_sl(2)
+        real(kind=8) :: normal_ma(3), tau_ma(3, 2), tau1_sl(3), tau2_sl(3)
+        character(len=8) :: type_ma_skin
+        integer(kind=8) :: face_degree, ndim, ipg, iBasis, iret, feOrder, projOrder
+        real(kind=8) :: coor(3, MT_NNOMAX2D)
+!
+! -- init FEM face basis
+        call FEBasis%initFace(FEFaceSl)
+!
+! -- number of dofs and projection degree
+        call hhoTherFaceDofs(hhoFaceMa, hhoDataMa, fbs)
+        nbDoFsFE = FEBasis%size
+        face_degree = hhoDataMa%face_degree()
+        ndim = FEFaceSl%ndim+1
+!
+! -- HHO full face quadrature for the L2 projection on F.
+!    The RHS of the projection contains FEM basis functions times HHO basis functions.
+!    Therefore the quadrature order must be high enough for both the HHO face
+!    mass matrix check and the FEM/HHO product in the RHS.
+        feOrder = cplGetQuadOrderFEMLocal(FEFaceSl%typemas)
+        projOrder = max(2*face_degree, face_degree+feOrder+1)
+        call hhoQuadFace%GetQuadFace(hhoFaceMa, projOrder)
+        ASSERT(hhoQuadFace%nbQuadPoints <= MAX_QP_FACE)
+!
+! -- Skin type associated with the HHO face, needed to evaluate the projection direction.
+        call CellNameL2S(hhoFaceMa%typema, type_ma_skin)
+        coor(1:3, 1:4) = hhoFaceMa%coorno(1:3, 1:4)
+!
+! -- Evalaute FE basis at HHO quadrature points
+!
+        FuncValuesQP = 0.d0
+        do ipg = 1, hhoQuadFace%nbQuadPoints
+!
+! ---------- Compute a normal on the HHO master face at the Gauss point.
+!               This normal is only used as projection direction by mmnewd.
+            call apnorm(hhoFaceMa%nbnodes, type_ma_skin, ndim, coor, &
+                        hhoQuadFace%points_param(1, ipg), &
+                        hhoQuadFace%points_param(2, ipg), &
+                        normal_ma, tau_ma(1:3, 1), tau_ma(1:3, 2))
+!
+! ---------- Project the HHO Gauss point on the FEM slave face.
+            call mmnewd(FEFaceSl%typemas, FEFaceSl%nbnodes, ndim, FEFaceSl%coorno, &
+                        hhoQuadFace%points(1:3, ipg), 100, PROJ_TOLE, normal_ma, &
+                        ksi_sl(1), ksi_sl(2), tau1_sl, tau2_sl, iret)
+            ASSERT(iret == 0)
+!
+! ------------- Evaluate FEM basis function at this possibly extrapolated parametric point.
+            coor_qp_fe = 0.d0
+            coor_qp_fe(1:2) = ksi_sl(1:2)
+            BSEval = FEBasis%func(coor_qp_fe)
+            FuncValuesQP(ipg, 1:nbDoFsFE) = BSEval(1:nbDoFsFE)
+!
+        end do
+!
+        projFEM2HHO = 0.d0
+!
+! -- Project each scalar FEM face basis function.
+        do iBasis = 1, nbDoFsFE
+!
+! --------- Compute the L2 projection coefficients in the HHO face basis.
+            call hhoL2ProjFaceScal(hhoFaceMa, hhoQuadFace, FuncValuesQP(:, iBasis), &
+                                   face_degree, projFEM2HHO(iBasis, :))
+        end do
+!
+    end subroutine
+!
+!===================================================================================================
+!
+!===================================================================================================
+!
+    subroutine cplCmpProjFEM2HHOFaceFullRHSScal(FEFaceSl, hhoFaceMa, hhoDataMa, &
+                                                projFEM2HHORHS, fbs, nbDoFsFE)
+!
+        implicit none
+!
+        type(FE_Skin), intent(in) :: FEFaceSl
+        type(HHO_Face), intent(in) :: hhoFaceMa
+        type(HHO_Data), intent(in) :: hhoDataMa
+        real(kind=8), intent(out) :: projFEM2HHORHS(MAX_BS_CG, MSIZE_FACE_SCAL)
         integer(kind=8), intent(out) :: fbs, nbDoFsFE
 !
 !===================================================================================================

@@ -25,6 +25,9 @@
 #include "aster_fort_ds.h"
 
 #include "DataFields/FieldOnCellsBuilder.h"
+#include "Discretization/Calcul.h"
+#include "LinearAlgebra/AssemblyMatrix.h"
+#include "LinearAlgebra/ElementaryMatrix.h"
 #include "Messages/Messages.h"
 #include "Supervis/Exceptions.h"
 #include "Utilities/Tools.h"
@@ -658,7 +661,48 @@ FieldOnCellsRealPtr CouplingPairing::getPairingField() const {
 
     CALL_JEDEMA();
 
+    // TOREMOVE
+    this->getHHOProjector();
+
     return data;
+};
+
+FieldOnCellsRealPtr CouplingPairing::getHHOProjector() const {
+    AS_ASSERT( _fed && _fed->exists() );
+
+    if ( _fed->existsHHO() ) {
+
+        const std::string option( "HHO_CALC_PROJ" );
+
+        auto elemMatr = std::make_shared< ElementaryMatrixDisplacementReal >( _model, option );
+
+        CalculPtr calcul = std::make_unique< Calcul >( option );
+        calcul->setFiniteElementDescriptor( _fed );
+
+        calcul->addInputField( "PGEOMER", _fed->getMesh()->getCoordinates() );
+        calcul->addHHOField( _model );
+
+        // Add output elementary
+        calcul->addOutputElementaryTerm( "PMATUNS", std::make_shared< ElementaryTermReal >() );
+
+        // Computation
+        calcul->compute();
+        if ( calcul->hasOutputElementaryTerm( "PMATUNS" ) ) {
+            elemMatr->addElementaryTerm( calcul->getOutputElementaryTermReal( "PMATUUR" ) );
+        }
+
+        auto dofNume = std::make_shared< DOFNumbering >();
+        dofNume->computeNumbering( { elemMatr } );
+
+        auto matrAsse = std::make_shared< AssemblyMatrixDisplacementReal >( dofNume );
+        matrAsse->assemble( elemMatr );
+
+        matrAsse->debugPrint();
+
+        // EXTRAC_MATRIX in MATR_ELEM or CHAM_ELEM.
+    }
+
+    return nullptr;
 };
 
 ASTERINTEGER CouplingPairing::getNumberOfPairs() const {

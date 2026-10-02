@@ -28,11 +28,9 @@
 
 #include "DataFields/ElementaryTerm.h"
 #include "DataStructures/DataStructure.h"
-#include "Discretization/ElementaryCharacteristics.h"
 #include "Discretization/ElementaryCompute.h"
 #include "Loads/MechanicalLoad.h"
 #include "Loads/PhysicalQuantity.h"
-#include "Materials/MaterialField.h"
 #include "MemoryManager/JeveuxVector.h"
 #include "Modeling/FiniteElementDescriptor.h"
 #include "Modeling/Model.h"
@@ -49,12 +47,6 @@ class BaseElementaryMatrix : public DataStructure {
 
     /** @brief Model */
     ModelPtr _model;
-
-    /** @brief Field of material parameters */
-    MaterialFieldPtr _materialField;
-
-    /** @brief Elementary characteristics */
-    ElementaryCharacteristicsPtr _elemChara;
 
     /** @brief Elementary compute */
     ElementaryComputePtr _elemComp;

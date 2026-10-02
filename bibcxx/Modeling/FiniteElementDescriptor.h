@@ -166,13 +166,15 @@ class FiniteElementDescriptor : public DataStructure {
      * @brief Number of super-elements in model
      * @return Number of super elements in model
      */
-    ASTERINTEGER numberOfSuperElement();
+    ASTERINTEGER numberOfSuperElement() const;
 
     /**@brief Has super elements in model ? */
-    bool existsSuperElement();
+    bool existsSuperElement() const;
 
     /** @brief Has finite element in model ? */
-    bool existsFiniteElement();
+    bool existsFiniteElement() const;
+
+    bool existsHHO() const;
 
 #ifdef ASTER_HAVE_MPI
     /** @brief Transert .PRNM from other FiniteElementDescriptor.

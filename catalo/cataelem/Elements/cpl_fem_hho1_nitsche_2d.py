@@ -65,6 +65,8 @@ MVECTUR = ArrayOfComponents(phys=PHY.VDEP_R, locatedComponents=DDL_MECA)
 
 MMATUUR = ArrayOfComponents(phys=PHY.MDEP_R, locatedComponents=DDL_MECA)
 
+MMATUNS = ArrayOfComponents(phys=PHY.MDNS_R, locatedComponents=DDL_MECA)
+
 
 # ------------------------------------------------------------
 class CN_T3S3_HHO1(Element):
@@ -77,6 +79,11 @@ class CN_T3S3_HHO1(Element):
     meshType = MT.TR3SE3
     nodes = (SetOfNodes("EN1", (1, 2, 3)), SetOfNodes("EN2", (4, 5)), SetOfNodes("EN3", (6,)))
     calculs = (
+        OP.HHO_CALC_PROJ(
+            te=527,
+            para_in=((SP.PGEOMER, LC.EGEOM2D), (OP.HHO_CALC_PROJ.PCHHOBS, CHHOBS)),
+            para_out=((SP.PMATUNS, MMATUNS),),
+        ),
         OP.RIGI_ELAS_CPL(
             te=519,
             para_in=(

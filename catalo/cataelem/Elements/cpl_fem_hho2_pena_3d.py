@@ -57,6 +57,8 @@ MVECTUR = ArrayOfComponents(phys=PHY.VDEP_R, locatedComponents=DDL_MECA)
 
 MMATUUR = ArrayOfComponents(phys=PHY.MDEP_R, locatedComponents=DDL_MECA)
 
+MMATUNS = ArrayOfComponents(phys=PHY.MDNS_R, locatedComponents=DDL_MECA)
+
 
 # ------------------------------------------------------------
 class CP_Q4Q9_HHO2(Element):
@@ -84,12 +86,17 @@ class CP_Q4Q9_HHO2(Element):
             ),
             para_out=((SP.PVECTUR, MVECTUR),),
         ),
+        OP.HHO_CALC_PROJ(
+            te=527,
+            para_in=((SP.PGEOMER, LC.EGEOM3D), (OP.HHO_CALC_PROJ.PCHHOBS, CHHOBS)),
+            para_out=((SP.PMATUNS, MMATUNS),),
+        ),
         OP.RIGI_CPL(
             te=520,
             para_in=(
                 (SP.PGEOMER, LC.EGEOM3D),
                 (SP.PPAIRR, LC.CPAIRR),
-                (OP.CHAR_MECA_CPL.PCHHOBS, CHHOBS),
+                (OP.RIGI_CPL.PCHHOBS, CHHOBS),
             ),
             para_out=((SP.PMATUUR, MMATUUR),),
         ),
@@ -98,7 +105,7 @@ class CP_Q4Q9_HHO2(Element):
             para_in=(
                 (SP.PGEOMER, LC.EGEOM3D),
                 (SP.PPAIRR, LC.CPAIRR),
-                (OP.CHAR_MECA_CPL.PCHHOBS, CHHOBS),
+                (OP.RIGI_ELAS_CPL.PCHHOBS, CHHOBS),
             ),
             para_out=((SP.PMATUUR, MMATUUR),),
         ),

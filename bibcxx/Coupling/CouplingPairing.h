@@ -100,6 +100,8 @@ class CouplingPairing : public DataStructure {
 
     FieldOnCellsRealPtr getPairingField() const;
 
+    FieldOnCellsRealPtr getHHOProjector() const;
+
     void setVerbosity( const ASTERINTEGER verbosity );
 
     ASTERINTEGER getVerbosity() const { return _verbosity; };
