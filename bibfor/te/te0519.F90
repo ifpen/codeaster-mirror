@@ -61,7 +61,7 @@ subroutine te0519(option, nomte)
 !
 ! --- Initialize mapping
 !
-    call cplNitsInitMapFEMHHO(FECellSl, hhoFaceMa, hhoDataMa, cplNitsMap)
+    call cplNitsInitMapFEMHHOVec(FECellSl, hhoFaceMa, hhoDataMa, cplNitsMap)
 !
 ! --- Initialize quadrature
 !

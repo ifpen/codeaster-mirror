@@ -56,7 +56,7 @@ subroutine te0527(nomopt, nomte)
     type(HHO_Quadrature) :: hhoQuadMa
     type(CouplingMap) :: cplMap
     type(HHO_matrix) :: lhs, projFEM2HHORHS
-    aster_integer :: fbs
+    integer(kind=8) :: iFe, irow, jFE, jcol
 !
     if (nomte(1:2) == 'CP') then
 !
@@ -66,7 +66,7 @@ subroutine te0527(nomopt, nomte)
 !
 ! --- Initialize mapping
 !
-        call cplPenaInitMapFEMHHO(FEFaceSl, hhoFaceMa, hhoDataMa, cplMap)
+        call cplPenaInitMapFEMHHOVec(FEFaceSl, hhoFaceMa, hhoDataMa, cplMap)
 !
     elseif (nomte(1:2) == 'CN') then
 !
@@ -76,7 +76,7 @@ subroutine te0527(nomopt, nomte)
 !
 ! --- Initialize mapping
 !
-        call cplNitsInitMapFEMHHO(FECellSl, hhoFaceMa, hhoDataMa, cplMap)
+        call cplNitsInitMapFEMHHOVec(FECellSl, hhoFaceMa, hhoDataMa, cplMap)
 !
     else
         ASSERT(ASTER_FALSE)
@@ -86,18 +86,30 @@ subroutine te0527(nomopt, nomte)
 !
     call cplGetQuadFEMHHO(FEFaceSl, hhoFaceMa, hhoDataMa, FEQuadSl, hhoQuadMa)
 !
-! Add assert ORTHO
-    ! call cplCmpProjFEM2HHOFaceFullRHSScal(FEFaceSl, hhoFaceMa, hhoDataMa, &
-    !                                      projFEM2HHORHS, fbs, nbDoFsFE)
-!
-! ----- Compute Pi_F^k(phi_i^CG) on the whole HHO face F.
+! ----- Compute RHS of Pi_F^k(phi_i^CG) on the whole HHO face F.
 !       The FEM basis is evaluated by projecting each HHO face quadrature point
 !       onto the current slave face.
+
+    call cplCmpProjFEM2HHOFaceFullRHSVec(FEFaceSl, hhoFaceMa, hhoDataMa, &
+                                         projFEM2HHORHS)
+!
+!  Assemble matrix
+!
+    call lhs%initialize(cplMap%nbDoFs, cplMap%nbDoFs, 0.d0)
+!
+    do jFE = 1, cplMap%nbDoFsFEFaceSl
+        jcol = cplMap%mapDoFsFEFaceSl(jFE)
+        do iFE = 1, cplMap%nbDoFshhoFaceMa
+            irow = cplMap%mapDoFshhoFaceMa(iFE)
+            lhs%m(irow, jcol) = projFEM2HHORHS%m(iFE, jFE)
+        end do
+    end do
+    call projFEM2HHORHS%free()
 !
 ! - Write matrix
 !
-    call lhs%initialize(2, 2, 1.d0)
-    call lhs%write("PMATUUNS", ASTER_FALSE)
+    call lhs%write("PMATUNS", ASTER_FALSE)
     call lhs%free()
+
 !
 end subroutine

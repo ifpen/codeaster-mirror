@@ -661,13 +661,10 @@ FieldOnCellsRealPtr CouplingPairing::getPairingField() const {
 
     CALL_JEDEMA();
 
-    // TOREMOVE
-    this->getHHOProjector();
-
     return data;
 };
 
-FieldOnCellsRealPtr CouplingPairing::getHHOProjector() const {
+FieldOnCellsRealPtr CouplingPairing::getHHOProjector( const FieldOnCellsRealPtr pairing ) const {
     AS_ASSERT( _fed && _fed->exists() );
 
     if ( _fed->existsHHO() ) {
@@ -680,6 +677,7 @@ FieldOnCellsRealPtr CouplingPairing::getHHOProjector() const {
         calcul->setFiniteElementDescriptor( _fed );
 
         calcul->addInputField( "PGEOMER", _fed->getMesh()->getCoordinates() );
+        calcul->addInputField( "PPAIRR", pairing );
         calcul->addHHOField( _model );
 
         // Add output elementary
@@ -688,11 +686,11 @@ FieldOnCellsRealPtr CouplingPairing::getHHOProjector() const {
         // Computation
         calcul->compute();
         if ( calcul->hasOutputElementaryTerm( "PMATUNS" ) ) {
-            elemMatr->addElementaryTerm( calcul->getOutputElementaryTermReal( "PMATUUR" ) );
+            elemMatr->addElementaryTerm( calcul->getOutputElementaryTermReal( "PMATUNS" ) );
         }
 
         auto dofNume = std::make_shared< DOFNumbering >();
-        dofNume->computeNumbering( { elemMatr } );
+        dofNume->computeNumbering( { elemMatr }, false );
 
         auto matrAsse = std::make_shared< AssemblyMatrixDisplacementReal >( dofNume );
         matrAsse->assemble( elemMatr );

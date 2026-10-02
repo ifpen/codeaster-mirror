@@ -81,7 +81,11 @@ class CN_T3S3_HHO2(Element):
     calculs = (
         OP.HHO_CALC_PROJ(
             te=527,
-            para_in=((SP.PGEOMER, LC.EGEOM2D), (OP.HHO_CALC_PROJ.PCHHOBS, CHHOBS)),
+            para_in=(
+                (SP.PGEOMER, LC.EGEOM2D),
+                (SP.PPAIRR, LC.CPAIRR),
+                (OP.HHO_CALC_PROJ.PCHHOBS, CHHOBS),
+            ),
             para_out=((SP.PMATUNS, MMATUNS),),
         ),
         OP.RIGI_ELAS_CPL(

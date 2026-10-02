@@ -92,7 +92,11 @@ class CP_S2S3_HHO1(Element):
         ),
         OP.HHO_CALC_PROJ(
             te=527,
-            para_in=((SP.PGEOMER, LC.EGEOM2D), (OP.HHO_CALC_PROJ.PCHHOBS, CHHOBS)),
+            para_in=(
+                (SP.PGEOMER, LC.EGEOM2D),
+                (SP.PPAIRR, LC.CPAIRR),
+                (OP.HHO_CALC_PROJ.PCHHOBS, CHHOBS),
+            ),
             para_out=((SP.PMATUNS, MMATUNS),),
         ),
         OP.RIGI_CPL(

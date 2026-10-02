@@ -27,7 +27,7 @@ PCHHOBS = InputParameter(phys=PHY.N3600R, comment=""" HHO - coefficient base loc
 
 
 HHO_CALC_PROJ = Option(
-    para_in=(SP.PGEOMER, PCHHOBS),
+    para_in=(SP.PGEOMER, SP.PPAIRR, PCHHOBS),
     para_out=(SP.PMATUNS,),
     condition=(CondCalcul("+", ((AT.RACCORD, "OUI"), (AT.HHO, "OUI"))),),
 )

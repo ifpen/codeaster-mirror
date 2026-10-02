@@ -39,13 +39,13 @@ module coupling_type
     type CouplingMap
 !
         integer(kind=8) :: nbDoFs = 0, nbDoFsFECellSl = 0, nbDoFsFEFaceSl = 0
-        integer(kind=8) :: nbDoFsFEFaceLagSl = 0, nbDoFsFEFace = 0
+        integer(kind=8) :: nbDoFsFEFaceLagSl = 0, nbDoFsFace = 0
         integer(kind=8) :: nbDoFshhoFaceMa = 0, nbDoFsFEFaceMa = 0
         integer(kind=8) :: mapDoFsFECellSl(MAX_BV_CG) = 0
         integer(kind=8) :: mapDoFsFEFaceSl(MAX_BV_CG) = 0
         integer(kind=8) :: mapDoFsFEFaceLagSl(MAX_BV_CG) = 0
         integer(kind=8) :: mapDoFsFEFaceMa(MAX_BV_CG) = 0
-        integer(kind=8) :: mapDoFsFEFace(2*MAX_BV_CG) = 0
+        integer(kind=8) :: mapDoFsFace(2*MAX_BV_CG) = 0
         integer(kind=8) :: mapDoFshhoFaceMa(MSIZE_FACE_VEC) = 0
     end type
 !

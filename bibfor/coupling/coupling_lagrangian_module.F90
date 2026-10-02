@@ -53,7 +53,7 @@ module coupling_lagrangian_module
 !
 !
     public :: cplLagrInitData
-    public :: cplLagrInitTopoFEMFEM, cplLagrInitMapFEMFEM
+    public :: cplLagrInitTopoFEMFEM, cplLagrInitMapFEMFEMVec
     public :: cplLagrRhsFEMFEM, cplLagrLhsFEMFEM
     private :: cplLagrAssLhsFEMFEM
 !
@@ -85,7 +85,7 @@ contains
 !===================================================================================================
 !
 !
-    subroutine cplLagrInitMapFEMFEM(FEFaceSl, FEFaceMa, FEFaceLagSl, cplMap)
+    subroutine cplLagrInitMapFEMFEMVec(FEFaceSl, FEFaceMa, FEFaceLagSl, cplMap)
 !
         implicit none
 !
@@ -106,7 +106,7 @@ contains
         cplMap%nbDoFs = 0
         cplMap%nbDoFsFEFaceSl = 0
         cplMap%nbDoFsFEFaceLagSl = 0
-        cplMap%nbDoFsFEFace = 0
+        cplMap%nbDoFsFace = 0
 !
         ASSERT(FEBasisSl%size == FEFaceSl%nbnodes)
         ASSERT(FEBasisSl%size >= FEBasisLagSl%size)
@@ -115,8 +115,8 @@ contains
                 cplMap%nbDoFs = cplMap%nbDoFs+1
                 cplMap%nbDoFsFEFaceSl = cplMap%nbDoFsFEFaceSl+1
                 cplMap%mapDoFsFEFaceSl(cplMap%nbDoFsFEFaceSl) = cplMap%nbDoFs
-                cplMap%nbDoFsFEFace = cplMap%nbDoFsFEFace+1
-                cplMap%mapDoFsFEFace(cplMap%nbDoFsFEFace) = cplMap%nbDoFs
+                cplMap%nbDoFsFace = cplMap%nbDoFsFace+1
+                cplMap%mapDoFsFace(cplMap%nbDoFsFace) = cplMap%nbDoFs
             end do
             if (iBase <= FEBasisLagSl%size) then
                 do idim = 1, FEBasisLagSl%ndim
@@ -135,8 +135,8 @@ contains
                 cplMap%nbDoFs = cplMap%nbDoFs+1
                 cplMap%nbDoFsFEFaceMa = cplMap%nbDoFsFEFaceMa+1
                 cplMap%mapDoFsFEFaceMa(cplMap%nbDoFsFEFaceMa) = cplMap%nbDoFs
-                cplMap%nbDoFsFEFace = cplMap%nbDoFsFEFace+1
-                cplMap%mapDoFsFEFace(cplMap%nbDoFsFEFace) = cplMap%nbDoFs
+                cplMap%nbDoFsFace = cplMap%nbDoFsFace+1
+                cplMap%mapDoFsFace(cplMap%nbDoFsFace) = cplMap%nbDoFs
             end do
         end do
 !
@@ -252,10 +252,10 @@ contains
         call lhs%initialize(cplMap%nbDoFs, cplMap%nbDoFs, 0.d0)
 !
 !      Term: gamma/h*(v^S - v^M, u^S-u^M)
-        do jFE = 1, cplMap%nbDoFsFEFace
-            jcol = cplMap%mapDoFsFEFace(jFE)
-            do iFE = 1, cplMap%nbDoFsFEFace
-                irow = cplMap%mapDoFsFEFace(iFE)
+        do jFE = 1, cplMap%nbDoFsFace
+            jcol = cplMap%mapDoFsFace(jFE)
+            do iFE = 1, cplMap%nbDoFsFace
+                irow = cplMap%mapDoFsFace(iFE)
                 lhs%m(irow, jcol) = matPena(iFE, jFE)
             end do
         end do
@@ -263,8 +263,8 @@ contains
 !     Term: (v^S-v^M, lag^S) and (mu^S, u^S-u^M) by symmetry
         do jFESlLg = 1, cplMap%nbDoFsFEFaceLagSl
             jcol = cplMap%mapDoFsFEFaceLagSl(jFESlLg)
-            do iFE = 1, cplMap%nbDoFsFEFace
-                irow = cplMap%mapDoFsFEFace(iFE)
+            do iFE = 1, cplMap%nbDoFsFace
+                irow = cplMap%mapDoFsFace(iFE)
                 lhs%m(jcol, irow) = matLagr(jFESlLg, iFE)
                 lhs%m(irow, jcol) = lhs%m(jcol, irow)
             end do

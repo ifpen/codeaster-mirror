@@ -53,10 +53,11 @@ module coupling_penalisation_module
 !
 !
 !
-    public :: cplPenaInitTopoFEMHHO, cplPenaInitMapFEMHHO, cplPenaInitData
-    public :: cplPenaInitTopoFEMFEM, cplPenaInitMapFEMFEM
+    public :: cplPenaInitTopoFEMHHO, cplPenaInitMapFEMHHOVec, cplPenaInitData
+    public :: cplPenaInitTopoFEMFEM, cplPenaInitMapFEMFEMVec
     public :: cplPenaRhsFEMHHO, cplPenaLhsFEMHHO
     public :: cplPenaRhsFEMFEM, cplPenaLhsFEMFEM
+    public :: cplPenaInitMapFEMHHOScal
 !
 contains
 !
@@ -108,7 +109,7 @@ contains
 !===================================================================================================
 !
 !
-    subroutine cplPenaInitMapFEMHHO(FEFaceSl, hhoFaceMa, hhoDataMa, cplMap)
+    subroutine cplPenaInitMapFEMHHOVec(FEFaceSl, hhoFaceMa, hhoDataMa, cplMap)
 !
         implicit none
 !
@@ -157,7 +158,54 @@ contains
 !===================================================================================================
 !
 !
-    subroutine cplPenaInitMapFEMFEM(FEFaceSl, FEFaceMa, cplMap)
+    subroutine cplPenaInitMapFEMHHOScal(FEFaceSl, hhoFaceMa, hhoDataMa, cplMap)
+!
+        implicit none
+!
+        type(CouplingMap), intent(inout) :: cplMap
+        type(FE_Skin), intent(in) :: FEFaceSl
+        type(HHO_Face), intent(in) :: hhoFaceMa
+        type(HHO_Data), intent(in) :: hhoDataMa
+!
+!===================================================================================================
+!    Initialize FEM and HHO topology
+!===================================================================================================
+!
+        type(FE_basis) :: FEBasisSl
+        integer(kind=8) :: iBase, fbs
+!
+        call FEBasisSl%initFace(FEFaceSl)
+        ASSERT(FEBasisSl%typeEF == EF_LAGRANGE)
+!
+        cplMap%nbDoFs = 0
+        cplMap%nbDoFsFEFaceSl = 0
+!
+        ASSERT(FEBasisSl%size == FEFaceSl%nbnodes)
+        do iBase = 1, FEBasisSl%size
+            cplMap%nbDoFs = cplMap%nbDoFs+1
+            cplMap%nbDoFsFEFaceSl = cplMap%nbDoFsFEFaceSl+1
+            cplMap%mapDoFsFEFaceSl(cplMap%nbDoFsFEFaceSl) = cplMap%nbDoFs
+        end do
+!
+        call hhoTherFaceDofs(hhoFaceMa, hhoDataMa, fbs)
+        cplMap%nbDoFshhoFaceMa = 0
+!
+        do iBase = 1, fbs
+            cplMap%nbDoFs = cplMap%nbDoFs+1
+            cplMap%nbDoFshhoFaceMa = cplMap%nbDoFshhoFaceMa+1
+            cplMap%mapDoFshhoFaceMa(cplMap%nbDoFshhoFaceMa) = cplMap%nbDoFs
+        end do
+!
+        ASSERT(cplMap%nbDoFs <= MSIZE_CPL_PENA)
+!
+    end subroutine
+!
+!===================================================================================================
+!
+!===================================================================================================
+!
+!
+    subroutine cplPenaInitMapFEMFEMVec(FEFaceSl, FEFaceMa, cplMap)
 !
         implicit none
 !

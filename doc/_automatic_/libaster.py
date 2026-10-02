@@ -7932,6 +7932,16 @@ class CouplingPairing(DataStructure):
             FiniteElementDescriptor: finite element for virtual cells
         """
 
+    def getHHOProjector(self, pairing):
+        """Get HHO L2-projector
+
+        Argument:
+            pairing [FieldOnCellsReal]: pairing.
+
+        Returns:
+            FieldOnCellsReal: L2-projector.
+        """
+
     def getMesh(self):
         """Mesh
 

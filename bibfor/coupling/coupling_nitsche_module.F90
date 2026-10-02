@@ -52,8 +52,8 @@ module coupling_nitsche_module
 ! --------------------------------------------------------------------------------------------------
 !
 !
-    public :: cplNitsInitTopoFEMHHO, cplNitsInitMapFEMHHO, cplNitsInitData
-    public :: cplNitsLhsFEMHHO
+    public :: cplNitsInitTopoFEMHHO, cplNitsInitMapFEMHHOVec, cplNitsInitData
+    public :: cplNitsLhsFEMHHO, cplNitsInitMapFEMHHOScal
     private :: readNitSlavMap, cplNitsAssLhsFEMHHO
 !
 contains
@@ -120,7 +120,7 @@ contains
 !===================================================================================================
 !
 !
-    subroutine cplNitsInitMapFEMHHO(FECellSl, hhoFaceMa, hhoDataMa, cplMap)
+    subroutine cplNitsInitMapFEMHHOVec(FECellSl, hhoFaceMa, hhoDataMa, cplMap)
 !
         implicit none
 !
@@ -153,16 +153,16 @@ contains
         end do
 !
         cplMap%nbDoFsFEFaceSl = 0
-        cplMap%nbDoFsFEFace = 0
+        cplMap%nbDoFsFace = 0
 !
         do iNode = 1, nbNodes
             node = nodes(iNode)
             do idim = 1, FEBasisSl%ndim
-                cplMap%nbDoFsFEFace = cplMap%nbDoFsFEFace+1
+                cplMap%nbDoFsFace = cplMap%nbDoFsFace+1
                 cplMap%nbDoFsFEFaceSl = cplMap%nbDoFsFEFaceSl+1
                 iDoF = cplMap%mapDoFsFECellSl(FEBasisSl%ndim*(node-1)+idim)
                 cplMap%mapDoFsFEFaceSl(cplMap%nbDoFsFEFaceSl) = iDoF
-                cplMap%mapDoFsFEFace(cplMap%nbDoFsFEFace) = iDoF
+                cplMap%mapDoFsFace(cplMap%nbDoFsFace) = iDoF
             end do
         end do
 !
@@ -171,10 +171,71 @@ contains
 !
         do iBase = 1, fbs
             cplMap%nbDoFs = cplMap%nbDoFs+1
-            cplMap%nbDoFsFEFace = cplMap%nbDoFsFEFace+1
+            cplMap%nbDoFsFace = cplMap%nbDoFsFace+1
             cplMap%nbDoFshhoFaceMa = cplMap%nbDoFshhoFaceMa+1
             cplMap%mapDoFshhoFaceMa(cplMap%nbDoFshhoFaceMa) = cplMap%nbDoFs
-            cplMap%mapDoFsFEFace(cplMap%nbDoFsFEFace) = cplMap%nbDoFs
+            cplMap%mapDoFsFace(cplMap%nbDoFsFace) = cplMap%nbDoFs
+        end do
+!
+        ASSERT(cplMap%nbDoFs <= MSIZE_CPL_NITS)
+!
+    end subroutine
+!
+!===================================================================================================
+!
+!===================================================================================================
+!
+!
+    subroutine cplNitsInitMapFEMHHOScal(FECellSl, hhoFaceMa, hhoDataMa, cplMap)
+!
+        implicit none
+!
+        type(FE_Cell), intent(in) :: FECellSl
+        type(HHO_Face), intent(in) :: hhoFaceMa
+        type(HHO_Data), intent(in) :: hhoDataMa
+        type(CouplingMap), intent(inout) :: cplMap
+!
+!===================================================================================================
+!    Initialize FEM and HHO topology
+!===================================================================================================
+!
+        type(FE_basis) :: FEBasisSl
+        integer(kind=8) :: nbNodes, nodes(MT_NNOMAX2D), iBase, fbs, node, iNode, iDoF
+!
+        call readNitSlavMap(nbNodes, nodes)
+        call FEBasisSl%initCell(FECellSl)
+        ASSERT(FEBasisSl%typeEF == EF_LAGRANGE)
+!
+        cplMap%nbDoFs = 0
+        cplMap%nbDoFsFECellSl = 0
+!
+        ASSERT(FEBasisSl%size == FECellSl%nbnodes)
+        do iBase = 1, FEBasisSl%size
+            cplMap%nbDoFs = cplMap%nbDoFs+1
+            cplMap%nbDoFsFECellSl = cplMap%nbDoFsFECellSl+1
+            cplMap%mapDoFsFECellSl(cplMap%nbDoFsFECellSl) = cplMap%nbDoFs
+        end do
+!
+        cplMap%nbDoFsFEFaceSl = 0
+        cplMap%nbDoFsFace = 0
+!
+        do iNode = 1, nbNodes
+            node = nodes(iNode)
+            cplMap%nbDoFsFace = cplMap%nbDoFsFace+1
+            cplMap%nbDoFsFEFaceSl = cplMap%nbDoFsFEFaceSl+1
+            iDoF = cplMap%mapDoFsFECellSl(node)
+            cplMap%mapDoFsFEFaceSl(cplMap%nbDoFsFEFaceSl) = iDoF
+        end do
+!
+        call hhoTherFaceDofs(hhoFaceMa, hhoDataMa, fbs)
+        cplMap%nbDoFshhoFaceMa = 0
+!
+        do iBase = 1, fbs
+            cplMap%nbDoFs = cplMap%nbDoFs+1
+            cplMap%nbDoFsFace = cplMap%nbDoFsFace+1
+            cplMap%nbDoFshhoFaceMa = cplMap%nbDoFshhoFaceMa+1
+            cplMap%mapDoFshhoFaceMa(cplMap%nbDoFshhoFaceMa) = cplMap%nbDoFs
+            cplMap%mapDoFsFace(cplMap%nbDoFsFace) = cplMap%nbDoFs
         end do
 !
         ASSERT(cplMap%nbDoFs <= MSIZE_CPL_NITS)
@@ -281,14 +342,14 @@ contains
 !      Terms acting on the projected interface jump:
 !        gamma/h*(v^S-v^M, u^S-u^M)
 !        +(C:sym(R_T(u)), sym(R_T(v)))_T
-        ASSERT(lhs_pena%nrows == cplMap%nbDoFsFEFace)
-        ASSERT(lhs_pena%ncols == cplMap%nbDoFsFEFace)
-        ASSERT(lhs_gradlift%nrows == cplMap%nbDoFsFEFace)
-        ASSERT(lhs_gradlift%ncols == cplMap%nbDoFsFEFace)
-        do jFE = 1, cplMap%nbDoFsFEFace
-            jcol = cplMap%mapDoFsFEFace(jFE)
-            do iFE = 1, cplMap%nbDoFsFEFace
-                irow = cplMap%mapDoFsFEFace(iFE)
+        ASSERT(lhs_pena%nrows == cplMap%nbDoFsFace)
+        ASSERT(lhs_pena%ncols == cplMap%nbDoFsFace)
+        ASSERT(lhs_gradlift%nrows == cplMap%nbDoFsFace)
+        ASSERT(lhs_gradlift%ncols == cplMap%nbDoFsFace)
+        do jFE = 1, cplMap%nbDoFsFace
+            jcol = cplMap%mapDoFsFace(jFE)
+            do iFE = 1, cplMap%nbDoFsFace
+                irow = cplMap%mapDoFsFace(iFE)
                 lhs%m(irow, jcol) = lhs_pena%m(iFE, jFE)+lhs_gradlift%m(iFE, jFE)
             end do
         end do
@@ -297,9 +358,9 @@ contains
 !      Rmq: This is a minus since in the paper they used n_I = n_hho = -n_cG
 !          and by convention we used the outward normal for all intermediate computation
         ASSERT(lhs_stress%nrows == cplMap%nbDoFsFECellSl)
-        ASSERT(lhs_stress%ncols == cplMap%nbDoFsFEFace)
-        do jFE = 1, cplMap%nbDoFsFEFace
-            jcol = cplMap%mapDoFsFEFace(jFE)
+        ASSERT(lhs_stress%ncols == cplMap%nbDoFsFace)
+        do jFE = 1, cplMap%nbDoFsFace
+            jcol = cplMap%mapDoFsFace(jFE)
             do iFE = 1, cplMap%nbDoFsFECellSl
                 irow = cplMap%mapDoFsFECellSl(iFE)
                 lhs%m(irow, jcol) = lhs%m(irow, jcol)-lhs_stress%m(iFE, jFE)

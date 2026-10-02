@@ -63,6 +63,16 @@ Get intersection points
 Returns:
     FieldOnCellsReal: intersection points.
 )" );
+    class_.def( "getHHOProjector", &CouplingPairing::getHHOProjector, R"(
+Get HHO L2-projector
+
+Argument:
+    pairing [FieldOnCellsReal]: pairing.
+
+Returns:
+    FieldOnCellsReal: L2-projector.
+)",
+                py::arg( "pairing" ) );
     class_.def( "addZone", &CouplingPairing::addZone, R"(
 Add a new zone of coupling;
 
