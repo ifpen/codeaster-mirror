@@ -608,6 +608,13 @@ class BaseMesh(DataStructure):
             str : name of the cell type (stripped)
         """
 
+    def getCellsType(self):
+        """Return the Aster type of each cell.
+
+        Returns:
+            list[int]: List of Aster types.
+        """
+
     def getConnectivity(self):
         """Return the connectivity of the mesh as Python lists.
 
@@ -1055,6 +1062,36 @@ def getMedCouplingConversionData(mesh):
 
     Returns:
         tuple (cells, groups_c, groups_n) : The data to create the equivalent MedCoupling mesh.
+    """
+
+
+# built-in function getQuadratureDict in libaster
+
+
+def getQuadratureDict(field):
+    """Extracts quadrature integration data from a field.
+
+    Iterates through cells to retrieve detailed information about their
+    integration rules, including element type, node counts, Gauss point
+    coordinates, and weights.
+
+    Arguments:
+        aster_field (SimpleFieldOnCellsRealPtr): field object containing cell information.
+
+     Returns:
+        dict[dict]: A dictionary where each key represents a unique cell's ID and maps to
+        its quadrature data. Each quadrature data dictionary includes:
+            - 'QUADRATURE_FAMILY' (str): Integration family (e.g., 'FPG27').
+            - 'REF_ELEMENT' (str): Reference element identifier.
+            - 'REF_DIM' (int): Reference element dimension.
+            - 'CELL' (str): Cell identifier.
+            - 'NB_CORNER_NODES' (int): Number of corner nodes.
+            - 'NB_TOTAL_NODES' (int): Total number of nodes.
+            - 'NB_GAUSS_POINTS' (int): Number of Gauss integration points.
+            - 'DIM' (int): Element dimension.
+            - 'REF_COOR' (list of float): Gauss point coordinates in reference space.
+            - 'GAUSS_COOR' (list of float): Gauss point coordinates in global space.
+            - 'GAUSS_WEIGHTS' (list of float): Gauss point weights.
     """
 
 

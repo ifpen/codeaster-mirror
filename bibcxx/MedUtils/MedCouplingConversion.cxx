@@ -23,7 +23,12 @@
 
 #include "aster_pybind.h"
 
+#include "DataFields/SimpleFieldOnCells.h"
+#include "MemoryManager/JeveuxVector.h"
 #include "Meshes/BaseMesh.h"
+#include "Messages/Messages.h"
+
+const ASTERINTEGER MAX_BUFFER_ELEMENTS = 3000;
 
 struct MedCouplingTypeInfo {
     int mc_type;
@@ -71,7 +76,7 @@ py::object getMedCouplingConversionData( const BaseMeshPtr &mesh ) {
     // Première passe sur les mailles pour collecter des informations globales.
     VectorInt cell_dim( num_cells );
     std::array< ASTERINTEGER, 4 > cells_per_dim_count = { 0, 0, 0, 0 };
-    std::array< size_t, 4 > connectivity_total_size = { 0, 0, 0, 0 };
+    std::array< ASTERINTEGER, 4 > connectivity_total_size = { 0, 0, 0, 0 };
 
     for ( ASTERINTEGER i = 0; i < num_cells; ++i ) {
         const auto type_med = ( *cells_types )[i];
@@ -176,4 +181,134 @@ py::object getMedCouplingConversionData( const BaseMeshPtr &mesh ) {
 
     // Retourne un tuple Python contenant les trois dictionnaires.
     return py::make_tuple( cells_dict, groups_c_dict, groups_n_dict );
+}
+
+struct CellQuadratureData {
+    std::string family;
+    std::string ref_element;
+    std::string element;
+    ASTERINTEGER num_corner_nodes = 0;
+    ASTERINTEGER num_total_nodes = 0;
+    ASTERINTEGER num_gauss_points = 0;
+    ASTERINTEGER dimension = 0;
+    ASTERINTEGER ref_element_dimension = 0;
+    VectorReal ref_coords;
+    VectorReal gauss_coords;
+    VectorReal gauss_weights;
+};
+
+using QuadratureMap = std::map< std::pair< ASTERINTEGER, ASTERINTEGER >, CellQuadratureData >;
+
+CellQuadratureData fillQuadrature( ASTERINTEGER element_type_id, ASTERINTEGER local_mode_id,
+                                   const std::string &field_name, VectorReal &ref_coords_buffer,
+                                   VectorReal &gauss_coords_buffer, VectorReal &weights_buffer ) {
+
+    JeveuxChar8 ref_element_char;
+    JeveuxChar8 family_char;
+    JeveuxChar8 element_char;
+    ASTERLOGICAL renum = true;
+    ASTERINTEGER num_corner_nodes = 0;
+    ASTERINTEGER num_total_nodes = 0;
+    ASTERINTEGER num_gauss_points = 0;
+    ASTERINTEGER dimension = 0;
+    ASTERINTEGER ref_element_dimension = 0;
+    ASTERINTEGER return_code = 0;
+
+    CALLO_UTEREF2( &element_type_id, &local_mode_id, &renum, ref_element_char, family_char,
+                   element_char, &num_corner_nodes, &num_total_nodes, &num_gauss_points, &dimension,
+                   &ref_element_dimension, ref_coords_buffer.data(), gauss_coords_buffer.data(),
+                   weights_buffer.data(), &return_code );
+
+    if ( return_code == 1 ) {
+        UTMESS( "F", "MED2_11" );
+    } else if ( return_code == 2 ) {
+        UTMESS( "F", "MED2_5", { field_name, family_char, element_char } );
+    } else if ( return_code == 3 ) {
+        UTMESS( "F", "MED2_6", { field_name } );
+    } else {
+        AS_ASSERT( return_code == 0 );
+    }
+
+    AS_ASSERT( ( num_gauss_points * dimension ) <= MAX_BUFFER_ELEMENTS );
+    AS_ASSERT( ( num_total_nodes * dimension ) <= MAX_BUFFER_ELEMENTS );
+
+    CellQuadratureData data;
+    data.family = strip( family_char.toString() );
+    data.ref_element = strip( ref_element_char.toString() );
+    data.element = strip( element_char.toString() );
+    data.num_corner_nodes = num_corner_nodes;
+    data.num_total_nodes = num_total_nodes;
+    data.num_gauss_points = num_gauss_points;
+    data.dimension = dimension;
+    data.ref_element_dimension = ref_element_dimension;
+
+    data.ref_coords.assign( ref_coords_buffer.begin(),
+                            ref_coords_buffer.begin() + ( num_total_nodes * dimension ) );
+    data.gauss_coords.assign( gauss_coords_buffer.begin(),
+                              gauss_coords_buffer.begin() + ( num_gauss_points * dimension ) );
+    data.gauss_weights.assign( weights_buffer.begin(), weights_buffer.begin() + num_gauss_points );
+
+    return data;
+}
+
+QuadratureMap getQuadratureMap( const SimpleFieldOnCellsRealPtr &aster_field ) {
+    aster_field->updateValuePointers();
+
+    auto localization = aster_field->getLocalization();
+    if ( localization != "ELGA" ) {
+        throw std::runtime_error( "Expected 'ELGA', got '" + localization + "'" );
+    }
+
+    auto field_name = aster_field->getName();
+
+    VectorReal ref_coords_buffer( MAX_BUFFER_ELEMENTS );
+    VectorReal gauss_coords_buffer( MAX_BUFFER_ELEMENTS );
+    VectorReal weights_buffer( MAX_BUFFER_ELEMENTS );
+
+    QuadratureMap output;
+    auto num_cells = aster_field->getMesh()->getNumberOfCells();
+
+    for ( ASTERINTEGER i = 0; i < num_cells; ++i ) {
+        auto element_type_id = aster_field->getTypeId( i );
+        auto local_mode_id = aster_field->getLocatedComponentId( i );
+
+        if ( element_type_id == 0 || local_mode_id == 0 ) {
+            continue;
+        }
+
+        auto key = std::make_pair( element_type_id, local_mode_id );
+
+        auto [it, inserted] = output.try_emplace( key );
+        if ( inserted ) {
+            it->second = fillQuadrature( element_type_id, local_mode_id, field_name,
+                                         ref_coords_buffer, gauss_coords_buffer, weights_buffer );
+        }
+    }
+
+    return output;
+}
+
+py::dict toPyDict( const QuadratureMap &cpp_map ) {
+    py::dict py_map;
+    for ( const auto &[key, data] : cpp_map ) {
+        py::dict cell_data;
+        cell_data["QUADRATURE_FAMILY"] = std::move( data.family );
+        cell_data["CELL"] = std::move( data.element );
+        cell_data["REF_ELEMENT"] = std::move( data.ref_element );
+        cell_data["REF_DIM"] = data.ref_element_dimension;
+        cell_data["NB_CORNER_NODES"] = data.num_corner_nodes;
+        cell_data["NB_TOTAL_NODES"] = data.num_total_nodes;
+        cell_data["NB_GAUSS_POINTS"] = data.num_gauss_points;
+        cell_data["DIM"] = data.dimension;
+        cell_data["REF_COOR"] = py::cast( std::move( data.ref_coords ) );
+        cell_data["GAUSS_COOR"] = py::cast( std::move( data.gauss_coords ) );
+        cell_data["GAUSS_WEIGHTS"] = py::cast( std::move( data.gauss_weights ) );
+
+        py_map[py::cast( key )] = cell_data;
+    }
+    return py_map;
+}
+
+py::dict getQuadratureDict( const SimpleFieldOnCellsRealPtr &aster_field ) {
+    return toPyDict( getQuadratureMap( aster_field ) );
 }

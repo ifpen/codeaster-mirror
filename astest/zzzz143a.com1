@@ -57,7 +57,9 @@ with tempfile.NamedTemporaryFile(prefix="test_", suffix=".rmed", mode="w", delet
     rebuild_nord = DEPL31_REBUILD.getAccessParameters()["NUME_ORDRE"]
     rebuild_insts = DEPL31_REBUILD.getAccessParameters()["INST"]
     rebuild_fields = set(DEPL31_REBUILD.getFieldsNames())
-test_export.assertSetEqual(desc_depl_reload42, set(("SIEF_R-SIEF_ELGA", "DEPL_R-DEPL")))
+test_export.assertSetEqual(
+    desc_depl_reload42, set(("SIEF_R-SIEF_ELGA", "SIEF_R-SIEF_ELNO", "DEPL_R-DEPL"))
+)
 test_export.assertTrue(rebuild_fields.issubset(DEPL31_FONC.getFieldsNames()))
 test_export.assertSequenceEqual(rebuild_nord, DEPL31_FONC.getAccessParameters()["NUME_ORDRE"])
 test_export.assertSequenceEqual(rebuild_insts, DEPL31_FONC.getAccessParameters()["INST"])

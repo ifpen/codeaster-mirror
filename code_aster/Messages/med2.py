@@ -41,13 +41,16 @@ dans le fichier MED pour l'instant %(r1)G.
     ),
     5: _(
         """
-Le champ '%(k1)s' dont vous avez demandé l'impression au format MED
-est défini sur des éléments utilisant la famille de points de Gauss
-'%(k2)s'. Or l'impression de cette famille n'est pas possible au
-format MED.
-  -> Conseil :
-     Restreignez l'impression demandée aux éléments ne contenant pas
-     la famille de point de Gauss incriminée.
+Le champ '%(k1)s' est défini sur des éléments '%(k3)s' utilisant la famille
+de points de Gauss '%(k2)s'.
+Or ce cas n'est pas compatible avec le format MED.
+"""
+    ),
+    6: _(
+        """
+Le champ '%(k1)s' est défini sur des éléments utilisant une famille liste
+formée par une concaténation de familles ordinaires. 
+Or ce cas n'est pas compatible avec le format MED.
 """
     ),
     7: _(

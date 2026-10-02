@@ -68,9 +68,12 @@ subroutine uteref(chanom, typech, tyelas, nomte, lfichUniq, &
 #include "asterfort/jelira.h"
 #include "asterfort/jemarq.h"
 #include "asterfort/jenuno.h"
+#include "asterfort/jenonu.h"
+#include "asterfort/jexnom.h"
 #include "asterfort/jeveuo.h"
 #include "asterfort/jexnum.h"
 #include "asterfort/utmess.h"
+#include "asterfort/uteref2.h"
 #include "MeshTypes_type.h"
 !
     integer(kind=8) :: tyelas
@@ -90,25 +93,18 @@ subroutine uteref(chanom, typech, tyelas, nomte, lfichUniq, &
 !
 ! 0.3. ==> VARIABLES LOCALES
 !
-    integer(kind=8) :: nbpg00(MT_NBFAMX), imolo, nec, kfpg, nbfpg, nbfpg2, ifam
-    integer(kind=8) :: itype, nb1, nbelr, jmolo, idime, ipg
-    integer(kind=8) :: ifm, nivinf, igrel
+    integer(kind=8) :: imolo
+    integer(kind=8) :: itype, nb1, dimrefe
+    integer(kind=8) :: ifm, nivinf, igrel, ntypef
     integer(kind=8) :: ierd, jliel, nbgrel
-    integer(kind=8) :: iaux, dimtopo, vimolo(1)
-    aster_logical :: ljoint, lpenta
-!
-    integer(kind=8), parameter:: lgmax = 1000
-!
-    real(kind=8) :: gscoo2(3*lgmax)
+    integer(kind=8) :: iaux, vimolo(1)
 !
     character(len=4) :: tych
-    character(len=8) :: elrefe, elrefb, lielrf(MT_NBFAMX), fapg(MT_NBFAMX), nomgd, famil
-    character(len=8) :: nomtypmail, fapg2(MT_NBFAMX)
+    character(len=8) :: elrefe, famil, nomtypmail
     character(len=16) :: nomsym
-    character(len=64) :: valk(2)
+    character(len=64) :: valk(3)
     character(len=19) :: ligrel, resu
 !
-    real(kind=8) :: vol
     integer(kind=8), pointer :: celd(:) => null()
     character(len=24), pointer :: celk(:) => null()
 !-----------------------------------------------------------------------
@@ -116,7 +112,6 @@ subroutine uteref(chanom, typech, tyelas, nomte, lfichUniq, &
 !     ---------------
     call jemarq()
     codret = 0
-    ljoint = .false.
 !
     call infniv(ifm, nivinf)
     if (nivinf .gt. 1) then
@@ -130,11 +125,6 @@ subroutine uteref(chanom, typech, tyelas, nomte, lfichUniq, &
 !     -----------------------------
 !
     if (codret .eq. 0) then
-!
-        call elref2(nomte, MT_NBFAMX, lielrf, nbelr)
-        ASSERT(nbelr .gt. 0)
-        elrefe = lielrf(1)
-!
 !
         call dismoi('TYPE_CHAMP', chanom, 'CHAMP', repk=tych)
         ASSERT(tych .eq. typech)
@@ -182,107 +172,41 @@ subroutine uteref(chanom, typech, tyelas, nomte, lfichUniq, &
         end if
 !
     end if
+
+    resu = chanom(1:8)
+    call jeexin(resu//'.DESC', ierd)
+    if (ierd .eq. 0) then
+        nomsym = nochmd(1:16)
+    else
+        nomsym = chanom(1:16)
+    end if
+
 !
 !     4- DETERMINATION DE LA FAMILLE DE POINTS DE GAUSS :
 !     -------------------------------------------------------------
 !
     if (codret .eq. 0) then
-!
-        call jeveuo(jexnum('&CATA.TE.MODELOC', imolo), 'L', jmolo)
-        call dismoi('NOM_GD', chanom, 'CHAMP', repk=nomgd)
-        call dismoi('NB_EC', nomgd, 'GRANDEUR', repi=nec)
-        kfpg = zi(jmolo-1+4+nec+1)
-        call jenuno(jexnum('&CATA.TM.NOFPG', kfpg), nomfpg)
-        ASSERT(elrefe .eq. nomfpg(1:8))
-        famil = nomfpg(9:16)
-!
-    end if
-!
-!     5- APPEL AUX ROUTINES ELRACA ET ELRAGA DE DESCRIPTION DES ELREFE:
-!     ----------------------------------------------------------------
-!
-    lpenta = .false.
-    if (codret .eq. 0) then
-        call elraca(elrefe, &
-                    nbfpg, fapg, nbpg00, &
-                    ndim, nno, nnos, &
-                    refcoo, vol)
-!
-        call dismoi('DIM_TOPO', nomte, 'TYPE_ELEM', repi=dimtopo)
-        call dismoi('NOM_TYPMAIL', nomte, 'TYPE_ELEM', repk=nomtypmail)
-!       Glute pour les joints
-        elrefb = elrefe
-        if (dimtopo .ne. ndim) then
-            if (nomtypmail .eq. 'HEXA8') then
-                elrefb = 'HE8'
-            else if (nomtypmail .eq. 'QUAD8') then
-                elrefb = 'QU8'
-            else if (nomtypmail .eq. 'PENTA6') then
-                lpenta = .true.
-                elrefb = 'PE6'
-            else if (nomtypmail .eq. 'PENTA15') then
-                lpenta = .true.
-                elrefb = 'P15'
-            else if (nomtypmail .eq. 'HEXA20') then
-                elrefb = 'H20'
-            else
-                call utmess('F', 'MED2_11')
-            end if
-            call elraca(elrefb, &
-                        nbfpg2, fapg2, nbpg00, &
-                        dimtopo, nno, nnos, &
-                        refcoo, vol)
-            ljoint = .true.
-        end if
-!
-        ASSERT(nbfpg .le. MT_NBFAMX)
-        ASSERT(nno .le. MT_NNOMAX)
-        ifam = indik8(fapg, famil, 1, nbfpg)
-        if (ifam .le. 0) then
-            resu = chanom(1:8)
-            call jeexin(resu//'.DESC', ierd)
-            if (ierd .eq. 0) then
-                nomsym = nochmd(1:16)
-            else
-                nomsym = chanom(1:16)
-            end if
+        call jenonu(jexnom('&CATA.TE.NOMTE', nomte), ntypef)
+        call uteref2(ntypef, imolo, ASTER_TRUE, &
+                     elrefe, famil, nomtypmail, nnos, nno, nbpg, ndim, dimrefe, &
+                     refcoo, gscoo, wg, codret)
+
+        nomfpg(1:8) = elrefe
+        nomfpg(9:16) = famil
+
+        if (codret .eq. 1) then
+            call utmess("F", "MED2_11")
+        else if (codret .eq. 2) then
             valk(1) = nomsym
             valk(2) = famil
-            call utmess('F', 'MED2_5', nk=2, valk=valk)
-        end if
-!
-        if (ljoint) then
-            call elraga(elrefe, famil, ndim, nbpg, gscoo2, &
-                        wg)
-            if (lpenta) then
-                do ipg = 1, nbpg
-                    do idime = 1, dimtopo
-                        if (idime .eq. 1) then
-                            gscoo((ipg-1)*dimtopo+idime) = 0
-                        else
-                            gscoo((ipg-1)*dimtopo+idime) = gscoo2((ipg-1)*ndim+idime-1)
-                        end if
-                    end do
-                end do
-            else
-                do ipg = 1, nbpg
-                    do idime = 1, dimtopo
-                        if (idime .gt. ndim) then
-                            gscoo((ipg-1)*dimtopo+idime) = 0
-                        else
-                            gscoo((ipg-1)*dimtopo+idime) = gscoo2((ipg-1)*ndim+idime)
-                        end if
-                    end do
-                end do
-            end if
-            ndim = dimtopo
+            valk(3) = nomtypmail
+            call utmess('F', 'MED2_5', nk=3, valk=valk)
+        else if (codret .eq. 3) then
+            call utmess('F', 'MED2_6', valk=nomsym)
         else
-            call elraga(elrefe, famil, ndim, nbpg, gscoo, &
-                        wg)
+            ASSERT(codret .eq. 0)
         end if
-!
-        ASSERT(nbpg .le. 125)
-!
+
     end if
 !
 !     6- IMPRESSION EVENTUELLE SUR LE FICHIER DE MESSAGES

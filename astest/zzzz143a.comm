@@ -147,6 +147,8 @@ DEPL31_FONC = MECA_STATIQUE(
     EXCIT=(_F(CHARGE=CHAR31), _F(CHARGE=ANTI_MECA_31)),
 )
 
+DEPL31_FONC = CALC_CHAMP(reuse=DEPL31_FONC, RESULTAT=DEPL31_FONC, CONTRAINTE=("SIEF_ELNO",))
+
 DEPL31_TEMP0 = MECA_STATIQUE(
     MODELE=MODME, CHAM_MATER=CHMATME_TEMP0, EXCIT=(_F(CHARGE=CHAR31), _F(CHARGE=ANTI_MECA_31))
 )
@@ -238,6 +240,13 @@ dz_p0 = PROJ_CHAMP(
     MAILLAGE_2=MP0,
 )
 
+sief_elga = DEPL31_FONC.getField("SIEF_ELGA", 2)
+sief_elga_simple = sief_elga.toSimpleFieldOnCells()
+quadrature = list(CA.getQuadratureDict(sief_elga_simple).values())
+
+sief_elno = DEPL31_FONC.getField("SIEF_ELNO", 2)
+sief_elno_simple = sief_elno.toSimpleFieldOnCells()
+
 test = CA.TestCase()
 
 nbplaces = 10
@@ -250,6 +259,9 @@ test.assertAlmostEqual(norm_diff_stat_t1, 0, places=nbplaces, msg="NORM_DIFF_STA
 test.assertTrue((vflux == -vgrad).all(), msg="GRAD_VS_FLUX")
 test.assertAlmostEqual(temp_p0[0], -0.06038595679164906, places=nbplaces, msg="TEMP_P0")
 test.assertAlmostEqual(dz_p0[2], -0.12077191358329917, places=nbplaces, msg="DEPL_Z_P0")
+test.assertEqual(len(quadrature), 1, msg="NB QUADRATURE")
+test.assertEqual(quadrature[0]["QUADRATURE_FAMILY"], "FPG27", msg="QUADRATURE")
 test.printSummary()
+
 
 FIN()

@@ -123,7 +123,10 @@ class FieldOnCells : public DataField {
 
         CALLO_ALCHML( getDescription()->getName(), option, nompar,
                       JeveuxMemoryTypesNames[Permanent], getName(), &iret, dcel );
-        AS_ASSERT( iret == 0 );
+
+        if ( iret != 0 ) {
+            throw std::runtime_error( "Error creating field " + quantity + " at " + loc );
+        }
 
         updateValuePointers();
     }
@@ -489,6 +492,16 @@ class FieldOnCells : public DataField {
         return ( *_descriptor )[( *_descriptor )[4 + iGrel] - 1 + 3];
     }
 
+    ASTERINTEGER getLocatedComponentIdOfGroupOfElements( const ASTERINTEGER &iGrel ) {
+#ifdef ASTER_DEBUG_CXX
+        if ( iGrel < 0 || iGrel >= getNumberOfGroupOfElements() ) {
+            AS_ABORT( "Out of bounds" );
+        }
+#endif
+        _descriptor->updateValuePointer();
+        return ( *_descriptor )[( *_descriptor )[4 + iGrel] - 1 + 2];
+    }
+
     ASTERINTEGER getShifting( const ASTERINTEGER &iGrel, const ASTERINTEGER &iElem ) {
 #ifdef ASTER_DEBUG_CXX
         if ( iGrel < 0 || iGrel >= getNumberOfGroupOfElements() ) {
@@ -510,7 +523,7 @@ class FieldOnCells : public DataField {
 
         std::string modeName;
         for ( auto igr = 0; igr < nbGrel; igr++ ) {
-            auto mode = ( *_descriptor )[( *_descriptor )[4 + igr] - 1 + 2];
+            auto mode = getLocatedComponentIdOfGroupOfElements( igr );
             if ( mode > 0 ) {
                 CALLO_JEXNUM( objName, cata, &mode );
                 CALLO_JENUNO( objName, charName );

@@ -124,7 +124,12 @@ Return the Med type of each cell.
 Returns:
     list[int]: List of Med types.
         )" )
+        .def( "getCellsType", &BaseMesh::getCellsType, R"(
+Return the Aster type of each cell.
 
+Returns:
+    list[int]: List of Aster types.
+        )" )
         .def( "updateInternalState", &BaseMesh::update_tables, R"(
 Update the internal state of the datastructure.
 

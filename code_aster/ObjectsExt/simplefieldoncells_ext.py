@@ -43,7 +43,7 @@ class ExtendedSimpleFieldOnCellsReal:
             self._ptr_cache = dict.fromkeys(["readonly", "val", "msk", "idx", "nbpt"])
             self._ptr_cache["readonly"] = None
         if self._ptr_cache["val"] is None:
-            self._ptr_cache["val"], self._ptr_cache["msk"], addr = self.toNumpy()
+            self._ptr_cache["val"], self._ptr_cache["msk"], addr, _ = self.toNumpy()
             nbcells = addr[0]
             dims = addr[5:]
             dims.shape = nbcells, 4
@@ -110,19 +110,15 @@ class ExtendedSimpleFieldOnCellsReal:
         self._cache["msk"][:, icmp] = np.logical_not(expanded.mask)
 
     def toNumpy(self):
-        """Returns the field values as numpy arrays.
-
-        It returns three numpy arrays. The first two have a shape
-        ``(number_of_nodes, number_of_components)``.
-        The first array contains the field values while the second one is a mask
-        which is `True` if the corresponding value exists, `False` otherwise.
-        The third array contains the indexes to move in the values.
-
-        Where the mask is `False` the corresponding value is set to zero.
+        """Returns direct access to the internal data structures of the field as NumPy arrays.
 
         Returns:
-            ndarray[float]: Field values.
-            ndarray[bool]: Mask for the field values.
+        tuple: A tuple containing four NumPy arrays:
+            values (ndarray[float]): Field values with shape `(ncells, ncmp)`.
+              Contains zero values where the mask is False (CESV).
+            mask (np.ndarray[bool]): Mask for the field values with shape `(ncells, ncmp)` (CESL).
+            description (ndarray[int]): Field description (CESD).
+            fe_type_mode (ndarray[int]): FE type and local mode with shape `(ncells, 2)` (CESM).
         """
         return libaster._simpleFieldOnCellsToNumpyReal(self)
 
