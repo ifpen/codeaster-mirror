@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -41,6 +41,7 @@ subroutine cafaci(load, mesh, model, valeType)
 #include "asterfort/int_to_char8.h"
 #include "asterfort/jedema.h"
 #include "asterfort/jedetr.h"
+#include "asterfort/jeexin.h"
 #include "asterfort/jelira.h"
 #include "asterfort/jemarq.h"
 #include "asterfort/jeveuo.h"
@@ -96,7 +97,8 @@ subroutine cafaci(load, mesh, model, valeType)
     character(len=19) :: connex_inv, modelLigrel
     character(len=19) :: ch_xfem_stat, ch_xfem_node, ch_xfem_lnno, ch_xfem_ltno, ch_xfem_heav
     integer(kind=8) :: jnoxfl, jnoxfv
-    aster_logical :: lxfem, l_ocmp
+    aster_logical :: lxfem, l_ocmp, lcolleNd
+    integer(kind=8) :: ier
     aster_logical :: l_dtan, l_dnor, l_drnor
     integer(kind=8) :: val_nb_dnor, val_nb_dtan, val_nb_drnor
     real(kind=8) :: val_r_dnor, val_r_dtan, val_r_drnor
@@ -123,6 +125,11 @@ subroutine cafaci(load, mesh, model, valeType)
     coef_real_unit = 1.d0
     dof_name = 'DEPL'
     rota_name = 'ROTA'
+    lcolleNd = .false.
+    call jeexin(mesh//'.NOMNOE', ier)
+    if (ier .ne. 0) then
+        lcolleNd = .true.
+    end if
 
 ! - Model informations
     call dismoi('DIM_GEOM', model, 'MODELE', repi=geomDime)
@@ -233,7 +240,7 @@ subroutine cafaci(load, mesh, model, valeType)
         if (l_dnor) then
             do ino = 1, nb_node
                 nume_node = zi(jlino+ino-1)
-                name_node = int_to_char8(nume_node)
+                name_node = int_to_char8(nume_node, lcolleNd, mesh, "NOEUD")
                 do idim = 1, geomDime
                     repe_defi(idim) = normale(geomDime*(ino-1)+idim)
                 end do
@@ -263,7 +270,7 @@ subroutine cafaci(load, mesh, model, valeType)
             do ino = 1, nb_node
 
                 nume_node = zi(jlino+ino-1)
-                name_node = int_to_char8(nume_node)
+                name_node = int_to_char8(nume_node, lcolleNd, mesh, "NOEUD")
                 do idim = 1, geomDime
                     repe_defi(idim) = normale(geomDime*(ino-1)+idim)
                 end do
@@ -281,7 +288,7 @@ subroutine cafaci(load, mesh, model, valeType)
         if (l_dtan) then
             do ino = 1, nb_node
                 nume_node = zi(jlino+ino-1)
-                name_node = int_to_char8(nume_node)
+                name_node = int_to_char8(nume_node, lcolleNd, mesh, "NOEUD")
                 do idim = 1, geomDime
                     repe_defi(idim) = tangent(geomDime*(ino-1)+idim)
                 end do
@@ -317,7 +324,7 @@ subroutine cafaci(load, mesh, model, valeType)
 !
             do ino = 1, nb_node
                 nume_node = zi(jlino-1+ino)
-                name_node = int_to_char8(nume_node)
+                name_node = int_to_char8(nume_node, lcolleNd, mesh, "NOEUD")
                 call afddli(model, geomDime, nbcmp, zk8(inom), nume_node, name_node, &
                             zi(jprnm-1+(nume_node-1)*nbec+1), 0, zr(jdirec+3*(nume_node-1)), &
                             coef_type, n_keyword, keywordlist, nbterm, valeType, &

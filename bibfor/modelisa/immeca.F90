@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,8 +15,9 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
+! aslint: disable=W0413
 !
-subroutine immeca(tablca, lirela, mailla, nbnobe, nunobe, &
+subroutine immeca(tablca, lirela, mesh, nbnobe, nunobe, &
                   icabl, nbnoca, xnoca, ynoca, znoca, &
                   ncncin, nmabet, gromai)
     implicit none
@@ -85,12 +86,13 @@ subroutine immeca(tablca, lirela, mailla, nbnobe, nunobe, &
 #include "asterfort/jemarq.h"
 #include "asterfort/jeveuo.h"
 #include "asterfort/reci3d.h"
+#include "asterfort/jeexin.h"
 #include "asterfort/tbajli.h"
 #include "asterfort/utmess.h"
 #include "asterfort/utnono.h"
 #include "asterfort/int_to_char8.h"
 !
-    character(len=8) :: mailla
+    character(len=8) :: mesh
     character(len=19) :: lirela, nunobe, xnoca, ynoca, znoca, tablca
     integer(kind=8) :: nbnobe, icabl, nbnoca(*)
     character(len=24) :: ncncin, nmabet, gromai
@@ -108,13 +110,14 @@ subroutine immeca(tablca, lirela, mailla, nbnobe, nunobe, &
     real(kind=8) :: x3dca2(3), axe(3), xnorm, xnorm2, zero, xbar(4)
     real(kind=8) :: rayon
     real(kind=8) :: long, longcy, longca, d2minc
-    integer(kind=8) :: ifm, niv
+    integer(kind=8) :: ifm, niv, ier
     character(len=8) :: nnoec2, k8b, presen(2), k8vide, noancr(2)
     complex(kind=8) :: cbid
     character(len=3) :: k3b
     character(len=8) :: nnoeca, voisin(2)
     character(len=24) :: coorno, nonoca, nogrna(2)
     integer(kind=8) :: n1, ibe, jbe, jgmai
+    aster_logical :: lcolleNd, lcolleEl
 !
     character(len=24) :: param(3), parcr
     integer(kind=8), pointer :: cnx_maille(:) => null()
@@ -156,8 +159,20 @@ subroutine immeca(tablca, lirela, mailla, nbnobe, nunobe, &
     dz = zr(jgmai+2)*.55
     d2_max = dx**2+dy**2+dz**2
 
-    coorno = mailla//'.COORDO    .VALE'
+    coorno = mesh//'.COORDO    .VALE'
     call jeveuo(coorno, 'L', jcoor)
+
+    lcolleNd = .false.
+    call jeexin(mesh(1:8)//'.NOMNOE', ier)
+    if (ier .ne. 0) then
+        lcolleNd = .true.
+    end if
+    lcolleEl = .false.
+    call jeexin(mesh(1:8)//'.NOMMAI', ier)
+    if (ier .ne. 0) then
+        lcolleEl = .true.
+    end if
+
 !
 !
 ! RECUPERATION DES MOTS-CLES
@@ -185,10 +200,10 @@ subroutine immeca(tablca, lirela, mailla, nbnobe, nunobe, &
 !
 !     TRAITEMENT DU MOT-CLE 'GROUP_NO_ANCRAGE'
     if (n1 .eq. 0) then
-        call getvem(mailla, 'GROUP_NO', 'DEFI_CABLE', 'GROUP_NO_ANCRAGE', icabl, &
+        call getvem(mesh, 'GROUP_NO', 'DEFI_CABLE', 'GROUP_NO_ANCRAGE', icabl, &
                     2, nogrna(1), ibid)
 !
-        call utnono(' ', mailla, 'NOEUD', nogrna(1), k8b, &
+        call utnono(' ', mesh, 'NOEUD', nogrna(1), k8b, &
                     iret)
         if (iret .eq. 10) then
             call utmess('F', 'ELEMENTS_67', sk=nogrna(1))
@@ -199,7 +214,7 @@ subroutine immeca(tablca, lirela, mailla, nbnobe, nunobe, &
         end if
         noancr(1) = k8b
 !
-        call utnono(' ', mailla, 'NOEUD', nogrna(2), k8b, &
+        call utnono(' ', mesh, 'NOEUD', nogrna(2), k8b, &
                     iret)
         if (iret .eq. 10) then
             call utmess('F', 'ELEMENTS_67', sk=nogrna(2))
@@ -458,7 +473,7 @@ subroutine immeca(tablca, lirela, mailla, nbnobe, nunobe, &
 !          DE BETON
             if (noebe(ibe) .eq. 0) goto 116
 !
-            call immeno(ncncin, nmabet, mailla, x3dca(1), noebe(ibe), &
+            call immeno(ncncin, nmabet, mesh, x3dca(1), noebe(ibe), &
                         numail, nbcnx, cnx_maille, xyz_noemai, itetra, &
                         xbar(1), immer)
             if (immer .ge. 0) then
@@ -517,7 +532,7 @@ subroutine immeca(tablca, lirela, mailla, nbnobe, nunobe, &
                 noebec = no_min_max(inobe)
 !............. TENTATIVE D'IMMERSION DU NOEUD CABLE DANS LES MAILLES
 !............. AUXQUELLES APPARTIENT LE NOEUD BETON COURANT
-                call immeno(ncncin, nmabet, mailla, x3dca(1), noebec, &
+                call immeno(ncncin, nmabet, mesh, x3dca(1), noebec, &
                             numail, nbcnx, cnx_maille, xyz_noemai, itetra, &
                             xbar(1), immer)
 !............. SORTIE DU BLOC REPETER EN CAS DE SUCCES
@@ -540,14 +555,14 @@ subroutine immeca(tablca, lirela, mailla, nbnobe, nunobe, &
 !
 ! 2.2.5  DETERMINATION DES RELATIONS CINEMATIQUES
 ! .....
-        call reci3d(lirela, mailla, nnoeca, noebec, nbcnx, &
+        call reci3d(lirela, mesh, nnoeca, noebec, nbcnx, &
                     cnx_maille, itetra, xbar(1), immer)
 !
 ! 2.2.6  MISE A JOUR DE LA SD TABLE
 ! .....
-        voisin(1) = int_to_char8(numail)
+        voisin(1) = int_to_char8(numail, lcolleEl, mesh, "MAILLE")
         ASSERT(noebec .ne. 0)
-        voisin(2) = int_to_char8(noebec)
+        voisin(2) = int_to_char8(noebec, lcolleNd, mesh, "NOEUD")
         call tbajli(tablca, 3, param, [immer], [rbid], &
                     [cbid], voisin(1), ideca+inoca)
 !

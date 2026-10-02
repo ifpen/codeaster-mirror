@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
 !
-subroutine topoca(tablca, mailla, icabl, nbf0, nbnoca, &
+subroutine topoca(tablca, mesh, icabl, nbf0, nbnoca, &
                   numaca, quad, sens, evalz)
     implicit none
 !  DESCRIPTION : CARACTERISATION DE LA TOPOLOGIE D'UN CABLE
@@ -68,13 +68,14 @@ subroutine topoca(tablca, mailla, icabl, nbf0, nbnoca, &
 #include "asterfort/utmess.h"
 #include "asterfort/utnono.h"
 #include "asterfort/wkvect.h"
+#include "asterfort/jeexin.h"
 #include "asterfort/char8_to_int.h"
 #include "asterfort/int_to_char8.h"
 !
 !
 ! ARGUMENTS
 ! ---------
-    character(len=8) :: mailla
+    character(len=8) :: mesh
     integer(kind=8) :: icabl, nbf0, nbnoca(*), sens
     character(len=19) :: numaca, tablca
     aster_logical :: quad
@@ -83,12 +84,12 @@ subroutine topoca(tablca, mailla, icabl, nbf0, nbnoca, &
 ! VARIABLES LOCALES
 ! -----------------
     integer(kind=8) :: ibid, imail, ino, iret, isuiv, isuiv0(2), ivois, jcxma
-    integer(kind=8) :: jnumac, jnumad, jtyma
+    integer(kind=8) :: jnumac, jnumad, jtyma, ier
     integer(kind=8) :: lonuti, nbchem, nbmail, nbno1, nbno2, nbsuiv, no1, no2, ntseg
     integer(kind=8) :: numail, n1, nbse2, nbse3, no3, ntseg2
     real(kind=8) :: rbid
     complex(kind=8) :: cbid
-    aster_logical :: ok1, ok2, eval
+    aster_logical :: ok1, ok2, eval, lcolleEl, lColleNd
     character(len=3) :: k3b
     character(len=8) :: k8b, noancr(2), nocour, noprec, nosui1, nosui2, nosuiv
     character(len=8) :: novois, tyancr(2)
@@ -126,14 +127,24 @@ subroutine topoca(tablca, mailla, icabl, nbf0, nbnoca, &
 ! 1   SAISIE DES ENTITES TOPOLOGIQUES ASSOCIEES AU CABLE
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 !
-    conxma = mailla//'.CONNEX'
-    grmama = mailla//'.GROUPEMA'
-    tymama = mailla//'.TYPMAIL'
+    conxma = mesh//'.CONNEX'
+    grmama = mesh//'.GROUPEMA'
+    tymama = mesh//'.TYPMAIL'
     call jeveuo(tymama, 'L', jtyma)
+    lcolleNd = .false.
+    call jeexin(mesh(1:8)//'.NOMNOE', ier)
+    if (ier .ne. 0) then
+        lcolleNd = .true.
+    end if
+    lcolleEl = .false.
+    call jeexin(mesh(1:8)//'.NOMMAI', ier)
+    if (ier .ne. 0) then
+        lcolleEl = .true.
+    end if
 !
 ! 1.1 SAISIE DES MAILLES ASSOCIEES
 ! ---
-    call getvem(mailla, 'MAILLE', 'DEFI_CABLE', 'MAILLE', icabl, &
+    call getvem(mesh, 'MAILLE', 'DEFI_CABLE', 'MAILLE', icabl, &
                 0, k8b, nbmail)
 !
 !.... SAISIE DIRECTE
@@ -143,17 +154,17 @@ subroutine topoca(tablca, mailla, icabl, nbf0, nbnoca, &
         nbmail = abs(nbmail)
         AS_ALLOCATE(vk8=nomail_def, size=nbmail)
         call wkvect('&&TOPOCA.NUMAIL_DEF', 'V V I', nbmail, jnumad)
-        call getvem(mailla, 'MAILLE', 'DEFI_CABLE', 'MAILLE', icabl, &
+        call getvem(mesh, 'MAILLE', 'DEFI_CABLE', 'MAILLE', icabl, &
                     nbmail, nomail_def, ibid)
         do imail = 1, nbmail
-            zi(jnumad+imail-1) = char8_to_int(nomail_def(imail))
+            zi(jnumad+imail-1) = char8_to_int(nomail_def(imail), lcolleEl, mesh, "MAILLE")
         end do
 !
 !.... SAISIE INDIRECTE PAR UN GROUPE DE MAILLES
 !
     else
 !
-        call getvem(mailla, 'GROUP_MA', 'DEFI_CABLE', 'GROUP_MA', icabl, &
+        call getvem(mesh, 'GROUP_MA', 'DEFI_CABLE', 'GROUP_MA', icabl, &
                     1, nogrma, ibid)
         call jelira(jexnom(grmama, nogrma), 'LONUTI', nbmail)
         call jeveuo(jexnom(grmama, nogrma), 'L', jnumad)
@@ -181,8 +192,8 @@ subroutine topoca(tablca, mailla, icabl, nbf0, nbnoca, &
         call jeveuo(jexnum(conxma, numail), 'L', jcxma)
         no1 = zi(jcxma)
         no2 = zi(jcxma+1)
-        nomnoe_def(1+2*(imail-1)) = int_to_char8(no1)
-        nomnoe_def(1+2*(imail-1)+1) = int_to_char8(no2)
+        nomnoe_def(1+2*(imail-1)) = int_to_char8(no1, lcolleNd, mesh, "NOEUD")
+        nomnoe_def(1+2*(imail-1)+1) = int_to_char8(no2, lcolleNd, mesh, "NOEUD")
     end do
     ASSERT((nbse2 .eq. 0) .or. (nbse3 .eq. 0))
     quad = .false.
@@ -206,16 +217,16 @@ subroutine topoca(tablca, mailla, icabl, nbf0, nbnoca, &
 !
 ! 1.4 SAISIE DES NOEUDS D'ANCRAGE DU CABLE
 ! ---
-    call getvem(mailla, 'NOEUD', 'DEFI_CABLE', 'NOEUD_ANCRAGE', icabl, &
+    call getvem(mesh, 'NOEUD', 'DEFI_CABLE', 'NOEUD_ANCRAGE', icabl, &
                 0, k8b, ibid)
 !
     if (ibid .eq. 0) then
 !
-        call getvem(mailla, 'GROUP_NO', 'DEFI_CABLE', 'GROUP_NO_ANCRAGE', icabl, &
+        call getvem(mesh, 'GROUP_NO', 'DEFI_CABLE', 'GROUP_NO_ANCRAGE', icabl, &
                     2, nogrna(1), ibid)
 !
-        call utnono(' ', mailla, 'NOEUD', nogrna(1), k8b, &
-                    iret)
+        call utnono(' ', mesh, 'NOEUD', nogrna(1), k8b, &
+                    iret, lColleNd)
         if (iret .eq. 10) then
             call utmess('F', 'ELEMENTS_67', sk=nogrna(1))
         else if (iret .eq. 1) then
@@ -225,7 +236,7 @@ subroutine topoca(tablca, mailla, icabl, nbf0, nbnoca, &
         end if
         noancr(1) = k8b
 !
-        call utnono(' ', mailla, 'NOEUD', nogrna(2), k8b, &
+        call utnono(' ', mesh, 'NOEUD', nogrna(2), k8b, &
                     iret)
         if (iret .eq. 10) then
             call utmess('F', 'ELEMENTS_67', sk=nogrna(2))
@@ -238,7 +249,7 @@ subroutine topoca(tablca, mailla, icabl, nbf0, nbnoca, &
 !
     else
 !
-        call getvem(mailla, 'NOEUD', 'DEFI_CABLE', 'NOEUD_ANCRAGE', icabl, &
+        call getvem(mesh, 'NOEUD', 'DEFI_CABLE', 'NOEUD_ANCRAGE', icabl, &
                     2, noancr(1), ibid)
 !
     end if
@@ -475,7 +486,7 @@ subroutine topoca(tablca, mailla, icabl, nbf0, nbnoca, &
                         call jeveuo(jexnum(conxma, numail), 'L', jcxma)
                         no3 = zi(jcxma+2)
                         no1 = zi(jcxma)
-                        vk(1) = int_to_char8(no1)
+                        vk(1) = int_to_char8(no1, lcolleNd, mesh, "NOEUD")
                         if (sens .eq. 0) then
                             if (nomnoe_ch1(ino) .eq. vk(1)) then
                                 sens = 1
@@ -492,7 +503,7 @@ subroutine topoca(tablca, mailla, icabl, nbf0, nbnoca, &
                                 ASSERT(sens .eq. -1)
                             end if
                         end if
-                        vk(1) = int_to_char8(no3)
+                        vk(1) = int_to_char8(no3, lcolleNd, mesh, "NOEUD")
                         vk(2) = nogrma
                         vk(3) = nogrno(1)
                         vk(4) = nogrno(2)
@@ -547,7 +558,7 @@ subroutine topoca(tablca, mailla, icabl, nbf0, nbnoca, &
                         call jeveuo(jexnum(conxma, numail), 'L', jcxma)
                         no3 = zi(jcxma+2)
                         no1 = zi(jcxma)
-                        vk(1) = int_to_char8(no1)
+                        vk(1) = int_to_char8(no1, lcolleNd, mesh, "NOEUD")
                         if (sens .eq. 0) then
                             if (nomnoe_ch1(ino) .eq. vk(1)) then
                                 sens = 1
@@ -562,7 +573,7 @@ subroutine topoca(tablca, mailla, icabl, nbf0, nbnoca, &
                                 ASSERT(sens .eq. -1)
                             end if
                         end if
-                        vk(1) = int_to_char8(no3)
+                        vk(1) = int_to_char8(no3, lcolleNd, mesh, "NOEUD")
                         vk(2) = nogrma
                         vk(3) = nogrno(1)
                         vk(4) = nogrno(2)

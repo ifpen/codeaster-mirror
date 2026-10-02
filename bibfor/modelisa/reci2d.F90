@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,8 +15,9 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
+! aslint: disable=W0413
 
-subroutine reci2d(lirela, mailla, nnoeca, noebe, nbcnx, &
+subroutine reci2d(lirela, mesh, nnoeca, noebe, nbcnx, &
                   cxma, normal, itria, xbar, iproj, &
                   excent)
     implicit none
@@ -77,6 +78,7 @@ subroutine reci2d(lirela, mailla, nnoeca, noebe, nbcnx, &
 #include "asterfort/elrfvf.h"
 #include "asterfort/jedema.h"
 #include "asterfort/jemarq.h"
+#include "asterfort/jeexin.h"
 #include "asterfort/as_deallocate.h"
 #include "asterfort/as_allocate.h"
 #include "asterfort/char8_to_int.h"
@@ -86,18 +88,18 @@ subroutine reci2d(lirela, mailla, nnoeca, noebe, nbcnx, &
 ! ARGUMENTS
 ! ---------
     character(len=19) :: lirela
-    character(len=8) :: mailla, nnoeca
+    character(len=8) :: mesh, nnoeca
     integer(kind=8) :: noebe, nbcnx, cxma(*), itria, iproj
     real(kind=8) :: normal(*), xbar(*), excent
 !
 ! VARIABLES LOCALES
 ! -----------------
-    integer(kind=8) :: i1, i2, i3, ibloc, icnx, iterm, ind
+    integer(kind=8) :: i1, i2, i3, ibloc, icnx, iterm, ind, ier
     integer(kind=8) :: nbbloc, nbsom, nbterm, nbtmax, nnomax, noeca
     real(kind=8) :: ksi1, ksi2, zero
     complex(kind=8) :: cbid
     character(len=8) :: k8b
-    aster_logical :: notlin, l_excent
+    aster_logical :: notlin, l_excent, lcolleNd, lcolleEl
 !
     real(kind=8) :: ffel2d, x(2), ff(9)
     real(kind=8), pointer :: coemur(:) => null()
@@ -121,6 +123,16 @@ subroutine reci2d(lirela, mailla, nnoeca, noebe, nbcnx, &
     AS_ALLOCATE(vk8=nomnoe, size=nbtmax)
     AS_ALLOCATE(vi=dimens, size=nbtmax)
     AS_ALLOCATE(vr=direct, size=3*nbtmax)
+    lcolleNd = .false.
+    call jeexin(mesh(1:8)//'.NOMNOE', ier)
+    if (ier .ne. 0) then
+        lcolleNd = .true.
+    end if
+    lcolleEl = .false.
+    call jeexin(mesh(1:8)//'.NOMMAI', ier)
+    if (ier .ne. 0) then
+        lcolleEl = .true.
+    end if
 !
     notlin = (nbcnx .gt. 4)
     if ((nbcnx .eq. 3) .or. (nbcnx .eq. 6)) then
@@ -153,11 +165,11 @@ subroutine reci2d(lirela, mailla, nnoeca, noebe, nbcnx, &
     if (iproj .eq. 2) then
 !
 !       pas de liaisons si les noeuds sont les mêmes
-        noeca = char8_to_int(nnoeca)
+        noeca = char8_to_int(nnoeca, lcolleNd, mesh, "NOEUD")
         if (noeca .eq. noebe) goto 110
 !
         nbterm = 2
-        nomnoe(1+1) = int_to_char8(noebe)
+        nomnoe(1+1) = int_to_char8(noebe, lcolleNd, mesh, "NOEUD")
         nomddl(1+1) = 'DEPL'
         coemur(1+1) = -1.0d0
 !
@@ -215,8 +227,8 @@ subroutine reci2d(lirela, mailla, nnoeca, noebe, nbcnx, &
             else
                 ind = 2
             end if
-            nomnoe(1+1) = int_to_char8(cxma(i1))
-            nomnoe(1+ind) = int_to_char8(cxma(i2))
+            nomnoe(1+1) = int_to_char8(cxma(i1), lcolleNd, mesh, "NOEUD")
+            nomnoe(1+ind) = int_to_char8(cxma(i2), lcolleNd, mesh, "NOEUD")
             nomddl(1+1) = 'DEPL'
             nomddl(1+ind) = 'DEPL'
 !
@@ -238,7 +250,7 @@ subroutine reci2d(lirela, mailla, nnoeca, noebe, nbcnx, &
                 i3 = i1+nbsom
                 ind = 3
                 if (l_excent) ind = 5
-                nomnoe(1+ind) = int_to_char8(cxma(i3))
+                nomnoe(1+ind) = int_to_char8(cxma(i3), lcolleNd, mesh, "NOEUD")
                 nomddl(1+ind) = 'DEPL'
 !
                 coemur(1+ind) = -ff(i3)
@@ -258,7 +270,7 @@ subroutine reci2d(lirela, mailla, nnoeca, noebe, nbcnx, &
             do icnx = 1, nbcnx
                 ind = icnx
                 if (l_excent) ind = 2*icnx-1
-                nomnoe(1+ind) = int_to_char8(cxma(icnx))
+                nomnoe(1+ind) = int_to_char8(cxma(icnx), lcolleNd, mesh, "NOEUD")
                 nomddl(1+ind) = 'DEPL'
                 coemur(1+ind) = -ff(icnx)
 !
