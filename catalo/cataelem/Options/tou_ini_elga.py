@@ -60,6 +60,8 @@ PDEPL_R = OutputParameter(phys=PHY.DEPL_R, type="ELGA")
 
 PFLUX_R = OutputParameter(phys=PHY.FLUX_R, type="ELGA")
 
+PGRAT_R = OutputParameter(phys=PHY.GRAT_R, type="ELGA")
+
 PHYDR_R = OutputParameter(phys=PHY.HYDR_R, type="ELGA")
 
 
@@ -72,6 +74,7 @@ TOU_INI_ELGA = Option(
         PEPSI_R,
         SP.PFACY_R,
         PFLUX_R,
+        PGRAT_R,
         PGEOM_R,
         PINST_R,
         PNEUT_F,

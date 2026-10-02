@@ -246,7 +246,6 @@ subroutine comthm_vf(ds_thm, &
     call thmGetPermeabilityTensor(ds_thm, &
                                   ndim, phi, vintp(1), &
                                   tperm)
-    WRITE (6, *) "tperm: ", sum(tperm)
 
 ! - Compute gravity
     call thmEvalGravity(ds_thm, time_curr, gravity)

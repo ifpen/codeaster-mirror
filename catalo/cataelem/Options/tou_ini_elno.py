@@ -59,6 +59,8 @@ PHYDR_R = OutputParameter(phys=PHY.HYDR_R, type="ELNO")
 
 PFLUX_R = OutputParameter(phys=PHY.FLUX_R, type="ELNO")
 
+PGRAT_R = OutputParameter(phys=PHY.GRAT_R, type="ELNO")
+
 PMATE_R = OutputParameter(phys=PHY.MATE_R, type="ELNO")
 
 PFORC_R = OutputParameter(phys=PHY.FORC_R, type="ELNO")
@@ -70,6 +72,7 @@ TOU_INI_ELNO = Option(
         PDOMMAG,
         PEPSI_R,
         PFLUX_R,
+        PGRAT_R,
         PGEOM_R,
         PHYDR_R,
         PINST_R,

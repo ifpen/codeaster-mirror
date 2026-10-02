@@ -414,6 +414,7 @@ class THER_HEXA20(Element):
             te=99,
             para_out=(
                 (OP.TOU_INI_ELGA.PFLUX_R, LC.EFLUX3R),
+                (OP.TOU_INI_ELGA.PGRAT_R, LC.EGRAT3R),
                 (OP.TOU_INI_ELGA.PGEOM_R, LC.EGGEO3D),
                 (OP.TOU_INI_ELGA.PNEUT_F, LC.EGTINIF),
                 (OP.TOU_INI_ELGA.PNEUT_R, LC.EGTINIR),
@@ -428,6 +429,7 @@ class THER_HEXA20(Element):
             te=99,
             para_out=(
                 (OP.TOU_INI_ELNO.PFLUX_R, LC.NFLUX3R),
+                (OP.TOU_INI_ELNO.PGRAT_R, LC.NGRAT3R),
                 (OP.TOU_INI_ELNO.PGEOM_R, LC.EGEOM3D),
                 (OP.TOU_INI_ELNO.PHYDR_R, LC.EHYDRNO),
                 (OP.TOU_INI_ELNO.PINST_R, LC.ENINST_R),
