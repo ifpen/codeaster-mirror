@@ -370,12 +370,14 @@ bool ListOfLoads::hasPairingField() const {
             return true;
         }
     }
+#ifdef ASTER_HAVE_MPI
     for ( auto &load : _listOfParallelMechanicalLoadsReal ) {
         const auto pairing = load->getPairingField();
         if ( pairing && pairing->exists() ) {
             return true;
         }
     }
+#endif
 
     return false;
 };

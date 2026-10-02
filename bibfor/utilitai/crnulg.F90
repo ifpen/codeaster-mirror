@@ -16,7 +16,7 @@
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
 !
-subroutine crnulg(numddl)
+subroutine crnulg(numddl, printz)
     implicit none
 #include "asterf_config.h"
 #include "asterf.h"
@@ -24,16 +24,19 @@ subroutine crnulg(numddl)
 #include "jeveux.h"
 #include "asterfort/global_numbering_compute.h"
 #include "asterfort/global_numbering_communicate.h"
+#include "asterfort/global_numbering_info.h"
 #include "asterfort/jedema.h"
 #include "asterfort/jedetc.h"
 #include "asterfort/jemarq.h"
 #include "asterfort/asmpi_info.h"
     character(len=14) :: numddl
+    aster_logical, optional :: printz
 !
 #ifdef ASTER_HAVE_MPI
 !
     integer(kind=8) :: rang, nbproc
     mpi_int :: mrank, msize
+    aster_logical :: printt
 !
 !----------------------------------------------------------------------
     call jemarq()
@@ -46,6 +49,15 @@ subroutine crnulg(numddl)
 
 !   Communication de la numérotation
     call global_numbering_communicate(numddl//'.NUME')
+!
+!   Print same info than promor.F90
+    printt = ASTER_TRUE
+    if (present(printz)) then
+        printt = printz
+    end if
+    if (printt) then
+        call global_numbering_info(numddl)
+    end if
 
 !   Suppression des objets temporaires
     call jedetc('V', '&&CRNULG', 1)
