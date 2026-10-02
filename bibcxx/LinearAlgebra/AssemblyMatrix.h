@@ -338,6 +338,8 @@ class AssemblyMatrix : public BaseAssemblyMatrix {
         _matrixValues->updateValuePointer();
         return ( *_matrixValues )[2]->toVector();
     };
+
+    ElementaryMatrixPtr extractSubMatrices( const FiniteElementDescriptorPtr fed ) const;
 };
 
 /** @typedef Definition d'une matrice assemblee de double */
@@ -629,5 +631,50 @@ void AssemblyMatrix< ValueType, PhysicalQuantity >::assemble(
         CALLO_SDMPIC( type, getName() );
     }
 }
+
+template < class ValueType, PhysicalQuantityEnum PhysicalQuantity >
+AssemblyMatrix< ValueType, PhysicalQuantity >::ElementaryMatrixPtr
+AssemblyMatrix< ValueType, PhysicalQuantity >::extractSubMatrices(
+    const FiniteElementDescriptorPtr fed ) const {
+
+    auto elemterm = std::make_shared< ElementaryTerm< ValueType > >();
+    elemterm->allocate( fed, "NO_OPTION", -1, -1 );
+
+    auto &newVal = elemterm->getValues();
+
+    const auto &liel = fed->getListOfGroupsOfElements();
+    const auto nbGrel = fed->getNumberOfGroupsOfElements();
+
+    for ( ASTERINTEGER iG = 0; iG < nbGrel; iG++ ) {
+        const auto grelIdx = iG + 1;
+        const auto grel = ( *liel )[grelIdx];
+        grel->updateValuePointer();
+        const auto typeFE = ( *grel )[grel->size() - 1];
+        const auto nameFE = fed->getElemTypeName( typeFE );
+        const auto nbCells = grel->size() - 1;
+
+        std::cout << "Grel: " << iG << ", " << nameFE << ", " << nbCells << std::endl;
+
+        const auto valueNb = 4;
+        newVal->allocateObject( grelIdx, valueNb );
+
+        // Loop on elements
+        for ( ASTERINTEGER iCell = 0; iCell < nbCells; iCell++ ) {
+            // Get mesh cell index
+            auto elem_nume = -( *grel )[iCell];
+
+            std::cout << "iCell: " << iCell << " -> " << elem_nume << std::endl;
+        }
+    }
+
+    elemterm->debugPrint();
+
+    auto elemMatr = std::make_shared< ElementaryMatrix< ValueType, PhysicalQuantity > >();
+    elemMatr->addElementaryTerm( elemterm );
+
+    // elemMatr->build();
+
+    return elemMatr;
+};
 
 #endif /* ASSEMBLYMATRIX_H_ */
