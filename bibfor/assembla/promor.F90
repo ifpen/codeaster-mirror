@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -26,6 +26,7 @@ subroutine promor(nuz, base, printz)
 #include "asterfort/dismoi.h"
 #include "asterfort/exisd.h"
 #include "asterfort/infniv.h"
+#include "asterfort/isParallelMesh.h"
 #include "asterfort/jedema.h"
 #include "asterfort/jedetr.h"
 #include "asterfort/jeexin.h"
@@ -52,7 +53,6 @@ subroutine promor(nuz, base, printz)
     character(len=1) :: base
     aster_logical, optional :: printz
 !     ------------------------------------------------------------------
-! person_in_charge: jacques.pellet at edf.fr
 !     CALCUL DE LA STRUCTURE COMPACTE D'UNE MATRICE
 !     ------------------------------------------------------------------
 ! IN  K*14 NU     : NOM DE LA SD_UME_DDL A COMPLETER.
@@ -322,8 +322,7 @@ subroutine promor(nuz, base, printz)
                             call jeveuo('&&PROMOR.ANCIEN.LM', 'E', jalm)
                         end if
                         do iddl = 1, nddl1
-                            zi4(jalm+nddlt+iddl-1) = zi(jnueq-1+iad1+ &
-                                                        iddl-1)
+                            zi4(jalm+nddlt+iddl-1) = int(zi(jnueq-1+iad1+iddl-1), kind=4)
                         end do
                         nddlt = nddlt+nddl1
                     end do
@@ -357,8 +356,7 @@ subroutine promor(nuz, base, printz)
                             call jeveuo('&&PROMOR.ANCIEN.LM', 'E', jalm)
                         end if
                         do iddl = 1, nddl1
-                            zi4(jalm+nddlt+iddl-1) = zi(jnueq-1+iad1+ &
-                                                        iddl-1)
+                            zi4(jalm+nddlt+iddl-1) = int(zi(jnueq-1+iad1+iddl-1), kind=4)
                         end do
                         nddlt = nddlt+nddl1
                     end do
@@ -399,7 +397,7 @@ subroutine promor(nuz, base, printz)
                         call jeveuo('&&PROMOR.ANCIEN.LM', 'E', jalm)
                     end if
                     do iddl = 1, nddl1
-                        zi4(jalm+nddlt+iddl-1) = zi(jnueq-1+iad1+iddl-1)
+                        zi4(jalm+nddlt+iddl-1) = int(zi(jnueq-1+iad1+iddl-1), kind=4)
                     end do
                     nddlt = nddlt+nddl1
                 end do
@@ -440,7 +438,7 @@ subroutine promor(nuz, base, printz)
     zi(jsmde-1+3) = 1
     call jedetr('&&PROMOR.ANCIEN.LM   ')
 !
-    if (niv .ge. 1 .and. printt) then
+    if (niv .ge. 1 .and. printt .and. .not. isParallelMesh(ma)) then
         vali(1) = nequ
         vali(2) = ncoef
         vali(3) = 2*ncoef-nequ
