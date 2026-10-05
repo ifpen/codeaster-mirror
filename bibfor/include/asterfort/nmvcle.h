@@ -15,15 +15,11 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-!
 !
 interface
-    subroutine nmvcle(modelz, matez, cara_elemz, time, varcz)
-        character(len=*), intent(in) :: modelz
-        character(len=*), intent(in) :: matez
-        character(len=*), intent(in) :: cara_elemz
+    subroutine nmvcle(modelZ, materFieldZ, caraElemZ, time, varcZ)
+        character(len=*), intent(in) :: modelZ, materFieldZ, caraElemZ
         real(kind=8), intent(in) :: time
-        character(len=*), intent(in) :: varcz
+        character(len=*), intent(in) :: varcZ
     end subroutine nmvcle
 end interface

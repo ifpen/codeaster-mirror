@@ -349,8 +349,8 @@ contains
 ! ----- Local
         real(kind=8) :: alpha(2)
         real(kind=8) :: alphaL, alphaT, alphaN
-        integer(kind=8) :: metaType, nbPhases
-        real(kind=8) :: zCold, zHot
+        integer(kind=8) :: metaType, nbPhase
+        real(kind=8) :: zSumCold, zHot
         real(kind=8) :: epsthMetaHot, epsthMetaCold
         real(kind=8) :: z_h_r, deps_ch_tref
 !   ------------------------------------------------------------------------------------------------
@@ -370,16 +370,16 @@ contains
 
 ! ----- Get type of metallurgy and get phases
         metaType = META_NONE
-        nbPhases = 0
-        zCold = 0.d0
+        nbPhase = 0
+        zSumCold = 0.d0
         zHot = 0.d0
         if (materPara%elasKeyword .eq. 'ELAS_META') then
-            call metaGetType(metaType, nbPhases)
-            if (nbPhases .ne. 0) then
+            call metaGetType(metaType, nbPhase)
+            if (nbPhase .ne. META_NONE) then
                 call metaGetPhase(materPara%schemePara%fami, poum, &
                                   materPara%schemePara%kpg, materPara%schemePara%ksp, &
-                                  metaType, nbPhases, &
-                                  zcold_=zCold, zhot_=zHot)
+                                  metaType, nbPhase, &
+                                  zcold_=zSumCold, zhot_=zHot)
             end if
         end if
 
@@ -388,13 +388,13 @@ contains
             if (materPara%elasKeyword .eq. 'ELAS_META') then
                 if (.not. materPara%lMetaLemaAni) then
                     epsthMetaHot = zHot*alpha(1)*(temp-tempRefe)
-                    epsthMetaCold = zCold*alpha(2)*(temp-tempRefe)
+                    epsthMetaCold = zSumCold*alpha(2)*(temp-tempRefe)
                     call get_elasth_para(materPara%schemePara%fami, materPara%jvMaterCode, &
                                          "+", materPara%schemePara%kpg, materPara%schemePara%ksp, &
                                          materPara%elasID, materPara%elasKeyword, &
                                          z_h_r_=z_h_r, deps_ch_tref_=deps_ch_tref)
                     epsthMetaHot = epsthMetaHot+(1-z_h_r)*deps_ch_tref*zHot
-                    epsthMetaCold = epsthMetaCold+z_h_r*deps_ch_tref*zCold
+                    epsthMetaCold = epsthMetaCold+z_h_r*deps_ch_tref*zSumCold
                     epsthMeta = epsthMetaHot+epsthMetaCold
                 end if
 

@@ -43,6 +43,10 @@ module BehaviourStrain_type
         (/.true._1, .true._1, .false._1, .false._1, .false._1/)
     character(len=8), parameter :: varcAnelName(VARC_EPSA_NBCMP) = &
                                    (/'EPSAXX', 'EPSAYY', 'EPSAZZ', 'EPSAXY', 'EPSAXZ', 'EPSAYZ'/)
+    character(len=16), parameter :: varcRHSOption(VARC_STRAIN_NBMAXI) = &
+                                    (/'CHAR_MECA_TEMP_R', 'CHAR_MECA_SECH_R', &
+                                      'CHAR_MECA_HYDR_R', 'CHAR_MECA_EPSA_R', &
+                                      'CHAR_MECA_PTOT_R'/)
 
 ! ==================================================================================================
 ! Type: External state variables for anelastic strains
@@ -81,7 +85,7 @@ module BehaviourStrain_type
     end type All_Varc_Strain
 !===================================================================================================
     public :: All_Varc_Strain, Varc_Strain
-    public :: varcStrainName, varcStrainNbcmp, varcStrainHasRefe, varcAnelName
+    public :: varcStrainName, varcStrainNbcmp, varcStrainHasRefe, varcAnelName, varcRHSOption
 contains
 !===================================================================================================
 end module

@@ -15,14 +15,10 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-!
 !
 interface
-    subroutine nmvcre(model, mate, cara_elem, varc_refe)
-        character(len=24), intent(in) :: model
-        character(len=8), intent(in) :: mate
-        character(len=8), intent(in) :: cara_elem
-        character(len=24), intent(in) :: varc_refe
+    subroutine nmvcre(modelZ, materFieldZ, caraElemZ, varcRefe)
+        character(len=*), intent(in) :: modelZ, materFieldZ, caraElemZ
+        character(len=24), intent(in) :: varcRefe
     end subroutine nmvcre
 end interface

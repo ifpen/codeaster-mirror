@@ -36,7 +36,6 @@ module ExternalStateVariable_module
     private :: sameVariables
 ! ==================================================================================================
     private
-#include "jeveux.h"
 #include "asterf_types.h"
 #include "asterfort/afva01.h"
 #include "asterfort/alcart.h"
@@ -58,10 +57,12 @@ module ExternalStateVariable_module
 #include "asterfort/jexnum.h"
 #include "asterfort/juveca.h"
 #include "asterfort/lteatt.h"
+#include "asterfort/Metallurgy_type.h"
 #include "asterfort/nocart.h"
 #include "asterfort/utmess.h"
 #include "asterfort/wkvect.h"
 #include "asterfort/xvarc_temp.h"
+#include "jeveux.h"
 ! ==================================================================================================
 contains
 ! ==================================================================================================
@@ -210,7 +211,7 @@ contains
                 exteVariCata(iExteStatVari)%listCmp(7)%nameCmp = "TAUSTE"
                 exteVariCata(iExteStatVari)%listCmp(8)%nameCmp = "TRANSF"
                 exteVariCata(iExteStatVari)%listCmp(9)%nameCmp = "TACIER"
-                ASSERT(nbCmp .eq. 9)
+                ASSERT(nbCmp .eq. NBVARISTEEL)
                 exteVariCata(iExteStatVari)%fieldType = 'META_ELNO'
 
             elseif (exteVariName .eq. 'M_ZIRC') then

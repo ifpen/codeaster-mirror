@@ -17,10 +17,10 @@
 ! --------------------------------------------------------------------
 !
 subroutine me2mme(modelZ, listLoadZ, &
-                  materFieldZ, matecoZ, caraElemZ, &
+                  materFieldZ, materCodeZ, caraElemZ, &
                   timeCurr, vectElemZ, numeHarm, jvBaseZ)
 !
-    use ExternalStateVariableComp_module
+    use ExternalStateVariableComp_module, only: varcCompElem
     use listLoad_module
     implicit none
 !
@@ -34,6 +34,7 @@ subroutine me2mme(modelZ, listLoadZ, &
 #include "asterfort/jemarq.h"
 #include "asterfort/mecact.h"
 #include "asterfort/meharm.h"
+#include "asterfort/nmvcex.h"
 #include "asterfort/vrcins.h"
 #include "asterfort/vrcref.h"
 #include "asterfort/vechme.h"
@@ -41,7 +42,7 @@ subroutine me2mme(modelZ, listLoadZ, &
 #include "LoadTypes_type.h"
 #include "asterfort/utmess.h"
 !
-    character(len=*) :: modelZ, caraElemZ, vectElemZ, listLoadZ, materFieldZ, matecoZ, jvBaseZ
+    character(len=*) :: modelZ, caraElemZ, vectElemZ, listLoadZ, materFieldZ, materCodeZ, jvBaseZ
     real(kind=8) :: timeCurr
     integer(kind=8) :: numeHarm
 !
@@ -51,15 +52,17 @@ subroutine me2mme(modelZ, listLoadZ, &
 !
 ! --------------------------------------------------------------------------------------------------
 !
+    aster_logical, parameter :: lSuperElem = ASTER_TRUE, lCumul = ASTER_TRUE
     character(len=1) :: jvBase
     character(len=2) :: codret
     character(len=8) :: model, caraElem
     character(len=24) :: vectElem
-    character(len=24) :: modelLigrel, chtime, listLoad
+    character(len=24) :: modelLigrel, listLoad
     character(len=24) :: loadInfoJv, loadNameJv
-    character(len=24) :: varcCurr, varcRefe
+    character(len=24), parameter :: chtime = '&&ME2MME.CHTIME'
+    character(len=24), parameter :: varc = '&&ME2MME.VARC', varcRefe = '&&ME2MME.VARC.REF'
+    character(len=24) :: varcAll
     real(kind=8) :: timePara(3)
-    aster_logical, parameter :: varcLine = ASTER_TRUE
     integer(kind=8) :: nbFaceVite, nbPlaneWave, nbWave
     character(len=8), pointer :: planeWave(:) => null()
     character(len=8), pointer :: faceVite(:) => null()
@@ -96,7 +99,6 @@ subroutine me2mme(modelZ, listLoadZ, &
 ! - Prepare time map
     timePara = 0.d0
     timePara(1) = timeCurr
-    chtime = '&&ME2MME.CH_INST_R'
     call mecact('V', chtime, 'MODELE', modelLigrel, 'INST_R  ', &
                 ncmp=1, nomcmp='INST', sr=timeCurr)
 
@@ -104,32 +106,33 @@ subroutine me2mme(modelZ, listLoadZ, &
     call jedetr(vectElem(1:19)//'.RELR')
 
 ! - Compute external state variables
-    varcCurr = '&&ME2MME.VARC'
-    varcRefe = '&&ME2MME.VARC.REF'
-    call vrcins(model, materFieldZ, caraElem, timeCurr, varcCurr, codret)
+    call vrcins(model, materFieldZ, caraElem, timeCurr, varc, codret)
     call vrcref(model, materFieldZ, caraElem, varcRefe)
 
 ! - Compute elementary vectors for Neumann loads
     call vechme("S", &
-                modelZ, caraElemZ, materFieldZ, matecoZ, &
+                modelZ, caraElemZ, materFieldZ, materCodeZ, &
                 loadNameJv, loadInfoJv, &
                 timePara, &
                 vectElem, &
-                varcCurr)
+                varc)
 
 ! - Compute elementary vectors for Dirichlet loads
     call vedime(model, loadNameJv, loadInfoJv, timeCurr, "R", vectElem, &
-                lCumul_=ASTER_TRUE)
+                lCumul_=lCumul)
 
 ! - Compute elementary vectors for external state variables
-    call varcCompElem(varcLine, &
-                      numeHarm, modelZ, caraElemZ, materFieldZ, matecoZ, &
-                      chtime, varcRefe, varcCurr, &
+    call varcCompElem(lSuperElem, "-", &
+                      numeHarm, modelZ, caraElemZ, materFieldZ, materCodeZ, &
+                      varcRefe, varc, &
                       jvBase, vectElem, &
-                      lCumul_=ASTER_TRUE)
+                      lCumul_=lCumul)
 !
-    call detrsd('CHAMP_GD', varcCurr)
+    call nmvcex('TOUT', varc, varcAll)
+    call detrsd('CHAMP_GD', varc)
+    call detrsd('CHAMP_GD', varcAll)
     call detrsd('CHAMP_GD', varcRefe)
+
     AS_DEALLOCATE(vk8=planeWave)
     AS_DEALLOCATE(vk8=wave)
     AS_DEALLOCATE(vk8=faceVite)

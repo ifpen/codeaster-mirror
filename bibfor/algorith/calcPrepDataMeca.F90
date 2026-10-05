@@ -18,7 +18,7 @@
 !
 subroutine calcPrepDataMeca(modelZ, materFieldZ, matecoZ, caraElemZ, &
                             disp_prev, disp_cumu_inst, vari_prev, sigm_prev, &
-                            time_prev, time_curr, &
+                            timePrev, timeCurr, &
                             ds_constitutive, ds_material, ds_system, &
                             hval_incr, hval_algo, &
                             vediri, vefnod, &
@@ -48,7 +48,7 @@ subroutine calcPrepDataMeca(modelZ, materFieldZ, matecoZ, caraElemZ, &
     character(len=*), intent(in) :: modelZ, materFieldZ, matecoZ, caraElemZ
     character(len=19), intent(in) :: disp_prev, disp_cumu_inst
     character(len=19), intent(in) :: vari_prev, sigm_prev
-    real(kind=8), intent(in) :: time_prev, time_curr
+    real(kind=8), intent(in) :: timePrev, timeCurr
     type(NL_DS_Constitutive), intent(inout) :: ds_constitutive
     type(NL_DS_Material), intent(out) :: ds_material
     type(NL_DS_System), intent(out) :: ds_system
@@ -71,8 +71,8 @@ subroutine calcPrepDataMeca(modelZ, materFieldZ, matecoZ, caraElemZ, &
 ! In  disp_cumu_inst   : displacement increment from beginning of step
 ! In  vari_prev        : internal variables at beginning of step
 ! In  sigm_prev        : stress at beginning of step
-! In  time_prev        : time at beginning of step
-! In  time_curr        : time at end of step
+! In  timePrev        : time at beginning of step
+! In  timeCurr        : time at end of step
 ! IO  ds_constitutive  : datastructure for constitutive laws management
 ! Out ds_material      : datastructure for material parameters
 ! Out ds_system        : datastructure for non-linear system management
@@ -86,26 +86,22 @@ subroutine calcPrepDataMeca(modelZ, materFieldZ, matecoZ, caraElemZ, &
 ! --------------------------------------------------------------------------------------------------
 !
     integer(kind=8) :: iret
-    character(len=19) :: disp_curr, varc_prev, varc_curr, sigm_curr, vari_curr, modelLigrel
+    character(len=19) :: disp_curr, varcPrev, varcCurr, sigm_curr, vari_curr, modelLigrel
     character(len=19) :: merigi, veinte
-    character(len=24) :: varc_refe
+    character(len=24), parameter :: varcRefe = '&&OP0026.COMREF'
     aster_logical :: lModiVari
 !
 ! --------------------------------------------------------------------------------------------------
 !
-    varc_refe = '&&OP0026.COMREF'
-!
+
 ! - Create "hat-variables"
-!
     call nmch1p(hval_incr)
     call nmch2p(hval_algo)
-!
+
 ! - Get LIGREL
-!
     call dismoi('NOM_LIGREL', modelZ, 'MODELE', repk=modelLigrel)
-!
+
 ! - Put displacements in "hat-variables"
-!
     call nmcha0('VALINC', 'DEPMOI', disp_prev, hval_incr)
     call nmcha0('SOLALG', 'DEPDEL', disp_cumu_inst, hval_algo)
 !
@@ -133,20 +129,17 @@ subroutine calcPrepDataMeca(modelZ, materFieldZ, matecoZ, caraElemZ, &
         call chpver('F', vari_prev, 'ELGA', 'VARI_R', iret)
         call nmcha0('VALINC', 'VARMOI', vari_prev, hval_incr)
     end if
-!
-! - Get command variables
-!
-    call nmchex(hval_incr, 'VALINC', 'COMMOI', varc_prev)
-    call nmchex(hval_incr, 'VALINC', 'COMPLU', varc_curr)
-!
-! - Prepare command variables
-!
-    call nmvcle(modelZ, materFieldZ, caraElemZ, time_curr, varc_curr)
-    call nmvcle(modelZ, materFieldZ, caraElemZ, time_prev, varc_prev)
-    call nmvcre(modelZ, materFieldZ, caraElemZ, varc_refe)
-!
+
+! - Get name of fields for external state variables
+    call nmchex(hval_incr, 'VALINC', 'COMMOI', varcPrev)
+    call nmchex(hval_incr, 'VALINC', 'COMPLU', varcCurr)
+
+! - Create fields for external state variables
+    call nmvcle(modelZ, materFieldZ, caraElemZ, timeCurr, varcCurr)
+    call nmvcle(modelZ, materFieldZ, caraElemZ, timePrev, varcPrev)
+    call nmvcre(modelZ, materFieldZ, caraElemZ, varcRefe)
+
 ! - Checking number of internal variables
-!
     call jeexin(ds_constitutive%compor(1:19)//'.CESD', iret)
     if (iret .gt. 0 .and. vari_prev .ne. ' ') then
         call vrcomp(ds_constitutive%compor, vari_prev, modelLigrel, iret, lModiVari_=lModiVari)
@@ -157,9 +150,8 @@ subroutine calcPrepDataMeca(modelZ, materFieldZ, matecoZ, caraElemZ, &
             call vrcom2(ds_constitutive%compor, vari_prev, modelLigrel, ASTER_FALSE)
         end if
     end if
-!
+
 ! - Datastructures name (automatic génération)
-!
     call gcncon('_', sigm_curr)
     call gcncon('_', vari_curr)
     call gcncon('_', merigi)
@@ -169,17 +161,15 @@ subroutine calcPrepDataMeca(modelZ, materFieldZ, matecoZ, caraElemZ, &
     call gcncon('_', vevarc_prev)
     call gcncon('_', vevarc_curr)
     call gcncon('_', ds_constitutive%comp_error)
-!
+
 ! - Changeing names of variables
-!
     call nmcha0('VALINC', 'SIGPLU', sigm_curr, hval_incr)
     call nmcha0('VALINC', 'VARPLU', vari_curr, hval_incr)
-!
+
 ! - Prepare datastructures
-!
     ds_material%mater = materFieldZ
     ds_material%mateco = matecoZ
-    ds_material%varc_refe = varc_refe
+    ds_material%varc_refe = varcRefe
     ds_system%merigi = merigi
     ds_system%veinte = veinte
 !

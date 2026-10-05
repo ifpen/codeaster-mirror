@@ -16,9 +16,9 @@
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
 !
-subroutine nonlinDSMaterialInit(model, mater, mateco, cara_elem, &
-                                compor, hval_incr, &
-                                nume_dof, time_init, &
+subroutine nonlinDSMaterialInit(model, materField, materCode, caraElem, &
+                                compor, hvalIncr, &
+                                nume_dof, timeInit, &
                                 ds_material)
 !
     use NonLin_Datastructure_type
@@ -35,11 +35,11 @@ subroutine nonlinDSMaterialInit(model, mater, mateco, cara_elem, &
 #include "asterfort/nmchex.h"
 #include "asterfort/nmvcle.h"
 !
-    character(len=24), intent(in) :: model, mateco, cara_elem, mater
+    character(len=24), intent(in) :: model, materCode, caraElem, materField
     character(len=24), intent(in) :: compor
-    character(len=19), intent(in) :: hval_incr(*)
+    character(len=19), intent(in) :: hvalIncr(*)
     character(len=24), intent(in) :: nume_dof
-    real(kind=8), intent(in) :: time_init
+    real(kind=8), intent(in) :: timeInit
     type(NL_DS_Material), intent(inout) :: ds_material
 !
 ! --------------------------------------------------------------------------------------------------
@@ -51,18 +51,19 @@ subroutine nonlinDSMaterialInit(model, mater, mateco, cara_elem, &
 ! --------------------------------------------------------------------------------------------------
 !
 ! In  model            : name of model
-! In  mater            : name of material characteristics (field)
-! In  mateco           : name of coded material
-! In  cara_elem        : name of elementary characteristics (field)
+! In  materField       : name of material characteristics (field)
+! In  materCode        : name of coded material
+! In  caraElem         : name of elementary characteristics (field)
 ! In  compor           : name of comportment definition (field)
-! In  hval_incr        : hat-variable for incremental values
+! In  hvalIncr         : hat-variable for incremental values
 ! In  nume_dof         : name of numbering object (NUME_DDL)
 ! IO  ds_material      : datastructure for material parameters
 !
 ! --------------------------------------------------------------------------------------------------
 !
     integer(kind=8) :: ifm, niv
-    character(len=19) :: vect_elem, vect_asse, varc_prev
+    character(len=19) :: varcPrev
+    character(len=24), parameter :: vectElem = '&&VARCINIT_ELEM'
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -70,29 +71,24 @@ subroutine nonlinDSMaterialInit(model, mater, mateco, cara_elem, &
     if (niv .ge. 2) then
         call utmess('I', 'MECANONLINE13_8')
     end if
-!
-! - Save material field
-!
-    ds_material%mateco = mateco
-    ds_material%mater = mater
 
-!
+! - Set material fields in datastructure
+    ds_material%mateco = materCode
+    ds_material%mater = materField
+
 ! - Create external state variables for reference state
-!
-    call nmvcre(model, mater, cara_elem, ds_material%varc_refe)
-!
-! - Create external state variables for initial time
-!
-    call nmchex(hval_incr, 'VALINC', 'COMMOI', varc_prev)
-    call nmvcle(model, mater, cara_elem, time_init, varc_prev)
-!
-! - Compute CHAR_MECA_*_R at initial time
-!
-    vect_elem = '&&VARCINIT_ELEM'
-    vect_asse = ds_material%fvarc_init(1:19)
-    call nmvcfo('-', model, mater, mateco, cara_elem, compor, &
-                ds_material%varc_refe, hval_incr, vect_elem)
-    call assvec('V', vect_asse, 1, vect_elem, [1.d0], nume_dof)
-    call detrsd('RESUELEM', vect_elem)
+    call nmvcre(model, materField, caraElem, ds_material%varc_refe)
+
+! - Get name of field for external state variables
+    call nmchex(hvalIncr, 'VALINC', 'COMMOI', varcPrev)
+
+! - Create external state variables at initial time step
+    call nmvcle(model, materField, caraElem, timeInit, varcPrev)
+
+! - Compute CHAR_MECA_*_R at initial time step
+    call nmvcfo('-', model, materField, materCode, caraElem, compor, &
+                ds_material%varc_refe, hvalIncr, vectElem)
+    call assvec('V', ds_material%fvarc_init, 1, vectElem, [1.d0], nume_dof)
+    call detrsd('RESUELEM', vectElem)
 !
 end subroutine
