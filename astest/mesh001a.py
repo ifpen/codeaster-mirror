@@ -171,6 +171,13 @@ ref_values = [
 ]
 test.assertEqual(values, ref_values)
 
+# array of coordinates of 'mesh'
+# 'mesh_coords' consistency will be checked after restart in 'mesh001a_part2'
+# 'coord' and references to 'mesh' will be removed before 'FIN()'
+mesh_coords = coord.toNumpy()
+ref_coords = np.array(ref_values).reshape((-1, 3))
+test.assertArrayEqual(mesh_coords, ref_coords)
+
 # turn MeshCoordinatesField in FieldOnNodes
 coordf0 = CREA_CHAMP(OPERATION="EXTR", TYPE_CHAM="NOEU_GEOM_R", NOM_CHAM="GEOMETRIE", MAILLAGE=mesh)
 test.assertEqual(coordf0.getValues(), ref_values)
@@ -649,7 +656,11 @@ test.assertEqual(len(ML1_A.getGroupsOfNodes()), 4)
 with test.assertRaisesRegex(AssertionError, "Invalid parameter"):
     ML1_NOOK_A = CA.Mesh.buildSpline1D(coords_1p_3d)
 
-
 test.printSummary()
+
+# to check 'mesh_coords' after restart
+del coord
+# these objects hold a reference to the first 'mesh' object
+del coordf0, coordf1
 
 CA.close()
