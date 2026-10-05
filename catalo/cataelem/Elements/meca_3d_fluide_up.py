@@ -69,6 +69,7 @@ class MEFL_HEXA20P(Element):
             para_in=(
                 (SP.PCOMPOR, LC.CCOMPOR),
                 (SP.PDEPLMR, DDL_MECA),
+                (SP.PDEPLPR, DDL_MECA),
                 (SP.PGEOMER, LC.EGEOM3D),
                 (SP.PMATERC, LC.CMATERC),
             ),
