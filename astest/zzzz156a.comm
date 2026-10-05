@@ -1,0 +1,211 @@
+# coding=utf-8
+# --------------------------------------------------------------------
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
+# This file is part of code_aster.
+#
+# code_aster is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# code_aster is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
+# --------------------------------------------------------------------
+
+DEBUT(CODE="OUI", ERREUR=_F(ALARME="EXCEPTION"), DEBUG=_F(SDVERI="OUI"))
+
+
+MA = LIRE_MAILLAGE(UNITE=20, FORMAT="ASTER", INFO=1)
+S20x20_50 = LIRE_MAILLAGE(UNITE=21, FORMAT="MED")
+
+
+MAT = DEFI_MATERIAU(
+    ELAS=_F(
+        AMOR_ALPHA=0.00046387,
+        AMOR_BETA=-0.442100655,
+        COEF_AMOR=1.0,
+        E=27155000000.0,
+        NU=0.2,
+        RHO=2250.0,
+    ),
+    INFO=1,
+)
+
+# Les résultats
+ListeResu = """
+POU_D_E_DX         -5.4309918527E+07
+POU_D_T_DX         -5.4309918527E+07
+POU_D_TG_DX        -5.4309918527E+07
+POU_D_EM_DX        -5.4309918527E+07
+POU_D_TGM_DX       -5.4309918527E+07
+
+POU_D_E_DY          5.4304376255E+05
+POU_D_T_DY          5.2783880438E+05
+POU_D_TG_DY         5.2783880438E+05
+POU_D_EM_DY         5.4282553249E+05
+POU_D_TGM_DY        5.2763355519E+05
+
+POU_D_E_DZ          5.4304376255E+05
+POU_D_T_DZ          5.2783880438E+05
+POU_D_TG_DZ         5.2783880438E+05
+POU_D_EM_DZ         5.4282553249E+05
+POU_D_TGM_DZ        5.2763355519E+05
+
+POU_D_E_DRX         4.4497900829E+05
+POU_D_T_DRX         4.4497900829E+05
+POU_D_TG_DRX        5.3397518914E+05
+POU_D_EM_DRX        4.4497900905E+05
+POU_D_TGM_DRX       5.3397518990E+05
+
+POU_D_E_DRY         6.3187869778E+05
+POU_D_T_DRY         6.3187786707E+05
+POU_D_TG_DRY        6.3187786707E+05
+POU_D_EM_DRY        6.3162494229E+05
+POU_D_TGM_DRY       6.3162509770E+05
+
+POU_D_E_DRZ         6.3187869778E+05
+POU_D_T_DRZ         6.3187786707E+05
+POU_D_TG_DRZ        6.3187786707E+05
+POU_D_EM_DRZ        6.3162494229E+05
+POU_D_TGM_DRZ       6.3162509770E+05
+"""
+
+
+ResuDico = {}
+for ligne in ListeResu.splitlines():
+    champs = ligne.split()
+    if len(champs) == 2:
+        ResuDico[champs[0]] = float(champs[1])
+
+
+Rota = 10.0 * pi / 180.0
+for Leddl in [
+    ("DX", -0.05),
+    ("DY", 0.05),
+    ("DZ", 0.05),
+    ("DRX", Rota),
+    ("DRY", Rota),
+    ("DRZ", Rota),
+]:
+
+    for LeMod in ["POU_D_E", "POU_D_T", "POU_D_TG", "POU_D_EM", "POU_D_TGM"]:
+        MO = AFFE_MODELE(
+            MAILLAGE=MA, AFFE=(_F(GROUP_MA=("Line_1",), PHENOMENE="MECANIQUE", MODELISATION=LeMod),)
+        )
+
+        # Section multifibre
+        if LeMod in ["POU_D_EM", "POU_D_TGM"]:
+            GF = DEFI_GEOM_FIBRE(
+                SECTION=_F(
+                    MAILLAGE_SECT=S20x20_50,
+                    TOUT_SECT="OUI",
+                    GROUP_FIBRE="POUT12",
+                    COOR_AXE_POUTRE=(0.0, 0.0),
+                )
+            )
+
+            CAR = AFFE_CARA_ELEM(
+                MODELE=MO,
+                POUTRE=(
+                    _F(
+                        GROUP_MA="Line_1", SECTION="RECTANGLE", CARA=("HY", "HZ"), VALE=(0.20, 0.20)
+                    ),
+                ),
+                GEOM_FIBRE=GF,
+                MULTIFIBRE=(_F(GROUP_MA="Line_1", GROUP_FIBRE=("POUT12")),),
+            )
+
+            COMP = DEFI_COMPOR(
+                GEOM_FIBRE=GF,
+                MATER_SECT=MAT,
+                MULTIFIBRE=(_F(GROUP_FIBRE="POUT12", MATER=MAT, RELATION="ELAS"),),
+            )
+
+            AFFEMAT = AFFE_MATERIAU(
+                MAILLAGE=MA,
+                AFFE=_F(GROUP_MA="Line_1", MATER=MAT),
+                AFFE_COMPOR=_F(GROUP_MA="Line_1", COMPOR=COMP),
+            )
+
+            mclDyna = {}
+            mclDyna["COMPORTEMENT"] = [
+                _F(GROUP_MA="Line_1", RELATION="MULTIFIBRE", DEFORMATION="PETIT")
+            ]
+        else:
+            CAR = AFFE_CARA_ELEM(
+                MODELE=MO,
+                POUTRE=(
+                    _F(
+                        GROUP_MA="Line_1", SECTION="RECTANGLE", CARA=("HY", "HZ"), VALE=(0.20, 0.20)
+                    ),
+                ),
+            )
+
+            AFFEMAT = AFFE_MATERIAU(MAILLAGE=MA, AFFE=_F(GROUP_MA="Line_1", MATER=MAT))
+
+            mclDyna = {}
+            mclDyna["COMPORTEMENT"] = [_F(GROUP_MA="Line_1", RELATION="ELAS", DEFORMATION="PETIT")]
+
+        #
+        mclDDL = {}
+        ddl, val = Leddl
+        # Cas de section avec Gauchissement !! Pas de masse sur GRX
+        if LeMod in ["POU_D_TG", "POU_D_TGM"]:
+            mclDDL["DDL_IMPO"] = [
+                _F(GROUP_NO="Vertex_1", DX=0.0, DY=0.0, DZ=0.0, DRX=0.0, DRY=0.0, DRZ=0.0, GRX=0.0)
+            ]
+            mclDDL["DDL_IMPO"].append({"GROUP_NO": "Vertex_2", ddl: val, "GRX": 0.0})
+        else:
+            mclDDL["DDL_IMPO"] = [
+                _F(GROUP_NO="Vertex_1", DX=0.0, DY=0.0, DZ=0.0, DRX=0.0, DRY=0.0, DRZ=0.0)
+            ]
+            mclDDL["DDL_IMPO"].append({"GROUP_NO": "Vertex_2", ddl: val})
+        #
+        ENC = AFFE_CHAR_MECA(MODELE=MO, **mclDDL)
+
+        lis_re = DEFI_LIST_REEL(DEBUT=0.0, INTERVALLE=(_F(JUSQU_A=1.0, NOMBRE=10)))
+        list_au = DEFI_LIST_INST(METHODE="MANUEL", DEFI_LIST=_F(LIST_INST=lis_re))
+
+        FMult = DEFI_FONCTION(NOM_PARA="INST", VALE=(0.0, 0.0, 1.0, 1.0))
+
+        calc = DYNA_NON_LINE(
+            MODELE=MO,
+            CHAM_MATER=AFFEMAT,
+            CARA_ELEM=CAR,
+            EXCIT=_F(CHARGE=ENC, FONC_MULT=FMult),
+            INCREMENT=_F(LIST_INST=list_au),
+            ARCHIVAGE=_F(LIST_INST=lis_re),
+            CONVERGENCE=_F(ITER_GLOB_MAXI=20, RESI_GLOB_RELA=1.0e-8),
+            NEWTON=_F(REAC_INCR=1, MATRICE="TANGENTE", REAC_ITER=1),
+            SCHEMA_TEMPS=_F(SCHEMA="HHT", FORMULATION="DEPLACEMENT"),
+            **mclDyna,
+        )
+
+        R_REAC = CALC_CHAMP(
+            MODELE=MO,
+            CHAM_MATER=AFFEMAT,
+            CARA_ELEM=CAR,
+            RESULTAT=calc,
+            FORCE=("REAC_NODA",),
+            GROUP_MA="Line_1",
+            INFO=2,
+        )
+
+        LeCas = "%s_%s" % (LeMod, ddl)
+        TEST_RESU(
+            RESU=_F(
+                RESULTAT=R_REAC,
+                INST=1.0,
+                GROUP_NO="Vertex_2",
+                NOM_CHAM="REAC_NODA",
+                NOM_CMP=ddl,
+                VALE_CALC=ResuDico[LeCas],
+            )
+        )
+
+FIN()

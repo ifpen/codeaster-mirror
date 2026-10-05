@@ -1,0 +1,29 @@
+ TITRE
+    Poutre L=1m
+ FINSF
+ %
+ COOR_3D
+ N1        0.00  0.0  0.00
+ N2        1.00  0.0  0.00
+ FINSF
+ %
+ SEG2    
+ M1       N1       N2    
+ FINSF
+ %
+ GROUP_MA
+ Line_1                  
+ M1      
+ FINSF
+ %
+ GROUP_NO
+ Vertex_1                
+ N1      
+ FINSF
+ %
+ GROUP_NO
+ Vertex_2                
+ N2     
+ FINSF
+ %
+ FIN
