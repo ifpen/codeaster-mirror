@@ -32,7 +32,6 @@ void exportElementaryMatrixToPython( py::module_ &mod ) {
         // fake initFactoryPtr: not buildable
         // fake initFactoryPtr: not buildable
         .def( "getModel", &BaseElementaryMatrix::getModel )
-        .def( "getMesh", &BaseElementaryMatrix::getMesh )
         .def( "setModel", &BaseElementaryMatrix::setModel );
 
     py::class_< ElementaryMatrixDisplacementReal,
@@ -44,6 +43,7 @@ void exportElementaryMatrixToPython( py::module_ &mod ) {
             py::init( &initFactoryPtr< ElementaryMatrixDisplacementReal, ModelPtr, std::string > ) )
         .def( py::self *= float() )
         .def( "build", &ElementaryMatrixDisplacementReal::build )
+        .def( "getMesh", &ElementaryMatrixDisplacementReal::getMesh )
         .def( "getFiniteElementDescriptors",
               &ElementaryMatrixDisplacementReal::getFiniteElementDescriptors )
         .def( "addElementaryTerm", py::overload_cast< const ElementaryTermRealPtr & >(
@@ -63,6 +63,7 @@ void exportElementaryMatrixToPython( py::module_ &mod ) {
         .def( py::init( &initFactoryPtr< ElementaryMatrixDisplacementComplex, std::string > ) )
         .def( py::init(
             &initFactoryPtr< ElementaryMatrixDisplacementComplex, ModelPtr, std::string > ) )
+        .def( "getMesh", &ElementaryMatrixDisplacementComplex::getMesh )
         .def( "build", &ElementaryMatrixDisplacementComplex::build )
         .def( "getFiniteElementDescriptors",
               &ElementaryMatrixDisplacementComplex::getFiniteElementDescriptors )
@@ -84,6 +85,7 @@ void exportElementaryMatrixToPython( py::module_ &mod ) {
         .def(
             py::init( &initFactoryPtr< ElementaryMatrixTemperatureReal, ModelPtr, std::string > ) )
         .def( py::self *= float() )
+        .def( "getMesh", &ElementaryMatrixTemperatureReal::getMesh )
         .def( "build", &ElementaryMatrixTemperatureReal::build )
         .def( "getFiniteElementDescriptors",
               &ElementaryMatrixTemperatureReal::getFiniteElementDescriptors )
@@ -104,6 +106,7 @@ void exportElementaryMatrixToPython( py::module_ &mod ) {
         .def( py::init( &initFactoryPtr< ElementaryMatrixPressureComplex, std::string > ) )
         .def(
             py::init( &initFactoryPtr< ElementaryMatrixPressureComplex, ModelPtr, std::string > ) )
+        .def( "getMesh", &ElementaryMatrixPressureComplex::getMesh )
         .def( "build", &ElementaryMatrixPressureComplex::build )
         .def( "getFiniteElementDescriptors",
               &ElementaryMatrixPressureComplex::getFiniteElementDescriptors )

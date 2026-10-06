@@ -452,7 +452,7 @@ VectorLong EquationNumbering::getDOFsFromNode( const ASTERINTEGER node, const bo
     auto componentsOnNodes = ( *_componentsOnNodes )[1];
     ASTERINTEGER dof = ( *componentsOnNodes )[node * ( 2 + nec )] - 1;
     ASTERINTEGER nb_cmp = ( *componentsOnNodes )[node * ( 2 + nec ) + 1];
-    return irange( dof, dof + nb_cmp );
+    return irange( dof, dof + nb_cmp - 1 );
 }
 
 bool EquationNumbering::isPhysicalDOF( const ASTERINTEGER dof, const bool local ) const {

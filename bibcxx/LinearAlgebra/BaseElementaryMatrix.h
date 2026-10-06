@@ -63,9 +63,6 @@ class BaseElementaryMatrix : public DataStructure {
     /** @brief Get the model */
     ModelPtr getModel() const { return _model; };
 
-    /** @brief Get the mesh */
-    BaseMeshPtr getMesh( void ) const;
-
     /** @brief Get option */
     std::string getOption() const { return _elemComp->getOption(); };
 

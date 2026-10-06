@@ -8095,6 +8095,19 @@ class AssemblyMatrixDisplacementReal(BaseAssemblyMatrix):
     def __add__(self, arg0):
         pass
 
+    def __call__(self, i_row, i_col):
+        """Return one matrix coefficient.
+        Only supports Morse storage. A coefficient absent from the profile is zero.
+        UpdateValuePointers() has to be called first.
+
+        Arguments:
+            i_row [int] Local row DOF index, zero-based.
+            j_col [int] Local column DOF index, zero-based.
+
+        Returns:
+            [float]: value of the matritx at (i_row, j_col)
+        """
+
     def __iadd__(self, arg0):
         pass
 
@@ -8211,6 +8224,18 @@ class AssemblyMatrixDisplacementReal(BaseAssemblyMatrix):
     def defineSolver(self):
         pass
 
+    def extractSubMatrix(self, fed, option, parameter):
+        """Extract a sub-matrix.
+
+        Arguments:
+            fed [FiniteElementDescriptor] extract sub-matrix for element of fed.
+            option [str] Option to known which dofs to extract.
+            parameter [str] parameter of the option to known which dofs to extract.
+
+        Returns:
+            [ElementaryMatrixReal]: elementary matrix extracted.
+        """
+
     def getLowerValues(self):
         pass
 
@@ -8244,6 +8269,9 @@ class AssemblyMatrixDisplacementReal(BaseAssemblyMatrix):
         Arguments:
             local (bool) local or global size
         """
+
+    def updateValuePointers(self):
+        """Update pointers."""
 
 
 # class AssemblyMatrixEliminatedReal in libaster
@@ -8285,6 +8313,19 @@ class AssemblyMatrixDisplacementComplex(BaseAssemblyMatrix):
     #     builtins.object
 
     # Methods defined here:
+
+    def __call__(self, i_row, i_col):
+        """Return one matrix coefficient.
+        Only supports Morse storage. A coefficient absent from the profile is zero.
+        UpdateValuePointers() has to be called first.
+
+        Arguments:
+            i_row [int] Local row DOF index, zero-based.
+            j_col [int] Local column DOF index, zero-based.
+
+        Returns:
+            [cmplx]: value of the matritx at (i_row, j_col)
+        """
 
     def __imul__(self, arg0):
         pass
@@ -8387,6 +8428,18 @@ class AssemblyMatrixDisplacementComplex(BaseAssemblyMatrix):
     def defineSolver(self):
         pass
 
+    def extractSubMatrix(self, fed, option, parameter):
+        """Extract a sub-matrix.
+
+        Arguments:
+            fed [FiniteElementDescriptor] extract sub-matrix for element of fed.
+            option [str] Option to known which dofs to extract.
+            parameter [str] parameter of the option to known which dofs to extract.
+
+        Returns:
+            [ElementaryMatrixComplex]: elementary matrix extracted.
+        """
+
     def getLowerValues(self):
         pass
 
@@ -8409,6 +8462,9 @@ class AssemblyMatrixDisplacementComplex(BaseAssemblyMatrix):
     def transposeConjugate(self):
         pass
 
+    def updateValuePointers(self):
+        """Update pointers."""
+
 
 # class AssemblyMatrixTemperatureReal in libaster
 
@@ -8427,6 +8483,19 @@ class AssemblyMatrixTemperatureReal(BaseAssemblyMatrix):
 
     def __add__(self, arg0):
         pass
+
+    def __call__(self, i_row, i_col):
+        """Return one matrix coefficient.
+        Only supports Morse storage. A coefficient absent from the profile is zero.
+        UpdateValuePointers() has to be called first.
+
+        Arguments:
+            i_row [int] Local row DOF index, zero-based.
+            j_col [int] Local column DOF index, zero-based.
+
+        Returns:
+            [float]: value of the matritx at (i_row, j_col)
+        """
 
     def __iadd__(self, arg0):
         pass
@@ -8542,6 +8611,18 @@ class AssemblyMatrixTemperatureReal(BaseAssemblyMatrix):
     def defineSolver(self):
         pass
 
+    def extractSubMatrix(self, fed, option, parameter):
+        """Extract a sub-matrix.
+
+        Arguments:
+            fed [FiniteElementDescriptor] extract sub-matrix for element of fed.
+            option [str] Option to known which dofs to extract.
+            parameter [str] parameter of the option to known which dofs to extract.
+
+        Returns:
+            [ElementaryMatrixReal]: elementary matrix extracted.
+        """
+
     def getLowerValues(self):
         pass
 
@@ -8575,6 +8656,9 @@ class AssemblyMatrixTemperatureReal(BaseAssemblyMatrix):
         Arguments:
             local (bool) local or global size
         """
+
+    def updateValuePointers(self):
+        """Update pointers."""
 
 
 # class AssemblyMatrixTemperatureComplex in libaster
@@ -9087,9 +9171,6 @@ class BaseElementaryMatrix(DataStructure):
     def __init__(self, /, *args, **kwargs):
         """Initialize self.  See help(type(self)) for accurate signature."""
 
-    def getMesh(self):
-        pass
-
     def getModel(self):
         pass
 
@@ -9142,6 +9223,9 @@ class ElementaryMatrixDisplacementReal(BaseElementaryMatrix):
     def getFiniteElementDescriptors(self):
         pass
 
+    def getMesh(self):
+        pass
+
     def getNumberOfElementaryTerms(self):
         pass
 
@@ -9189,6 +9273,9 @@ class ElementaryMatrixDisplacementComplex(BaseElementaryMatrix):
         pass
 
     def getFiniteElementDescriptors(self):
+        pass
+
+    def getMesh(self):
         pass
 
     def getNumberOfElementaryTerms(self):
@@ -9243,6 +9330,9 @@ class ElementaryMatrixTemperatureReal(BaseElementaryMatrix):
     def getFiniteElementDescriptors(self):
         pass
 
+    def getMesh(self):
+        pass
+
     def getNumberOfElementaryTerms(self):
         pass
 
@@ -9290,6 +9380,9 @@ class ElementaryMatrixPressureComplex(BaseElementaryMatrix):
         pass
 
     def getFiniteElementDescriptors(self):
+        pass
+
+    def getMesh(self):
         pass
 
     def getNumberOfElementaryTerms(self):

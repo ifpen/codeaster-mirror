@@ -126,17 +126,17 @@ class BaseAssemblyMatrix : public DataStructure {
     /**
      * @brief Tell if the matrix is fully filled
      */
-    bool isMPIFull();
+    bool isMPIFull() const;
 
     /**
      * @brief Tell if the matrix is symmetric
      */
-    bool isSymmetric();
+    bool isSymmetric() const;
 
     /**
      * @brief Tell the calcul option
      */
-    std::string getCalculOption();
+    std::string getCalculOption() const;
 
     /**
      * @brief Get the size of the matrix

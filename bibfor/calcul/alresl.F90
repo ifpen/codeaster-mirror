@@ -65,7 +65,7 @@ subroutine alresl(opt, ligrel, nochou, nompar, base)
     integer(kind=8) :: ngrel, igr, te, nel, mode, ncmpel, ipar
     integer(kind=8) :: desc, gd, jnoli, idesc
     integer(kind=8) ::  iparmx
-    character(len=8) :: scal, nomgd, tymat
+    character(len=8) :: scal, nomgd
 ! ----------------------------------------------------------------------
 
     call jemarq()
@@ -87,7 +87,6 @@ subroutine alresl(opt, ligrel, nochou, nompar, base)
     if (iparmx .eq. 0) goto 30
 
     call jenuno(jexnum('&CATA.GD.NOMGD', gd), nomgd)
-    call dismoi('TYPE_MATRICE', nomgd, 'GRANDEUR', repk=tymat)
 
 !   -- creation de l'objet .NOLI :
     call wkvect(nochou//'.NOLI', bas1//' V K24', 4, jnoli)

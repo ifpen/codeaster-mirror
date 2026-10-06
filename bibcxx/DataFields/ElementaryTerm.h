@@ -24,12 +24,14 @@
  *   along with Code_Aster.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "aster_fort_calcul.h"
 #include "aster_fort_utils.h"
 
 #include "DataStructures/DataStructure.h"
 #include "MemoryManager/JeveuxCollection.h"
 #include "MemoryManager/JeveuxVector.h"
 #include "Modeling/FiniteElementDescriptor.h"
+#include "Modeling/PhysicalQuantityManager.h"
 #include "Supervis/Exceptions.h"
 
 /**
@@ -76,6 +78,37 @@ class ElementaryTerm : public DataField {
             ( *_descriptor )[i + 2] = localModeId;
         if ( nbGrel > 0 ) {
             _resl->allocate( nbGrel );
+        }
+    };
+
+    void allocate( const FiniteElementDescriptorPtr fEDesc, const std::string &option,
+                   const std::string &physicalQuantity, const ASTERINTEGER &localModeId ) {
+
+        const auto physicalQuantityId =
+            PhysicalQuantityManager::getPhysicalQuantityNumber( physicalQuantity );
+
+        allocate( fEDesc, option, physicalQuantityId, localModeId );
+    };
+
+    void allocate( const FiniteElementDescriptorPtr fEDesc, const std::string &option,
+                   const std::string &parameter ) {
+
+        const auto physicalQuantityId =
+            PhysicalQuantityManager::getPhysicalQuantityNumber( option, parameter );
+
+        allocate( fEDesc, option, physicalQuantityId, -1 );
+
+        const auto &nbGrel = fEDesc->getListOfGroupsOfElements()->size();
+
+        ASTERINTEGER modloc = -1;
+        std::string optionStr = ljust( strip( option ), 16, ' ' );
+        std::string parameterStr = ljust( strip( parameter ), 8, ' ' );
+
+        for ( int i = 0; i < nbGrel; ++i ) {
+            const auto typeFE = fEDesc->getFiniteElementType( i );
+
+            CALL_GET_LOCAL_MODE( optionStr, parameterStr, &typeFE, &modloc );
+            ( *_descriptor )[i + 2] = modloc;
         }
     };
 
@@ -190,6 +223,19 @@ class ElementaryTerm : public DataField {
         }
 
         return modeId;
+    }
+
+    ASTERINTEGER getLocalModeId( const ASTERINTEGER grel_idx ) const {
+        _descriptor->updateValuePointer();
+        return ( *_descriptor )[2 + grel_idx];
+    }
+
+    ASTERINTEGER getNumberOfComponents( const ASTERINTEGER grel_idx ) const {
+
+        const auto mode_id = getLocalModeId( grel_idx );
+        ASTERINTEGER nbCmp = -1;
+        CALL_DIGDEL_WRAP( &mode_id, &nbCmp );
+        return nbCmp;
     }
 
     bool isMPIFull() {

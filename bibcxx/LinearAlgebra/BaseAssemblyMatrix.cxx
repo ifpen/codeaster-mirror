@@ -100,17 +100,17 @@ void BaseAssemblyMatrix::updateDOFNumbering() {
 
 void BaseAssemblyMatrix::symmetrize() { CALL_MATR_ASSE_SYME( getName() ); };
 
-bool BaseAssemblyMatrix::isMPIFull() {
+bool BaseAssemblyMatrix::isMPIFull() const {
     _description->updateValuePointer();
     return strip( ( *_description )[10].toString() ) == "MPI_COMPLET";
 };
 
-bool BaseAssemblyMatrix::isSymmetric() {
+bool BaseAssemblyMatrix::isSymmetric() const {
     _description->updateValuePointer();
     return strip( ( *_description )[8].toString() ).substr( 0, 2 ) == "MS";
 };
 
-std::string BaseAssemblyMatrix::getCalculOption() {
+std::string BaseAssemblyMatrix::getCalculOption() const {
     _description->updateValuePointer();
     return strip( ( *_description )[3].toString() );
 }
