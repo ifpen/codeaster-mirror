@@ -88,6 +88,11 @@ class CN_T3S3_HHO1(Element):
             ),
             para_out=((SP.PMATUNS, MMATUNS),),
         ),
+        OP.HHO_EXTR_PROJ(
+            te=547,
+            para_in=((SP.PGEOMER, LC.EGEOM2D), (SP.PMAELNS1, MMATUNS), (SP.PPAIRR, LC.CPAIRR)),
+            para_out=((OP.HHO_EXTR_PROJ.PMPHHOR, LC.CMPHHOR),),
+        ),
         OP.RIGI_ELAS_CPL(
             te=519,
             para_in=(

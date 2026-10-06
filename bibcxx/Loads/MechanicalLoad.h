@@ -27,6 +27,7 @@
 
 #include "aster_fort_superv.h"
 
+#include "Coupling/CouplingPairingData.h"
 #include "DataFields/ConstantFieldOnCells.h"
 #include "DataFields/ListOfTables.h"
 #include "DataStructures/DataStructure.h"
@@ -193,11 +194,12 @@ class MechanicalLoad : public DSWithCppPickling, public ListOfTables {
         return true;
     };
 
-    void setPairingField( const FieldOnCellsRealPtr pair ) {
-        _mecaLoadDesc->setPairingField( pair );
+    void setPairingData( const CouplingPairingDataPtr data ) {
+        _mecaLoadDesc->setPairingData( data );
     };
 
     FieldOnCellsRealPtr getPairingField() const { return _mecaLoadDesc->getPairingField(); };
+    FieldOnCellsRealPtr getHHOProjector() const { return _mecaLoadDesc->getHHOProjector(); };
 };
 
 /**********************************************************

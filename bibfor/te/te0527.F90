@@ -42,7 +42,7 @@ subroutine te0527(nomopt, nomte)
 !
 !===================================================================================================
 !
-!
+!  Option: HHO_CALC_PROJ
 !  Coupling FEM/HHO with Nitsche or Penalization
 !  Compute RHS of L2-projector from FEM to HHO
 !
@@ -110,6 +110,5 @@ subroutine te0527(nomopt, nomte)
 !
     call lhs%write("PMATUNS", ASTER_FALSE)
     call lhs%free()
-
 !
 end subroutine

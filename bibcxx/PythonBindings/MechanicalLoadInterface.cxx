@@ -39,14 +39,14 @@ void exportMechanicalLoadToPython( py::module_ &mod ) {
         .def( "getMechanicalLoadDescription", &MechanicalLoadReal::getMechanicalLoadDescription )
         .def( "getModel", &MechanicalLoadReal::getModel )
         .def( "getMesh", &MechanicalLoadReal::getMesh )
-        .def( "setPairingField", &MechanicalLoadReal::setPairingField, R"(
-Set pairing intersection.
+        .def( "setPairingData", &MechanicalLoadReal::setPairingData, R"(
+Set pairing data.
 
 Arguments:
-    pairs (FieldOnCellsReal): pairing intersection.
+    data (CouplingPairingData): pairing data.
 
         )",
-              py::arg( "pairs" ) )
+              py::arg( "data" ) )
         .def( "getPairingField", &MechanicalLoadReal::getPairingField, R"(
 Return pairing intersection.
 

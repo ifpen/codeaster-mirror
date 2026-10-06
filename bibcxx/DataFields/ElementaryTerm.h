@@ -72,6 +72,7 @@ class ElementaryTerm : public DataField {
         ( *_noli )[2] = "MPI_COMPLET";
         const auto &nbGrel = fEDesc->getListOfGroupsOfElements()->size();
         _descriptor->allocate( 2 + nbGrel );
+        _descriptor->setInformationParameter( "RESL" );
         ( *_descriptor )[0] = physicalQuantityId;
         ( *_descriptor )[1] = nbGrel;
         for ( int i = 0; i < nbGrel; ++i )

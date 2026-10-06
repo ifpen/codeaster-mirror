@@ -27,10 +27,8 @@
 #include "DataFields/FieldOnCellsBuilder.h"
 #include "Discretization/Calcul.h"
 #include "LinearAlgebra/AssemblyMatrix.h"
-#include "LinearAlgebra/ElementaryMatrix.h"
 #include "Messages/Messages.h"
 #include "Supervis/Exceptions.h"
-#include "Utilities/Tools.h"
 
 namespace {
 // Description of a virtual coupling cell
@@ -664,7 +662,8 @@ FieldOnCellsRealPtr CouplingPairing::getPairingField() const {
     return data;
 };
 
-FieldOnCellsRealPtr CouplingPairing::getHHOProjector( const FieldOnCellsRealPtr pairing ) const {
+ElementaryMatrixDisplacementRealPtr
+CouplingPairing::getHHOProjector( const FieldOnCellsRealPtr pairing ) const {
     AS_ASSERT( _fed && _fed->exists() );
 
     if ( _fed->existsHHO() ) {
@@ -673,7 +672,7 @@ FieldOnCellsRealPtr CouplingPairing::getHHOProjector( const FieldOnCellsRealPtr 
 
         auto elemMatr = std::make_shared< ElementaryMatrixDisplacementReal >( _model, option );
 
-        CalculPtr calcul = std::make_unique< Calcul >( option );
+        auto calcul = std::make_unique< Calcul >( option );
         calcul->setFiniteElementDescriptor( _fed );
 
         calcul->addInputField( "PGEOMER", _fed->getMesh()->getCoordinates() );
@@ -696,6 +695,38 @@ FieldOnCellsRealPtr CouplingPairing::getHHOProjector( const FieldOnCellsRealPtr 
         matrAsse->assemble( elemMatr );
 
         auto subMat = matrAsse->extractSubMatrix( _fed, option, "PMATUNS" );
+
+        return subMat;
+    }
+
+    return nullptr;
+};
+
+FieldOnCellsRealPtr
+CouplingPairing::getHHOProjectorField( const FieldOnCellsRealPtr pairing,
+                                       const ElementaryMatrixDisplacementRealPtr matr_elem ) const {
+
+    if ( matr_elem ) {
+        const std::string option( "HHO_EXTR_PROJ" );
+
+        auto calcul = std::make_unique< Calcul >( option );
+        calcul->setFiniteElementDescriptor( _fed );
+
+        calcul->addInputField( "PGEOMER", _fed->getMesh()->getCoordinates() );
+        calcul->addInputField( "PPAIRR", pairing );
+
+        const auto &elemTerms = matr_elem->getElementaryTerms();
+        AS_ASSERT( elemTerms.size() == 1 );
+        calcul->addInputElementaryTerm( "PMAELNS1", elemTerms[0] );
+
+        auto exitField = std::make_shared< FieldOnCellsReal >( _fed );
+        calcul->addOutputField( "PMPHHOR", exitField );
+
+        // Computation
+        calcul->compute();
+        exitField->build();
+
+        return exitField;
     }
 
     return nullptr;
@@ -718,3 +749,11 @@ void CouplingPairing::setVerbosity( const ASTERINTEGER verbosity ) {
         zone->setVerbosity( _verbosity );
     }
 };
+
+CouplingPairingDataPtr CouplingPairing::getData() const {
+    const auto pairing = getPairingField();
+    const auto hhoProj = getHHOProjector( pairing );
+    const auto hhoProjField = getHHOProjectorField( pairing, hhoProj );
+
+    return std::make_shared< CouplingPairingData >( pairing, hhoProjField );
+}

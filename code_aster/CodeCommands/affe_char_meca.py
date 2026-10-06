@@ -188,9 +188,7 @@ class MechanicalLoadDefinition(ExecuteCommand):
 
                     cpl.addZone(zone)
                 cpl.compute()
-                pairing = cpl.getPairingField()
-                projector = cpl.getHHOProjector(pairing)
-                self._result.setPairingField(pairing)
+                self._result.setPairingData(cpl.getData())
         else:
             model = keywords.pop("MODELE")
             if "LIAISON_PROJ" in list(keywords.keys()):

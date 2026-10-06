@@ -399,6 +399,8 @@ CCOMPOT = LocatedComponents(
 
 CCMBHHO = LocatedComponents(phys=PHY.NEUT_R, type="ELEM", components=("X[8]",))
 
+CMPHHOR = LocatedComponents(phys=PHY.N480_R, type="ELEM", components=("X[240]",))
+
 CCOMPO2 = LocatedComponents(phys=PHY.COMPOR, type="ELEM", components=("NBVARI",))
 
 CMLCOMP = LocatedComponents(phys=PHY.MULTCOMP, type="ELEM", components=("SD_COMP",))

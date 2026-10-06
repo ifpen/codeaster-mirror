@@ -7894,11 +7894,53 @@ class CouplingZonePairing(DataStructure):
         """
 
 
+# class CouplingPairingData in libaster
+
+
+class CouplingPairingData(DataStructure):
+    """Object to store coupling pairing."""
+
+    # Method resolution order:
+    #     CouplingPairingData
+    #     DataStructure
+    #     pybind11_builtins.pybind11_object
+    #     builtins.object
+
+    # Methods defined here:
+
+    def __init__(self, arg0, arg1):
+        pass
+
+    def getFiniteElementDescriptor(self):
+        """Return Finite Element Descriptor for virtual cells from pairing.
+
+        Returns:
+            FiniteElementDescriptor: finite element for virtual cells
+        """
+
+    def getHHOProjector(self):
+        """Get HHO L2-projector
+
+        Argument:
+            pairing [FieldOnCellsReal]: pairing.
+
+        Returns:
+            FieldOnCellsRealPtr: L2-projector.
+        """
+
+    def getPairingField(self):
+        """Get intersection points
+
+        Returns:
+            FieldOnCellsReal: intersection points.
+        """
+
+
 # class CouplingPairing in libaster
 
 
 class CouplingPairing(DataStructure):
-    """Object to create contact pairing."""
+    """Object to create coupling pairing."""
 
     # Method resolution order:
     #     CouplingPairing
@@ -7925,21 +7967,18 @@ class CouplingPairing(DataStructure):
             bool: True if the pairing quantities are updated appropriately
         """
 
+    def getData(self):
+        """Get data from pairing - pairing info and HHO projector.
+
+        Returns:
+            CouplingPairingData: data.
+        """
+
     def getFiniteElementDescriptor(self):
         """Return Finite Element Descriptor for virtual cells from pairing.
 
         Returns:
             FiniteElementDescriptor: finite element for virtual cells
-        """
-
-    def getHHOProjector(self, pairing):
-        """Get HHO L2-projector
-
-        Argument:
-            pairing [FieldOnCellsReal]: pairing.
-
-        Returns:
-            FieldOnCellsReal: L2-projector.
         """
 
     def getMesh(self):
@@ -7954,13 +7993,6 @@ class CouplingPairing(DataStructure):
 
         Returns:
             int: number of pairs
-        """
-
-    def getPairingField(self):
-        """Get intersection points
-
-        Returns:
-            FieldOnCellsReal: intersection points.
         """
 
 
@@ -10647,11 +10679,11 @@ class MechanicalLoadReal(DSWithCppPickling, DataStructure):
     def hasLoadField(self, arg0):
         pass
 
-    def setPairingField(self, pairs):
-        """Set pairing intersection.
+    def setPairingData(self, data):
+        """Set pairing data.
 
         Arguments:
-            pairs (FieldOnCellsReal): pairing intersection.
+            data (CouplingPairingData): pairing data.
         """
 
     def updateValuePointers(self):

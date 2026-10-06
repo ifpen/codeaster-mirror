@@ -27,6 +27,7 @@
 #include "astercxx.h"
 
 #include "Coupling/CouplingPairing.h"
+#include "Coupling/CouplingPairingData.h"
 
 void exportCouplingPairingToPython( py::module_ &mod );
 

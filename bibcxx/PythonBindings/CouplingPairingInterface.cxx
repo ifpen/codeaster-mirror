@@ -27,9 +27,38 @@
 
 void exportCouplingPairingToPython( py::module_ &mod ) {
 
+    py::class_< CouplingPairingData, CouplingPairingDataPtr, DataStructure > class0_(
+        mod, "CouplingPairingData",
+        R"(
+Object to store coupling pairing.)" );
+    class0_.def( py::init(
+        &initFactoryPtr< CouplingPairingData, FieldOnCellsRealPtr, FieldOnCellsRealPtr > ) );
+
+    class0_.def( "getFiniteElementDescriptor", &CouplingPairingData::getFiniteElementDescriptor, R"(
+Return Finite Element Descriptor for virtual cells from pairing.
+
+Returns:
+    FiniteElementDescriptor: finite element for virtual cells
+)" );
+    class0_.def( "getPairingField", &CouplingPairingData::getPairingField, R"(
+Get intersection points
+
+Returns:
+    FieldOnCellsReal: intersection points.
+)" );
+    class0_.def( "getHHOProjector", &CouplingPairingData::getHHOProjector, R"(
+Get HHO L2-projector
+
+Argument:
+    pairing [FieldOnCellsReal]: pairing.
+
+Returns:
+    FieldOnCellsRealPtr: L2-projector.
+)" );
+
     py::class_< CouplingPairing, CouplingPairingPtr, DataStructure > class_( mod, "CouplingPairing",
                                                                              R"(
-Object to create contact pairing.)" );
+Object to create coupling pairing.)" );
     class_.def( py::init( &initFactoryPtr< CouplingPairing, ModelPtr, ASTERINTEGER > ) );
     class_.def( "getMesh", &CouplingPairing::getMesh, R"(
 Mesh
@@ -57,22 +86,12 @@ Returns:
     FiniteElementDescriptor: finite element for virtual cells
 )" );
 
-    class_.def( "getPairingField", &CouplingPairing::getPairingField, R"(
-Get intersection points
+    class_.def( "getData", &CouplingPairing::getData, R"(
+Get data from pairing - pairing info and HHO projector.
 
 Returns:
-    FieldOnCellsReal: intersection points.
+    CouplingPairingData: data.
 )" );
-    class_.def( "getHHOProjector", &CouplingPairing::getHHOProjector, R"(
-Get HHO L2-projector
-
-Argument:
-    pairing [FieldOnCellsReal]: pairing.
-
-Returns:
-    FieldOnCellsReal: L2-projector.
-)",
-                py::arg( "pairing" ) );
     class_.def( "addZone", &CouplingPairing::addZone, R"(
 Add a new zone of coupling;
 
