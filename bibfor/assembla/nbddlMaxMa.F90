@@ -53,7 +53,7 @@ function nbddlMaxMa(nume_ddlz, matr_assez, nbmat, v_name_mat) result(maxDDLMa)
 ! IN  I   nbmat         : nombre de matr_elem dans la MATR_ASSE
 !     ------------------------------------------------------------------
     character(len=3)  :: answer
-    character(len=8)  :: mesh, model, model_elem, nogdco, nogdsi, partition
+    character(len=8)  :: mesh, model, mesh_elem, nogdco, nogdsi, partition
     character(len=14) :: nume_ddl
     character(len=19) :: nomligrel, matr_elem, resu_elem, matr_asse
     integer(kind=8) :: iconx1, iconx2, iel, iret, nnoe
@@ -225,9 +225,9 @@ function nbddlMaxMa(nume_ddlz, matr_assez, nbmat, v_name_mat) result(maxDDLMa)
 !
     do imat = 1, nbmat
         matr_elem = v_name_mat(imat)
-        call dismoi('NOM_MODELE', matr_elem, 'MATR_ELEM', repk=model_elem)
+        call dismoi('NOM_MAILLA', matr_elem, 'MATR_ELEM', repk=mesh_elem)
 !
-        if (model_elem .ne. model) then
+        if (mesh_elem .ne. mesh) then
             call utmess('F', 'ASSEMBLA_5')
         end if
 !

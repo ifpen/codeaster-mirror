@@ -58,7 +58,7 @@ subroutine numddl(numeDofZ, renumZ, base, nbMatrElem, listMatrElem, &
     integer(kind=8) :: nbLigr
     character(len=24), pointer :: listLigr(:) => null()
     integer(kind=8) :: iMatrElem
-    character(len=8) :: mesh, model, modelNew
+    character(len=8) :: mesh, meshNew, model
     character(len=14) :: numeDof
     character(len=16) :: typsd
     aster_logical :: lMacrElem
@@ -75,21 +75,21 @@ subroutine numddl(numeDofZ, renumZ, base, nbMatrElem, listMatrElem, &
 
 ! - Get model
     ASSERT(nbMatrElem .ge. 1)
-    call dismoi('NOM_MODELE', listMatrElem(1), 'MATR_ELEM', repk=model)
+    call dismoi('NOM_MAILLA', listMatrElem(1), 'MATR_ELEM', repk=mesh)
     do iMatrElem = 2, nbMatrElem
-        call dismoi('NOM_MODELE', listMatrElem(1), 'MATR_ELEM', repk=modelNew)
-        if (modelNew .ne. model) then
+        call dismoi('NOM_MAILLA', listMatrElem(1), 'MATR_ELEM', repk=meshNew)
+        if (meshNew .ne. mesh) then
             call utmess("F", "ASSEMBLA_2")
         end if
     end do
 
 ! - Numbering - Create NUME_EQUA objects
+    call dismoi('NOM_MODELE', listMatrElem(1), 'MATR_ELEM', repk=model)
     call nueffe(nbLigr, listLigr, base, numeDofZ, renumZ, model, &
                 lMacrElemZ_=lMacrElem)
     AS_DEALLOCATE(vk24=listLigr)
 
 ! - Numbering - Create parallel object
-    call dismoi('NOM_MAILLA', model, 'MODELE', repk=mesh)
     call gettco(mesh, typsd)
     if (typsd .eq. 'MAILLAGE_P') then
         numeDof = numeDofZ

@@ -30,7 +30,7 @@ cata_msg = {
 """
     ),
     2: _(
-        """On ne peut pas créer la numérotation sur les matrices élémentaires car le modèle n'est pas le même."""
+        """On ne peut pas créer la numérotation sur les matrices élémentaires car le maillage n'est pas le même."""
     ),
     3: _(
         """
@@ -50,7 +50,7 @@ cata_msg = {
     ),
     5: _(
         """
- modèles discordants
+ maillage discordants
 """
     ),
     6: _(
