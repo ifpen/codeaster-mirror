@@ -100,6 +100,7 @@ class CN_T3S3_HHO1(Element):
                 (SP.PPAIRR, LC.CPAIRR),
                 (OP.RIGI_ELAS_CPL.PCHHOBS, CHHOBS),
                 (OP.RIGI_ELAS_CPL.PMATERR, LC.ENMATE_R),
+                (OP.RIGI_ELAS_CPL.PMPHHOR, LC.CMPHHOR),
             ),
             para_out=((SP.PMATUUR, MMATUUR),),
         ),

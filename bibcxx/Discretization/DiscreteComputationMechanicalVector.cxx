@@ -1134,7 +1134,7 @@ FieldOnNodesRealPtr DiscreteComputation::getMechanicalCouplingForces(
                 calcul->addInputField( "PDEPLMR", transfertField( load, displ_prev ) );
                 calcul->addInputField( "PDEPLPR", transfertField( load, displ_step ) );
                 calcul->addInputField( "PPAIRR", pairing );
-                std::cout << "PAIR: " << pairing->getName() << std::endl;
+                calcul->addInputField( "PMPHHOR", load->getHHOProjector() );
                 calcul->addHHOField( model );
 
                 // Add time fields

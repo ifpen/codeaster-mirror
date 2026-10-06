@@ -1314,6 +1314,7 @@ ElementaryMatrixDisplacementRealPtr DiscreteComputation::getMechanicalCouplingMa
                 calcul->addInputField( "PDEPLMR", transfertField( load, displ_prev ) );
                 calcul->addInputField( "PDEPLPR", transfertField( load, displ_step ) );
                 calcul->addInputField( "PPAIRR", pairing );
+                calcul->addInputField( "PMPHHOR", load->getHHOProjector() );
                 calcul->addHHOField( model );
 
                 // Add time fields
@@ -1402,6 +1403,7 @@ ElementaryMatrixDisplacementRealPtr DiscreteComputation::getMechanicalLinearCoup
                 // Set input field
                 calcul->addInputField( "PGEOMER", fed->getMesh()->getCoordinates() );
                 calcul->addInputField( "PPAIRR", pairing );
+                calcul->addInputField( "PMPHHOR", load->getHHOProjector() );
                 calcul->addHHOField( model );
 
                 // Check if MATE_ELGA has to computed

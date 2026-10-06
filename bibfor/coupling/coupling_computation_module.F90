@@ -33,7 +33,7 @@ module coupling_computation_module
     use HHO_type
     use HHO_init_module
     use HHO_geometry_module
-    use HHO_utils_module, only: hhoCopySymPartMat, CellNameL2S
+    use HHO_utils_module, only: hhoCopySymPartMat, CellNameL2S, hhoPrintMat
 !
     implicit none
 !
@@ -50,6 +50,7 @@ module coupling_computation_module
 #include "asterfort/mmnewd.h"
 #include "asterfort/reereg.h"
 #include "asterfort/separ_RI_elas_3D.h"
+#include "asterfort/jevech.h"
 #include "asterfort/utmess.h"
 #include "blas/dger.h"
 #include "blas/dposv.h"
@@ -72,9 +73,10 @@ module coupling_computation_module
     public :: cplCmpLagrFEMFEMMatScal, cplCmpLagrFEMFEMMatVec
     public :: cplCmpStressFEMHHOMat, cplCmpGradLiftFEMHHOMatVec
     private :: cplEvalElasPara, cplEvalMatrHB, cplEvalMatrHBn
-    private :: cplCmpProjFEM2HHOFaceFullScal, cplGetQuadOrderFEMLocal
-    public :: cplCmpProjFEM2HHOFaceFullRHSScal
-    public :: cplCmpProjFEM2HHOFaceFullRHSVec
+    private :: cplGetQuadOrderFEMLocal
+    private :: cplCmpProjFEM2HHOFaceScalRead
+    public :: cplCmpProjFEM2HHOFaceScal
+    public :: cplCmpProjFEM2HHOFaceVec
 !
 ! -- Section 6 projected penalty.
 !    .true.  => use Pi_F^k(u_CG) - u_F in the penalty term.
@@ -157,7 +159,7 @@ contains
         type(FE_Basis) :: FEBasis
         real(kind=8), dimension(MAX_BS_CG) :: BSEval, BSEvalProj
         real(kind=8), dimension(MSIZE_FACE_SCAL) :: basisScalEval
-        real(kind=8), dimension(MAX_BS_CG, MSIZE_FACE_SCAL) :: projFEM2HHO
+        real(kind=8), dimension(MSIZE_FACE_SCAL, MAX_BS_CG) :: projFEM2HHO
         real(kind=8), dimension(MAX_BS_CG+MSIZE_FACE_SCAL) :: BS
         real(kind=8) :: coeff
         integer(kind=8) :: fbs, nbDoFsFE, nbDoFs, ipg, iBasis
@@ -183,8 +185,8 @@ contains
 ! ----- Compute Pi_F^k(phi_i^CG) on the whole HHO face F.
 !       The FEM basis is evaluated by projecting each HHO face quadrature point
 !       onto the current slave face.
-            call cplCmpProjFEM2HHOFaceFullScal(FEFaceSl, hhoFaceMa, hhoDataMa, &
-                                               projFEM2HHO, fbs, nbDoFsFE)
+            call cplCmpProjFEM2HHOFaceScalRead(FEFaceSl, hhoFaceMa, hhoDataMa, &
+                                               projFEM2HHO)
         end if
 !
 ! ----- Assemble the elementary contribution only on the current intersection S.
@@ -200,7 +202,7 @@ contains
 !           Pi_F^k(phi_i^CG)(x_q) = sum_a c_i(a) psi_a(x_q).
                 BSEvalProj = 0.d0
                 do iBasis = 1, nbDoFsFE
-                    BSEvalProj(iBasis) = dot_product(projFEM2HHO(iBasis, 1:fbs), &
+                    BSEvalProj(iBasis) = dot_product(projFEM2HHO(1:fbs, iBasis), &
                                                      basisScalEval(1:fbs))
                 end do
 !
@@ -228,88 +230,34 @@ contains
 !
 !===================================================================================================
 !
-    subroutine cplCmpProjFEM2HHOFaceFullScal(FEFaceSl, hhoFaceMa, hhoDataMa, &
-                                             projFEM2HHO, fbs, nbDoFsFE)
+    subroutine cplCmpProjFEM2HHOFaceScalRead(FEFaceSl, hhoFaceMa, hhoDataMa, &
+                                             projFEM2HHO)
 !
         implicit none
 !
         type(FE_Skin), intent(in) :: FEFaceSl
         type(HHO_Face), intent(in) :: hhoFaceMa
         type(HHO_Data), intent(in) :: hhoDataMa
-        real(kind=8), intent(out) :: projFEM2HHO(MAX_BS_CG, MSIZE_FACE_SCAL)
-        integer(kind=8), intent(out) :: fbs, nbDoFsFE
+        real(kind=8), intent(out) :: projFEM2HHO(MSIZE_FACE_SCAL, MAX_BS_CG)
 !
 !===================================================================================================
-!    Compute the L2 projection coefficients Pi_F^k(phi_i^CG) on the whole HHO face F.
+!    Read the L2 projection coefficients Pi_F^k(phi_i^CG) on the whole HHO face F.
 !
 !===================================================================================================
 !
-        type(HHO_Quadrature) :: hhoQuadFace
-        type(FE_Basis) :: FEBasis
-        real(kind=8) :: FuncValuesQP(MAX_QP_FACE, MAX_BS_CG)
-        real(kind=8) :: BSEval(MAX_BS_CG)
-        real(kind=8) :: coor_qp_fe(3), ksi_sl(2)
-        real(kind=8) :: normal_ma(3), tau_ma(3, 2), tau1_sl(3), tau2_sl(3)
-        character(len=8) :: type_ma_skin
-        integer(kind=8) :: face_degree, ndim, ipg, iBasis, iret, feOrder, projOrder
-        real(kind=8) :: coor(3, MT_NNOMAX2D)
+        integer(kind=8) :: fbs_cmp, iRow, jCol, k
+        real(kind=8), pointer :: v_matr(:) => null()
 !
-! -- init FEM face basis
-        call FEBasis%initFace(FEFaceSl)
-!
-! -- number of dofs and projection degree
-        call hhoTherFaceDofs(hhoFaceMa, hhoDataMa, fbs)
-        nbDoFsFE = FEBasis%size
-        face_degree = hhoDataMa%face_degree()
-        ndim = FEFaceSl%ndim+1
-!
-! -- HHO full face quadrature for the L2 projection on F.
-!    The RHS of the projection contains FEM basis functions times HHO basis functions.
-!    Therefore the quadrature order must be high enough for both the HHO face
-!    mass matrix check and the FEM/HHO product in the RHS.
-        feOrder = cplGetQuadOrderFEMLocal(FEFaceSl%typemas)
-        projOrder = max(2*face_degree, face_degree+feOrder+1)
-        call hhoQuadFace%GetQuadFace(hhoFaceMa, projOrder)
-        ASSERT(hhoQuadFace%nbQuadPoints <= MAX_QP_FACE)
-!
-! -- Skin type associated with the HHO face, needed to evaluate the projection direction.
-        call CellNameL2S(hhoFaceMa%typema, type_ma_skin)
-        coor(1:3, 1:4) = hhoFaceMa%coorno(1:3, 1:4)
-!
-! -- Evalaute FE basis at HHO quadrature points
-!
-        FuncValuesQP = 0.d0
-        do ipg = 1, hhoQuadFace%nbQuadPoints
-!
-! ---------- Compute a normal on the HHO master face at the Gauss point.
-!               This normal is only used as projection direction by mmnewd.
-            call apnorm(hhoFaceMa%nbnodes, type_ma_skin, ndim, coor, &
-                        hhoQuadFace%points_param(1, ipg), &
-                        hhoQuadFace%points_param(2, ipg), &
-                        normal_ma, tau_ma(1:3, 1), tau_ma(1:3, 2))
-!
-! ---------- Project the HHO Gauss point on the FEM slave face.
-            call mmnewd(FEFaceSl%typemas, FEFaceSl%nbnodes, ndim, FEFaceSl%coorno, &
-                        hhoQuadFace%points(1:3, ipg), 100, PROJ_TOLE, normal_ma, &
-                        ksi_sl(1), ksi_sl(2), tau1_sl, tau2_sl, iret)
-            ASSERT(iret == 0)
-!
-! ------------- Evaluate FEM basis function at this possibly extrapolated parametric point.
-            coor_qp_fe = 0.d0
-            coor_qp_fe(1:2) = ksi_sl(1:2)
-            BSEval = FEBasis%func(coor_qp_fe)
-            FuncValuesQP(ipg, 1:nbDoFsFE) = BSEval(1:nbDoFsFE)
-!
-        end do
+        call hhoTherFaceDofs(hhoFaceMa, hhoDataMa, fbs_cmp)
+        call jevech("PMPHHOR", 'L', vr=v_matr)
 !
         projFEM2HHO = 0.d0
-!
-! -- Project each scalar FEM face basis function.
-        do iBasis = 1, nbDoFsFE
-!
-! --------- Compute the L2 projection coefficients in the HHO face basis.
-            call hhoL2ProjFaceScal(hhoFaceMa, hhoQuadFace, FuncValuesQP(:, iBasis), &
-                                   face_degree, projFEM2HHO(iBasis, :))
+        k = 1
+        do iRow = 1, fbs_cmp
+            do jCol = 1, FEFaceSl%nbnodes
+                projFEM2HHO(iRow, jCol) = v_matr(k)
+                k = k+1
+            end do
         end do
 !
     end subroutine
@@ -318,15 +266,15 @@ contains
 !
 !===================================================================================================
 !
-    subroutine cplCmpProjFEM2HHOFaceFullRHSScal(FEFaceSl, hhoFaceMa, hhoDataMa, &
-                                                projFEM2HHORHS)
+    subroutine cplCmpProjFEM2HHOFaceScal(FEFaceSl, hhoFaceMa, hhoDataMa, &
+                                         projFEM2HHO)
 !
         implicit none
 !
         type(FE_Skin), intent(in) :: FEFaceSl
         type(HHO_Face), intent(in) :: hhoFaceMa
         type(HHO_Data), intent(in) :: hhoDataMa
-        real(kind=8), intent(out) :: projFEM2HHORHS(MSIZE_FACE_SCAL, MAX_BS_CG)
+        real(kind=8), intent(out) :: projFEM2HHO(MSIZE_FACE_SCAL, MAX_BS_CG)
 !
 !===================================================================================================
 !    Compute the L2 projection coefficients Pi_F^k(phi_i^CG) on the whole HHO face F.
@@ -336,22 +284,18 @@ contains
         type(HHO_Quadrature) :: hhoQuadFace
         type(FE_Basis) :: FEBasis
         type(HHO_basis_face) :: hhoBasisFace
+        type(HHO_massmat_face) :: faceMass
         real(kind=8) :: BSFEEval(MAX_BS_CG), BSHHOEval(MSIZE_FACE_SCAL)
         real(kind=8) :: coor_qp_fe(3), ksi_sl(2)
         real(kind=8) :: normal_ma(3), tau1_sl(3), tau2_sl(3)
         character(len=8) :: type_ma_skin
         integer(kind=8) :: face_degree, ndim, ipg, iret, feOrder, projOrder, fbs
         real(kind=8) :: coor(3, MT_NNOMAX2D)
-        blas_int :: b_incx, b_incy, b_lda, b_m, b_n
+        blas_int :: b_incx, b_incy, b_lda, b_m, b_n, b_nrhs, b_ldb, info
 !
 ! -- init face basis
         call FEBasis%initFace(FEFaceSl)
         call hhoBasisFace%initialize(hhoFaceMa)
-!
-! --- The basis has to be orthormal to have an identity mass matrix
-!     since it assembled to compute global projection.
-        ASSERT(hhoBasisFace%isOrthonormal())
-
 !
 ! -- number of dofs and projection degree
         call hhoTherFaceDofs(hhoFaceMa, hhoDataMa, fbs)
@@ -380,7 +324,7 @@ contains
 !
 ! -- Evalaute FE basis at HHO quadrature points
 !
-        projFEM2HHORHS = 0.d0
+        projFEM2HHO = 0.d0
         do ipg = 1, hhoQuadFace%nbQuadPoints
 !
 ! ---------- Compute a normal on the HHO master face at the Gauss point.
@@ -396,11 +340,33 @@ contains
 ! ------------- Evaluate FEM basis function at this possibly extrapolated parametric point.
             coor_qp_fe(1:2) = ksi_sl(1:2)
             BSFEEval = FEBasis%func(coor_qp_fe)
-            call hhoBasisFace%BSEval(hhoQuadFace%points_param(1:3, ipg), 0, face_degree, BSHHOEval)
+            call hhoBasisFace%BSEval(hhoQuadFace%points(1:3, ipg), 0, face_degree, BSHHOEval)
 !
             call dger(b_m, b_n, hhoQuadFace%weights(ipg), BSHHOEval, b_incx, BSFEEval, b_incy, &
-                      projFEM2HHORHS, b_lda)
+                      projFEM2HHO, b_lda)
         end do
+!
+        if (.not. hhoBasisFace%isOrthonormal()) then
+!
+! -------- Compute face mass matrix
+!
+            call faceMass%compute(hhoFaceMa, 0, face_degree)
+!
+! ------- Solve the system
+!
+            b_n = to_blas_int(faceMass%nrows)
+            b_nrhs = to_blas_int(FEBasis%size)
+            b_lda = to_blas_int(faceMass%max_nrows)
+            b_ldb = to_blas_int(MSIZE_FACE_SCAL)
+            call dposv('U', b_n, b_nrhs, faceMass%m, b_lda, &
+                       projFEM2HHO, b_ldb, info)
+!
+! ------- Sucess ?
+!
+            if (info .ne. 0) then
+                call utmess('F', 'HHO1_4')
+            end if
+        end if
 !
     end subroutine
 !
@@ -408,23 +374,23 @@ contains
 !
 !===================================================================================================
 !
-    subroutine cplCmpProjFEM2HHOFaceFullRHSVec(FEFaceSl, hhoFaceMa, hhoDataMa, &
-                                               projFEM2HHORHS)
+    subroutine cplCmpProjFEM2HHOFaceVec(FEFaceSl, hhoFaceMa, hhoDataMa, &
+                                        projFEM2HHO)
 !
         implicit none
 !
         type(FE_Skin), intent(in) :: FEFaceSl
         type(HHO_Face), intent(in) :: hhoFaceMa
         type(HHO_Data), intent(in) :: hhoDataMa
-        type(HHO_matrix), intent(out) :: projFEM2HHORHS
+        type(HHO_matrix), intent(out) :: projFEM2HHO
 !
 
         real(kind=8) :: lhs_scal(MSIZE_FACE_SCAL, MAX_BS_CG)
         integer(kind=8) :: ndim, fbs_scal, fbs, nFE_scal, nFE
         integer(kind=8) :: i, j, idim, jdim, irow, jcol
 
-        call cplCmpProjFEM2HHOFaceFullRHSScal(FEFaceSl, hhoFaceMa, hhoDataMa, &
-                                              lhs_scal)
+        call cplCmpProjFEM2HHOFaceScal(FEFaceSl, hhoFaceMa, hhoDataMa, &
+                                       lhs_scal)
 !
 !
         ndim = hhoFaceMa%ndim+1
@@ -433,7 +399,7 @@ contains
         nFE_scal = FEFaceSl%nbnodes
         nFE = nFE_scal*ndim
 !
-        call projFEM2HHORHS%initialize(fbs, nFE, 0.d0)
+        call projFEM2HHO%initialize(fbs, nFE, 0.d0)
 !
         do j = 1, nFE_scal
             do jdim = 1, ndim
@@ -441,7 +407,7 @@ contains
                 do i = 1, fbs_scal
                     do idim = 1, ndim
                         irow = (idim-1)*fbs_scal+i
-                        projFEM2HHORHS%m(irow, jcol) = lhs_scal(i, j)
+                        projFEM2HHO%m(irow, jcol) = lhs_scal(i, j)
                     end do
                 end do
             end do
@@ -499,7 +465,7 @@ contains
         type(FE_Basis) :: FEBasisFaceSl
         type(HHO_massmat_cell) :: hhoMassMatCellSl
         type(HHO_matrix) :: rhs
-        real(kind=8), dimension(MAX_BS_CG, MSIZE_FACE_SCAL) :: projFEM2HHO
+        real(kind=8), dimension(MSIZE_FACE_SCAL, MAX_BS_CG) :: projFEM2HHO
         real(kind=8), dimension(MSIZE_CELL_SCAL) :: BSCEvalGradSl
         real(kind=8), dimension(MSIZE_FACE_SCAL) :: BSEvalFaceMa
         real(kind=8), dimension(MAX_BS_CG) :: BSEvalFaceSlProj
@@ -510,7 +476,7 @@ contains
         real(kind=8), parameter :: un_rac2 = 1.d0/sqrt(2.d0)
         integer(kind=8), parameter ::  XX = 1, YY = 2, XY = 3, ZZ = 4, XZ = 5, YZ = 6
         integer(kind=8) :: ndim, faceDegree, gradDegree, gbs
-        integer(kind=8) :: fbsCmp, projFBS, nbDoFsFE, projNbDoFsFE
+        integer(kind=8) :: fbsCmp, nbDoFsFE
         integer(kind=8) :: nbDoFs, ipg, i_gb, iBasis, iDoF, jDoF
         integer(kind=8) :: colX, colY, rhsXX, rhsYY, rhsXY, nbSigm
         integer(kind=8) :: colZ, rhsZZ, rhsXZ, rhsYZ
@@ -560,10 +526,10 @@ contains
 !
         call hhoBasisFace%initialize(hhoFaceMa)
         call hhoTherFaceDofs(hhoFaceMa, hhoDataMa, fbsCmp)
-        call cplCmpProjFEM2HHOFaceFullScal(FEFaceSl, hhoFaceMa, hhoDataMa, &
-                                           projFEM2HHO, projFBS, projNbDoFsFE)
-        ASSERT(projFBS == fbsCmp)
-        nbDoFsFE = projNbDoFsFE
+        ! Why this one work ?
+        call cplCmpProjFEM2HHOFaceScal(FEFaceSl, hhoFaceMa, hhoDataMa, &
+                                       projFEM2HHO)
+        nbDoFsFE = FEBasisFaceSl%size
         nbDoFs = ndim*(nbDoFsFE+fbsCmp)
 !
         call rhs%initialize(gbs, nbSigm*nbDoFs, 0.d0)
@@ -576,7 +542,7 @@ contains
 !
             BSEvalFaceSlProj = 0.d0
             do iBasis = 1, nbDoFsFE
-                BSEvalFaceSlProj(iBasis) = dot_product(projFEM2HHO(iBasis, 1:fbsCmp), &
+                BSEvalFaceSlProj(iBasis) = dot_product(projFEM2HHO(1:fbsCmp, iBasis), &
                                                        BSEvalFaceMa(1:fbsCmp))
             end do
 !
@@ -1167,12 +1133,12 @@ contains
         real(kind=8), dimension(MAX_BS_CG) :: BSEvalFaceSl, BSEvalFaceSlProj
         real(kind=8), dimension(3, MAX_BS_CG) :: BSGEvalCellSl
         real(kind=8), dimension(MSIZE_FACE_SCAL) :: BSEvalFaceMa
-        real(kind=8), dimension(MAX_BS_CG, MSIZE_FACE_SCAL) :: projFEM2HHO
+        real(kind=8), dimension(MSIZE_FACE_SCAL, MAX_BS_CG) :: projFEM2HHO
         real(kind=8) :: coor_qp_vo(3), normalSl(3), E, nu, lambda, mu
         real(kind=8) :: stress_n(3, 3), weight, matHB(6, 3)
         integer(kind=8) :: nbDoFsFace, nbDoFsFEFaceSl, nbDoFsFECellSl
         integer(kind=8) :: ndim, ipg, fbs, fbs_cmp, idim, iBasis, iRow, iret, jCol
-        integer(kind=8) :: jdim, jBasis, projFBS, projNbDoFsFE
+        integer(kind=8) :: jdim, jBasis
 !
 ! -- init face basis
 !
@@ -1196,10 +1162,8 @@ contains
 !    while the final elementary integration remains local to the current intersection S.
 !    Only the CG trace part in (v_CG - v_F) is replaced by Pi_F^k(v_CG).
         if (USE_L2_PROJ_STRESS) then
-            call cplCmpProjFEM2HHOFaceFullScal(FEFaceSl, hhoFaceMa, hhoDataMa, &
-                                               projFEM2HHO, projFBS, projNbDoFsFE)
-            ASSERT(projFBS == fbs_cmp)
-            ASSERT(projNbDoFsFE == FEBasisFaceSl%size)
+            call cplCmpProjFEM2HHOFaceScalRead(FEFaceSl, hhoFaceMa, hhoDataMa, &
+                                               projFEM2HHO)
         end if
 !
 ! -- Loop on quadrature point
@@ -1230,7 +1194,7 @@ contains
             if (USE_L2_PROJ_STRESS) then
                 BSEvalFaceSlProj = 0.d0
                 do jBasis = 1, FEBasisFaceSl%size
-                    BSEvalFaceSlProj(jBasis) = dot_product(projFEM2HHO(jBasis, 1:fbs_cmp), &
+                    BSEvalFaceSlProj(jBasis) = dot_product(projFEM2HHO(1:fbs_cmp, jBasis), &
                                                            BSEvalFaceMa(1:fbs_cmp))
                 end do
             else
