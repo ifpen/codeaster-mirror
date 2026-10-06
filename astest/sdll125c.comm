@@ -292,8 +292,7 @@ nbV = len(VIT)
 # --------------------------------------------------------------
 
 L_VITROT = [VIT[ii] * pi / 30.0 for ii in range(nbV)]
-Methode = "QZ"
-# Methode = 'SORENSEN'
+Methode = "SORENSEN"
 
 l_mod = CALC_MODE_ROTATION(
     MATR_RIGI=RIGIDITE,
@@ -302,8 +301,7 @@ l_mod = CALC_MODE_ROTATION(
     MATR_GYRO=GYASS,
     VITE_ROTA=L_VITROT,
     METHODE=Methode,
-    CALC_FREQ=_F(OPTION="PLUS_PETITE", NMAX_FREQ=nbF),
-    VERI_MODE=_F(STOP_ERREUR="NON", SEUIL=5.9999999999999995e-02),
+    CALC_FREQ=_F(OPTION="CENTRE", FREQ=100.0),
 )
 
 IMPR_TABLE(TABLE=l_mod)
