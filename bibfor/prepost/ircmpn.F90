@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -20,7 +20,6 @@ subroutine ircmpn(nofimd, ncmprf, ncmpve, numcmp, exicmp, &
                   nbvato, nbnoec, linoec, adsl, caimpi, &
                   caimpk, profas, innoce, nosdfu)
 !
-! person_in_charge: nicolas.sellenet at edf.fr
 !_______________________________________________________________________
 !  ECRITURE D'UN CHAMP - FORMAT MED - PROFIL POUR LES NOEUDS
 !     -  -       -              -     -               -
@@ -112,7 +111,7 @@ subroutine ircmpn(nofimd, ncmprf, ncmpve, numcmp, exicmp, &
     integer(kind=8) :: ifm, nivinf
 !
     integer(kind=8) :: iaux, jaux
-    integer(kind=8) :: nrcmp
+    integer(kind=8) :: nrcmp, nbtot, nbloc, start
     integer(kind=8) :: nval, rang, nbproc, jnbno, jno, nbnov, nbnoect(1)
     mpi_int :: mrank, msize
     aster_logical :: lficUniq, lnbnol, lnoec
@@ -290,7 +289,7 @@ subroutine ircmpn(nofimd, ncmprf, ncmpve, numcmp, exicmp, &
     if (lnbnol) then
 !
         call ircmpf(nofimd, nval, profas, noprof, nosdfu, &
-                    0, 0)
+                    0, 0, nbtot, nbloc, start)
 !
         caimpk(2) = noprof
 !

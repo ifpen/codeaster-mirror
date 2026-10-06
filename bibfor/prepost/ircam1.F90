@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -15,7 +15,6 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-! person_in_charge: nicolas.sellenet at edf.fr
 ! aslint: disable=W1504
 !
 subroutine ircam1(nofimd, nochmd, existc, ncmprf, numpt, &
@@ -23,7 +22,8 @@ subroutine ircam1(nofimd, nochmd, existc, ncmprf, numpt, &
                   adsk, partie, indcmp, ncmpve, ntlcmp, &
                   ntncmp, ntucmp, ntproa, nbimpr, caimpi, &
                   caimpk, typech, nomamd, nomtyp, modnum, &
-                  nuanom, lfichUniq, nosdfu, codret)
+                  nuanom, lfichUniq, nosdfu, dschmd, nosdpr, &
+                  codret)
 !
     use as_med_module, only: as_med_open
     implicit none
@@ -57,9 +57,9 @@ subroutine ircam1(nofimd, nochmd, existc, ncmprf, numpt, &
     character(len=8) :: nomtyp(*)
     character(len=24) :: ntlcmp, ntncmp, ntucmp, ntproa, indcmp
     character(len=*) :: nofimd, partie
-    character(len=*) :: nomamd
+    character(len=*) :: nomamd, nosdpr
     character(len=*) :: caimpk(3, nbimpr)
-    character(len=64) :: nochmd
+    character(len=64) :: nochmd, dschmd
     real(kind=8) :: instan
     aster_logical :: lfichUniq
     character(len=8) :: nosdfu
@@ -327,12 +327,12 @@ subroutine ircam1(nofimd, nochmd, existc, ncmprf, numpt, &
                         call ircmec(idfimd, nochmd, nomprf, nolopg, numpt, &
                                     instan, numord, zr(advale), ncmpve, nbenty, &
                                     nbrepg, nvalec, typent, tygeom, nosdfu, &
-                                    tymast, codret)
+                                    tymast, nrimpr, nosdpr, codret)
                     else
                         call ircmec(idfimd, nochmd, nomprf, nolopg, numpt, &
                                     instan, numord, rbid, ncmpve, nbenty, &
                                     nbrepg, nvalec, typent, tygeom, nosdfu, &
-                                    tymast, codret)
+                                    tymast, nrimpr, nosdpr, codret)
                     end if
 !
                     call jedetr(ntvale)

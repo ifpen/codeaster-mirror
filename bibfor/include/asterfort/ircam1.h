@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -23,7 +23,8 @@ interface
                       adsk, partie, indcmp, ncmpve, ntlcmp,&
                       ntncmp, ntucmp, ntproa, nbimpr, caimpi,&
                       caimpk, typech, nomamd, nomtyp, modnum,&
-                      nuanom, lfichUniq, nosdfu, codret)
+                      nuanom, lfichUniq, nosdfu, dschmd, nosdpr,&
+                      codret)
         integer(kind=8) :: nbimpr
         character(len=*) :: nofimd
         character(len=64) :: nochmd
@@ -51,6 +52,8 @@ interface
         integer(kind=8) :: modnum(MT_NTYMAX), nuanom(MT_NTYMAX, *)
         aster_logical :: lfichUniq
         character(len=8) :: nosdfu
+        character(len=64) :: dschmd
+        character(len=*) :: nosdpr
         integer(kind=8) :: codret
     end subroutine ircam1
 end interface

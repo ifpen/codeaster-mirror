@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -21,7 +21,8 @@ subroutine ircmpe(nofimd, ncmpve, numcmp, exicmp, nbvato, &
                   nbmaec, limaec, adsd, adsl, nbimpr, &
                   ncaimi, ncaimk, tyefma, typmai, typgeo, &
                   nomtyp, typech, profas, promed, prorec, &
-                  nroimp, chanom, sdcarm, field_type, nosdfu)
+                  nroimp, chanom, sdcarm, field_type, nosdfu, &
+                  nosdpr)
 !
     implicit none
 !
@@ -29,6 +30,7 @@ subroutine ircmpe(nofimd, ncmpve, numcmp, exicmp, nbvato, &
 #include "jeveux.h"
 #include "MeshTypes_type.h"
 #include "asterc/asmpi_allgather_i.h"
+#include "asterc/asmpi_allgatherv_char16.h"
 #include "asterc/asmpi_comm.h"
 #include "asterfort/asmpi_comm_vect.h"
 #include "asterfort/asmpi_info.h"
@@ -48,9 +50,9 @@ subroutine ircmpe(nofimd, ncmpve, numcmp, exicmp, nbvato, &
 #include "asterfort/as_allocate.h"
 !
     integer(kind=8) :: nbvato, ncmpve, numcmp(ncmpve), nbmaec, typmai(*), adsd
-    integer(kind=8) :: limaec(*), nbimpr, typgeo(*), profas(nbvato), tyefma(*)
-    integer(kind=8) :: nroimp(nbvato), promed(nbvato), prorec(nbvato), adsl
-    character(len=*) :: nofimd
+    integer(kind=8) :: limaec(*), nbimpr, typgeo(*), profas(nbvato), tyefma(*), start
+    integer(kind=8) :: nroimp(nbvato), promed(nbvato), prorec(nbvato), adsl, nbtot, nbloc
+    character(len=*) :: nofimd, nosdpr
     character(len=8) :: nomtyp(*), typech, sdcarm, nosdfu
     character(len=19) :: chanom
     character(len=24) :: ncaimi, ncaimk
@@ -113,18 +115,24 @@ subroutine ircmpe(nofimd, ncmpve, numcmp, exicmp, nbvato, &
     integer(kind=8) :: ifm, niv, ibid, iret, i_fpg, jaux, kaux, ima, jcesd, laux
     integer(kind=8) :: jcesc, jcesl, jcesv, nrefma
     integer(kind=8) :: nrcmp, nrpg, nrsp, nbpg, nbsp, nb_fpg, typmas, nbimp0, nrimpr
-    integer(kind=8) :: nbtcou, nbqcou, nbsec, nbfib, jnbimpr, jnbimpr2, jnbimpr3
-    integer(kind=8) :: adcaii, adcaik, nbgrf, nbmaect, nbimprl(1), jindir
+    integer(kind=8) :: nbtcou, nbqcou, nbsec, nbfib, jnbimpr, jnbimpr3
+    integer(kind=8) :: adcaii, adcaik, nbgrf, nbmaect, nbimprl(1), nb_cmp_tot
     integer(kind=8) :: nbgrf2, nbtcou2, nbqcou2, nbsec2, nbfib2, ima2, nbimprt
     integer(kind=8) :: igrfi, imafib, rang, nbproc, jma, jnbma, ityp, nbmal, iaux
+    integer(kind=8), pointer :: v_nb_ma(:) => null()
+    integer(kind=8), pointer :: v_nbimpr2(:) => null()
+    integer(kind=8), pointer :: v_indir(:) => null()
     character(len=16) :: nomfpg
     character(len=64) :: noprof
     aster_logical :: exicar, grfidt, elga_sp, okgrcq, oktuy
     character(len=16), pointer :: fpg_name(:) => null()
     character(len=16), pointer :: nofpgma(:) => null()
+    character(len=16), pointer :: v_nofpg(:) => null()
     mpi_int :: mrank, msize, mpicou, taille
     aster_logical :: lficUniq, lnbmal, lnbmaec, cara_ele_used
     real(kind=8) :: start_time, end_time
+    mpi_int, pointer :: v_count(:) => null()
+    mpi_int, pointer :: v_displ(:) => null()
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -448,12 +456,6 @@ subroutine ircmpe(nofimd, ncmpve, numcmp, exicmp, nbvato, &
     if (exicar .and. .not. cara_ele_used) then
         call utmess('A', 'MED2_13', sk=field_type)
     end if
-
-    !
-    if (typech(1:4) .eq. 'ELGA') then
-        AS_DEALLOCATE(vk16=fpg_name)
-        call jedetr('&&IRCMPE.NOFPGMA')
-    end if
     !
     ! Le but du bloc suivant est d'avoir les memes impressions a realiser
     ! sur tous les procs (quite à ce que certaines soient vides)
@@ -466,51 +468,62 @@ subroutine ircmpe(nofimd, ncmpve, numcmp, exicmp, nbvato, &
         call wkvect('&&IRCMPE.NBIMPR', 'V V I', nbproc+1, jnbimpr)
         taille = 1
         call asmpi_allgather_i(nbimprl, taille, zi(jnbimpr+1), taille, mpicou)
+        call wkvect('&&IRCMPE.COUNT', 'V V S', nbproc, vi4=v_count)
+        call wkvect('&&IRCMPE.DISPL', 'V V S', nbproc+1, vi4=v_displ)
+        nb_cmp_tot = 0
         do iaux = 2, nbproc+1
+            nb_cmp_tot = nb_cmp_tot+zi(jnbimpr+iaux-1)
+            v_count(iaux-1) = to_mpi_int(zi(jnbimpr+iaux-1))
+            v_displ(iaux) = to_mpi_int(nb_cmp_tot)
             zi(jnbimpr+iaux-1) = zi(jnbimpr+iaux-1)+zi(jnbimpr+iaux-2)
         end do
         zi(jnbimpr) = 0
-        call wkvect('&&IRCMPE.NBIMPR2', 'V V I', 10*nbimprt, jnbimpr2)
+        call wkvect('&&IRCMPE.NBIMPR2', 'V V I', 10*nbimprt, vi=v_nbimpr2)
+        call wkvect('&&IRCMPE.NOFPG', 'V V K16', nb_cmp_tot, vk16=v_nofpg)
         do iaux = 1, nbimpr
             do jaux = 0, 9
-                zi(jnbimpr2+10*(zi(jnbimpr+rang)+iaux-1)+jaux) = zi(adcaii+10*(iaux-1)+jaux)
+                v_nbimpr2(10*(zi(jnbimpr+rang)+iaux-1)+jaux+1) = zi(adcaii+10*(iaux-1)+jaux)
             end do
         end do
         call jedetr('&&IRCMPE.NBIMPR')
         call wkvect('&&IRCMPE.NBIMPR', 'V V I', nbimprt, jnbimpr)
         call wkvect('&&IRCMPE.NBIMPR3', 'V V I', 10*nbimprt, jnbimpr3)
-        call asmpi_comm_vect('MPI_SUM', 'I', 10*nbimprt, 0, vi=zi(jnbimpr2))
+        call asmpi_comm_vect('MPI_SUM', 'I', 10*nbimprt, 0, vi=v_nbimpr2)
+        taille = to_mpi_int(nbimpr)
+        call asmpi_allgatherv_char16(fpg_name, taille, v_nofpg, v_count, v_displ, mpicou)
+        call jedetr('&&IRCMPE.COUNT')
+        call jedetr('&&IRCMPE.DISPL')
         nbimprl(1) = 0
         do iaux = 1, nbimprt
             if (zi(jnbimpr+iaux-1) .eq. -1) cycle
-            nrefma = zi(jnbimpr2+10*(iaux-1))
-            nbsp = zi(jnbimpr2+10*(iaux-1)+2)
+            nomfpg = v_nofpg(iaux)
+            nbsp = v_nbimpr2(10*(iaux-1)+3)
             do jaux = iaux+1, nbimprt
-                if (nrefma .eq. zi(jnbimpr2+10*(jaux-1)) .and. &
-                    nbsp .eq. zi(jnbimpr2+10*(jaux-1)+2)) then
+                if (nomfpg .eq. v_nofpg(jaux) .and. &
+                    nbsp .eq. v_nbimpr2(10*(jaux-1)+3)) then
                     zi(jnbimpr+jaux-1) = -1
                     cycle
                 end if
             end do
             do jaux = 0, 9
-                zi(jnbimpr3+10*nbimprl(1)+jaux) = zi(jnbimpr2+10*(iaux-1)+jaux)
+                zi(jnbimpr3+10*nbimprl(1)+jaux) = v_nbimpr2(10*(iaux-1)+jaux+1)
             end do
             zi(jnbimpr3+10*nbimprl(1)+6) = 0
             nbimprl(1) = nbimprl(1)+1
         end do
         if (nbimpr .ne. 0) then
-            call wkvect('&&IRCMPE.INDIR', 'V V I', nbimpr, jindir)
+            call wkvect('&&IRCMPE.INDIR', 'V V I', nbimpr, vi=v_indir)
         end if
         do iaux = 1, nbimprl(1)
-            nrefma = zi(jnbimpr3+10*(iaux-1))
+            nomfpg = v_nofpg(iaux)
             nbsp = zi(jnbimpr3+10*(iaux-1)+2)
             nbpg = zi(jnbimpr3+10*(iaux-1)+1)
             do jaux = 1, nbimpr
-                if (nrefma .eq. zi(adcaii+10*(jaux-1)) .and. &
+                if (nomfpg .eq. fpg_name(jaux) .and. &
                     nbsp .eq. zi(adcaii+10*(jaux-1)+2)) then
                     zi(jnbimpr3+10*(iaux-1)+6) = zi(adcaii+10*(jaux-1)+6)
                     ASSERT(nbimpr .ne. 0)
-                    zi(jindir+jaux-1) = iaux
+                    v_indir(jaux) = iaux
                     cycle
                 end if
             end do
@@ -524,14 +537,21 @@ subroutine ircmpe(nofimd, ncmpve, numcmp, exicmp, nbvato, &
         call jedetr('&&IRCMPE.NBIMPR')
         call jedetr('&&IRCMPE.NBIMPR2')
         call jedetr('&&IRCMPE.NBIMPR3')
+        call jedetr('&&IRCMPE.NOFPG')
     else
         nbimprt = nbimpr
         if (nbimpr .ne. 0) then
-            call wkvect('&&IRCMPE.INDIR', 'V V I', nbimpr, jindir)
+            call wkvect('&&IRCMPE.INDIR', 'V V I', nbimpr, vi=v_indir)
             do jaux = 1, nbimpr
-                zi(jindir+jaux-1) = jaux
+                v_indir(jaux) = jaux
             end do
         end if
+    end if
+
+    !
+    if (typech(1:4) .eq. 'ELGA') then
+        AS_DEALLOCATE(vk16=fpg_name)
+        call jedetr('&&IRCMPE.NOFPGMA')
     end if
     if (nbimprt .eq. 0) then
         goto 999
@@ -565,17 +585,33 @@ subroutine ircmpe(nofimd, ncmpve, numcmp, exicmp, nbvato, &
     !                   POUR TOUTES LES MAILLES DU MAILLAGE
     !   ADRAUX(JAUX) =  ADRESSE DANS LES TABLEAUX PROMED ET PROFAS DE LA MAILLE COURANTE ASSOCIEE
     !                   A L'IMPRESSION NUMERO JAUX
-    do ima = 1, nbvato
-        typmas = typmai(ima)
-        nmaty0(typmas) = nmaty0(typmas)+1
-        if (prorec(ima) .ne. 0) then
-            jaux = zi(jindir+nroimp(ima)-1)
-            adraux(jaux) = adraux(jaux)+1
-            ASSERT(adraux(jaux) .le. nbvato)
-            promed(adraux(jaux)) = nmaty0(typmas)
-            profas(adraux(jaux)) = ima
-        end if
-    end do
+    if (.not. lficUniq) then
+        do ima = 1, nbvato
+            typmas = typmai(ima)
+            nmaty0(typmas) = nmaty0(typmas)+1
+            if (prorec(ima) .ne. 0) then
+                jaux = v_indir(nroimp(ima))
+                adraux(jaux) = adraux(jaux)+1
+                ASSERT(adraux(jaux) .le. nbvato)
+                promed(adraux(jaux)) = nmaty0(typmas)
+                profas(adraux(jaux)) = ima
+            end if
+        end do
+    else
+        do ima = 1, nbvato
+            typmas = typmai(ima)
+            nmaty0(typmas) = nmaty0(typmas)+1
+            if (zi(jma+ima-1) .gt. 0) then
+                if (prorec(ima) .ne. 0) then
+                    jaux = v_indir(nroimp(ima))
+                    adraux(jaux) = adraux(jaux)+1
+                    ASSERT(adraux(jaux) .le. nbvato)
+                    promed(adraux(jaux)) = nmaty0(typmas)
+                    profas(adraux(jaux)) = ima
+                end if
+            end if
+        end do
+    end if
     call jedetr('&&IRCMPE.INDIR')
     !
     ! MEMORISATION DANS LES CARACTERISTIQUES DE L'IMPRESSION
@@ -609,6 +645,7 @@ subroutine ircmpe(nofimd, ncmpve, numcmp, exicmp, nbvato, &
         jnbma = 0
     end if
     !
+    call wkvect(nosdpr, "V V I", 3*nbimpr, vi=v_nb_ma)
     do i_fpg = 1, nbimpr
         jaux = adcaii+10*(i_fpg-1)
         ! SI LE NOMBRE DE MAILLES A ECRIRE EST >0
@@ -628,9 +665,18 @@ subroutine ircmpe(nofimd, ncmpve, numcmp, exicmp, nbvato, &
             ! SI LE NOMBRE DE MAILLES A ECRIRE EST DIFFERENT
             ! DU NOMBRE TOTAL DE MAILLES DE MEME TYPE:
             if (lnbmal) then
-                call ircmpf(nofimd, zi(jaux+6), promed(kaux), noprof, nosdfu, 1, ityp)
+                if (lficUniq) then
+                    call ircmpf(nofimd, zi(jaux+6), profas(kaux), noprof, nosdfu, &
+                                1, ityp, nbtot, nbloc, start)
+                else
+                    call ircmpf(nofimd, zi(jaux+6), promed(kaux), noprof, nosdfu, &
+                                1, ityp, nbtot, nbloc, start)
+                end if
                 ! CAIMPK(2,I) = NOM DU PROFIL AU SENS MED
                 zk80(adcaik+3*(i_fpg-1)+1) = noprof
+                v_nb_ma(3*i_fpg-2) = nbtot
+                v_nb_ma(3*i_fpg-1) = nbloc
+                v_nb_ma(3*i_fpg) = start
             end if
             ! KAUX := POINTEUR PERMETTANT DE SE PLACER DANS PROMED POUR LA PROCHAINE IMPRESSION
             kaux = kaux+zi(jaux+6)

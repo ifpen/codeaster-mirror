@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -17,9 +17,8 @@
 ! --------------------------------------------------------------------
 
 subroutine ircmpf(nofimd, nvalty, profil, noprof, nosdfu, &
-                  typent, typmai)
+                  typent, typmai, nbtot, nbloc, start)
 !
-! person_in_charge: nicolas.sellenet at edf.fr
 !_______________________________________________________________________
 !  ECRITURE D'UN CHAMP - FORMAT MED - PROFIL
 !     -  -       -              -     -  -
@@ -46,6 +45,7 @@ subroutine ircmpf(nofimd, nvalty, profil, noprof, nosdfu, &
 #include "asterfort/asmpi_barrier.h"
 #include "asterfort/asmpi_comm_vect.h"
 #include "asterfort/asmpi_info.h"
+#include "asterfort/assert.h"
 #include "asterfort/codent.h"
 #include "asterfort/infniv.h"
 #include "asterfort/jedetr.h"
@@ -54,7 +54,7 @@ subroutine ircmpf(nofimd, nvalty, profil, noprof, nosdfu, &
 #include "asterfort/wkvect.h"
 #include "asterc/asmpi_bcast_char80.h"
 #include "asterc/asmpi_comm.h"
-    integer(kind=8) :: nvalty, profil(nvalty), typent, typmai
+    integer(kind=8) :: nvalty, profil(nvalty), typent, typmai, nbtot, nbloc, start
 !
     character(len=*) :: nofimd
     character(len=*) :: noprof
@@ -78,6 +78,7 @@ subroutine ircmpf(nofimd, nvalty, profil, noprof, nosdfu, &
     integer(kind=8) :: nbprof, lgprof, adprof, adnopf, nrprty, jprof
     integer(kind=8) :: iaux, jaux, jent, jproc
     integer(kind=8) :: codret, decal, nvalty2, jdecal
+    integer(kind=8), pointer :: v_decal(:) => null()
 !
     character(len=8) :: saux08
     character(len=24) :: ntprof, ntnopf
@@ -105,6 +106,8 @@ subroutine ircmpf(nofimd, nvalty, profil, noprof, nosdfu, &
     ntprof = '&&'//nompro//'.PROFIL_MED_LU  '
     ntnopf = '&&'//nompro//'.NOM_PROFIL_MED '
 !
+    nvalty2 = 0
+    decal = 0
     if (nosdfu .ne. ' ') then
         call asmpi_info(rank=mrank, size=msize)
         rang = to_aster_int(mrank)
@@ -116,16 +119,16 @@ subroutine ircmpf(nofimd, nvalty, profil, noprof, nosdfu, &
         end do
         call asmpi_comm_vect('MPI_SUM', 'I', nbval=nbproc+1, vi=zi(jproc))
         if (typent .eq. 0) then
-            call jeveuo(nosdfu//'.NOEU', 'L', jdecal)
+            call jeveuo(nosdfu//'.NOEU', 'L', vi=v_decal)
         else
-            call jeveuo(nosdfu//'.MAIL', 'L', jdecal)
+            call jeveuo(nosdfu//'.MAIL', 'L', vi=v_decal)
         end if
         nvalty2 = zi(jproc+nbproc)
         call jedetr('&&IRCMPF.PROFIL')
         call wkvect('&&IRCMPF.PROFIL', 'V V I', nvalty2, jprof)
         decal = zi(jproc+rang)
         do iaux = 1, nvalty
-            zi(jprof+iaux+decal-1) = zi(jdecal+profil(iaux)-1)
+            zi(jprof+iaux+decal-1) = v_decal(profil(iaux))
         end do
         call asmpi_comm_vect('MPI_SUM', 'I', nbval=nvalty2, vi=zi(jprof))
         if (typent .eq. 0) then
@@ -133,11 +136,6 @@ subroutine ircmpf(nofimd, nvalty, profil, noprof, nosdfu, &
             zi(jent) = decal+1
             zi(jent+1) = nvalty
             zi(jent+2) = nvalty2
-        else
-            call jeveuo(nosdfu//'.MATYP', 'E', jent)
-            zi(jent+3*(typmai-1)) = decal+1
-            zi(jent+3*(typmai-1)+1) = nvalty
-            zi(jent+3*(typmai-1)+2) = nvalty2
         end if
         if (rang .ne. 0) goto 500
     else
@@ -163,6 +161,7 @@ subroutine ircmpf(nofimd, nvalty, profil, noprof, nosdfu, &
 !    S'IL Y EN A, ON ALLOUE UN TABLEAU POUR STOCKER LEURS NOMS
 !====
 !
+    nbprof = 0
     call as_mpfnpf(idfimd, nbprof, codret)
     if (codret .ne. 0) then
         saux08 = 'mpfnpf'
@@ -196,8 +195,8 @@ subroutine ircmpf(nofimd, nvalty, profil, noprof, nosdfu, &
             write (ifm, 4101) iaux, noprof, lgprof
         end if
 4101    format(5x, 'LECTURE DU PROFIL NUMERO', i8,&
-               &     /, 5x, '...NOM       : ', a,&
-               &     /, 5x, '... LONGUEUR : ', i8)
+                        &     /, 5x, '...NOM       : ', a,&
+                        &     /, 5x, '... LONGUEUR : ', i8)
 !
         zk80(adnopf+iaux-1) = noprof
 !
@@ -316,9 +315,9 @@ subroutine ircmpf(nofimd, nvalty, profil, noprof, nosdfu, &
         if (nivinf .gt. 1) then
             write (ifm, 6301) noprof, nvalty2, profil(1), profil(nvalty2)
 6301        format(4x, 'PROFIL A CREER :',&
-                   &         /, 4x, '. NOM                      = ', a,&
-                   &         /, 4x, '. LONGUEUR                 = ', i8,&
-                   &         /, 4x, '. 1ERE ET DERNIERE VALEURS = ', 2i8)
+                                        &         /, 4x, '. NOM                      = ', a,&
+                                        &         /, 4x, '. LONGUEUR                 = ', i8,&
+                                        &         /, 4x, '. 1ERE ET DERNIERE VALEURS = ', 2i8)
         end if
         if (nosdfu .eq. ' ') then
             call as_mpfprw(idfimd, profil, nvalty2, noprof, codret)
@@ -357,6 +356,9 @@ subroutine ircmpf(nofimd, nvalty, profil, noprof, nosdfu, &
 !
     call jedetr(ntnopf)
     call jedetr(ntprof)
+    nbtot = nvalty2
+    nbloc = nvalty
+    start = decal+1
 !
     if (nivinf .gt. 1) then
         write (ifm, 1001) 'FIN DE '//nompro
