@@ -121,7 +121,7 @@ subroutine ircame(ifi, nochmd, chanom, typech, ligrel, &
     character(len=8)   :: saux08, nomaas, nomtyp(MT_NTYMAX), nom_sd_fu
     character(len=16)  :: formar
     character(len=24)  :: ntlcmp, ntncmp, ntucmp, ntproa, nmcmfi, ncaimi, ncaimk
-    character(len=24)  :: indcmp
+    character(len=24)  :: indcmp, nosdpr
     character(len=32)  :: nomgd
     character(len=64)  :: nomamd, dschmd
     character(len=200) :: nofimd
@@ -366,12 +366,13 @@ subroutine ircame(ifi, nochmd, chanom, typech, ligrel, &
 !            VERIF COHERENCE AVEC LE CATALOGUE
     call lrmtyp(nbtyp, nomtyp, nnotyp, typgeo, renumd, &
                 modnum, nuanom, numnoa)
+    nosdpr = '&&IRCAME.PROFIL_SIZE'
 !   3.3. ==> DEFINITIONS DES IMPRESSIONS ET CREATION DES PROFILS EVENTUELS
     call ircmpr(nofimd, typech, nbimpr, ncaimi, ncaimk, &
                 ncmprf, ncmpvl, ntlcmp, nbvato, nbenec, &
                 lienec, adsd, adsl, nomaas, ligrel, &
                 typgeo, nomtyp, ntproa, chanom, sdcarm, &
-                field_type, nom_sd_fu)
+                field_type, nom_sd_fu, nosdpr)
 
 ! - Get number of components
     if (field_type .eq. 'VARI_ELGA') then
@@ -434,13 +435,15 @@ subroutine ircame(ifi, nochmd, chanom, typech, ligrel, &
                         adsk, partie, indcmp, ncmpve, ntlcmp, &
                         ntncmp, ntucmp, ntproa, nbimpr, zi(adcaii), &
                         zk80(adcaik), typech, nomamd, nomtyp, modnum, &
-                        numnoa, lfichUniq, nom_sd_fu, dschmd, codret)
+                        numnoa, lfichUniq, nom_sd_fu, dschmd, nosdpr, &
+                        codret)
         else
             call utmess('F', 'MED2_4', sk=nochmd, sr=instan)
         end if
     else
         call utmess('A', 'MED_82', sk=nochmd)
     end if
+    call jedetr(nosdpr)
 !
 999 continue
     if (nivinf .gt. 1) then

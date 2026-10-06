@@ -20,7 +20,7 @@
 !
 interface
     subroutine ircmpf(nofimd, nvalty, profil, noprof, nosdfu,&
-                      typent, typmai)
+                      typent, typmai, nbtot, nbloc, start)
         integer(kind=8) :: nvalty
         character(len=*) :: nofimd
         integer(kind=8) :: profil(nvalty)
@@ -28,5 +28,8 @@ interface
         character(len=8) :: nosdfu
         integer(kind=8) :: typent
         integer(kind=8) :: typmai
+        integer(kind=8) :: nbtot
+        integer(kind=8) :: nbloc
+        integer(kind=8) :: start
     end subroutine ircmpf
 end interface

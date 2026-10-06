@@ -19,7 +19,7 @@
 subroutine ircmec(idfimd, nochmd, nomprf, nolopg, numpt, &
                   instan, numord, val, ncmpve, nbenty, &
                   nbrepg, nvalec, typent, typgeo, nosdfu, &
-                  tymast, codret)
+                  tymast, nrimpr, nosdpr, codret)
 !_______________________________________________________________________
 !     ECRITURE D'UN CHAMP -  FORMAT MED - ECRITURE
 !        -  -       -               -     --
@@ -57,13 +57,13 @@ subroutine ircmec(idfimd, nochmd, nomprf, nolopg, numpt, &
 #include "asterfort/infniv.h"
 #include "asterfort/jeveuo.h"
 #include "asterfort/utmess.h"
-    character(len=*) :: nochmd, nomprf, nolopg
+    character(len=*) :: nochmd, nomprf, nolopg, nosdpr
     character(len=8) :: nosdfu
 !
     med_idt :: idfimd
     integer(kind=8) :: numpt, numord
     integer(kind=8) :: ncmpve, nbenty, nbrepg, nvalec
-    integer(kind=8) :: typent, typgeo, tymast
+    integer(kind=8) :: typent, typgeo, tymast, nrimpr
 !
     real(kind=8) :: instan
     real(kind=8) :: val(*)
@@ -98,6 +98,7 @@ subroutine ircmec(idfimd, nochmd, nomprf, nolopg, numpt, &
     integer(kind=8) :: ifm, nivinf
     integer(kind=8) :: iaux, jnbno, nbentl, nbentt, start, filter(1)
     integer(kind=8) :: jnbma, nbbloc
+    integer(kind=8), pointer :: v_nb_ma(:) => null()
     real(kind=8) :: start_time, end_time
 !
     character(len=8) :: saux08
@@ -201,12 +202,15 @@ subroutine ircmec(idfimd, nochmd, nomprf, nolopg, numpt, &
                 if (typent .eq. 0 .or. typent .eq. 4) then
                     if (nomprf .eq. ' ') then
                         call jeveuo(nosdfu//'.MATY', 'L', jnbma)
+                        start = zi(jnbma+3*(tymast-1))
+                        nbentl = zi(jnbma+3*(tymast-1)+1)
+                        nbentt = zi(jnbma+3*(tymast-1)+2)
                     else
-                        call jeveuo(nosdfu//'.MATYP', 'L', jnbma)
+                        call jeveuo(nosdpr, 'L', vi=v_nb_ma)
+                        nbentt = v_nb_ma(3*nrimpr-2)
+                        nbentl = v_nb_ma(3*nrimpr-1)
+                        start = v_nb_ma(3*nrimpr)
                     end if
-                    start = zi(jnbma+3*(tymast-1))
-                    nbentl = zi(jnbma+3*(tymast-1)+1)
-                    nbentt = zi(jnbma+3*(tymast-1)+2)
                 else
                     if (nomprf .eq. ' ') then
                         call jeveuo(nosdfu//'.NBNO', 'L', jnbno)

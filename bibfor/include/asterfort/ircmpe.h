@@ -22,7 +22,8 @@ interface
                       nbmaec, limaec, adsd, adsl, nbimpr,&
                       ncaimi, ncaimk, tyefma, typmai, typgeo,&
                       nomtyp, typech, profas, promed, prorec,&
-                      nroimp, chanom, sdcarm, field_type, nosdfu)
+                      nroimp, chanom, sdcarm, field_type, nosdfu,&
+                      nosdpr)
         integer(kind=8) :: nbvato
         integer(kind=8) :: ncmpve
         character(len=*) :: nofimd
@@ -48,5 +49,6 @@ interface
         character(len=8) :: sdcarm
         character(len=16), intent(in) :: field_type
         character(len=8) :: nosdfu
+        character(len=*) :: nosdpr
     end subroutine ircmpe
 end interface

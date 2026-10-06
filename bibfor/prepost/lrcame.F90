@@ -595,6 +595,7 @@ subroutine lrcame(nrofic, nochmd, nomamd, nomaas, ligrel, &
         do letype = 1, nbtylu
 !
             nbprof = lnbpro(letype)
+            k = 0
             do iprof = 1, nbprof
                 nbnoma = 1
                 if (typech(1:4) .eq. 'ELNO') then
@@ -643,7 +644,6 @@ subroutine lrcame(nrofic, nochmd, nomamd, nomaas, ligrel, &
 !
                 call wkvect('&&'//nompro//'.NUM.'//nomtyp(ltyp(letype)), &
                             'V V I', nbty(letype), jnumty)
-                k = 0
                 if (lgproa .eq. 0) then
                     do ima = 1, nbma
                         if (typmail(ima) .eq. ltyp(letype)) then
@@ -656,11 +656,7 @@ subroutine lrcame(nrofic, nochmd, nomamd, nomaas, ligrel, &
                             end if
                         end if
                     end do
-                    if (k .ne. nbty(letype)) then
-                        call utmess('F', 'MED_58')
-                    end if
                 else
-                    k = 0
                     cptyma = 1
                     do ima = 1, nbma
                         if (typmail(ima) .eq. ltyp(letype)) then
@@ -676,9 +672,6 @@ subroutine lrcame(nrofic, nochmd, nomamd, nomaas, ligrel, &
                             cptyma = cptyma+1
                         end if
                     end do
-                    if (k .ne. lgprof) then
-                        call utmess('F', 'MED_58')
-                    end if
                 end if
 !
 !====
@@ -696,6 +689,15 @@ subroutine lrcame(nrofic, nochmd, nomamd, nomaas, ligrel, &
                 call jedetr('&&'//nompro//'.NUM.'//nomtyp(ltyp(letype)))
 !
             end do
+            if (lgproa .eq. 0) then
+                if (k .ne. nbty(letype)) then
+                    call utmess('F', 'MED_58')
+                end if
+            else
+                if (k .ne. lgprof) then
+                    call utmess('F', 'MED_58')
+                end if
+            end if
         end do
     end if
 !

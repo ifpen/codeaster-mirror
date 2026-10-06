@@ -22,7 +22,8 @@ subroutine ircam1(nofimd, nochmd, existc, ncmprf, numpt, &
                   adsk, partie, indcmp, ncmpve, ntlcmp, &
                   ntncmp, ntucmp, ntproa, nbimpr, caimpi, &
                   caimpk, typech, nomamd, nomtyp, modnum, &
-                  nuanom, lfichUniq, nosdfu, dschmd, codret)
+                  nuanom, lfichUniq, nosdfu, dschmd, nosdpr, &
+                  codret)
 !
     use as_med_module, only: as_med_open
     implicit none
@@ -57,7 +58,7 @@ subroutine ircam1(nofimd, nochmd, existc, ncmprf, numpt, &
     character(len=8) :: nomtyp(*)
     character(len=24) :: ntlcmp, ntncmp, ntucmp, ntproa, indcmp
     character(len=*) :: nofimd, partie
-    character(len=*) :: nomamd
+    character(len=*) :: nomamd, nosdpr
     character(len=*) :: caimpk(3, nbimpr)
     character(len=64) :: nochmd, dschmd
     real(kind=8) :: instan
@@ -336,12 +337,12 @@ subroutine ircam1(nofimd, nochmd, existc, ncmprf, numpt, &
                         call ircmec(idfimd, nochmd, nomprf, nolopg, numpt, &
                                     instan, numord, zr(advale), ncmpve, nbenty, &
                                     nbrepg, nvalec, typent, tygeom, nosdfu, &
-                                    tymast, codret)
+                                    tymast, nrimpr, nosdpr, codret)
                     else
                         call ircmec(idfimd, nochmd, nomprf, nolopg, numpt, &
                                     instan, numord, rbid, ncmpve, nbenty, &
                                     nbrepg, nvalec, typent, tygeom, nosdfu, &
-                                    tymast, codret)
+                                    tymast, nrimpr, nosdpr, codret)
                     end if
 !
                     call jedetr(ntvale)
