@@ -160,6 +160,10 @@ subroutine dismme(questi, nomobz, repi, repkz, ierd)
 22              continue
             end do
         end if
+        if (repk .eq. ' ') then
+! On aurait du le trouver avant
+            call dismmo(questi, mo, repi, repk, ierd)
+        end if
 !
     else if (questi .eq. 'PHENOMENE') then
         repk = ' '
@@ -179,6 +183,10 @@ subroutine dismme(questi, nomobz, repi, repkz, ierd)
                 end if
 23              continue
             end do
+        end if
+        if (repk .eq. ' ') then
+            ! On aurait du le trouver avant
+            call dismmo(questi, mo, repi, repk, ierd)
         end if
 !
     else if (questi .eq. 'SUR_OPTION') then
