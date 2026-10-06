@@ -211,21 +211,21 @@ FO19 = DEFI_FONCTION(
 # ----------------------------------------------------------------------
 #    DEFINITION DES CARACTERISTIQUES ELEMENTAIRES : AXES LOCAUX
 # ----------------------------------------------------------------------
-CARA1 = AFFE_CARA_ELEM(
+cham_orie = DEFI_REPERE(
     MODELE=MO,
-    MASSIF=(
-        _F(GROUP_MA="TOUT", ANGL_REP=(21.4, 5.8, -16.7)),
-        _F(GROUP_MA=("GMA16", "GMA17", "GMA18"), ANGL_AXE=(57.4, 22.7), ORIG_AXE=(1.1, 0.5, 0.6)),
+    DEFI=(
+        _F(GROUP_MA="TOUT", SYST_COOR="CARTESIEN", ANGL_NAUT=(21.4, 5.8, -16.7)),
+        _F(
+            GROUP_MA=("GMA16", "GMA17", "GMA18"),
+            SYST_COOR="CYLINDRIQUE",
+            ORIG_AXE=(1.1, 0.5, 0.6),
+            ANGL_AXE=(57.4, 22.7),
+        ),
     ),
 )
 
-CARA2 = AFFE_CARA_ELEM(
-    MODELE=MOTH,
-    MASSIF=(
-        _F(GROUP_MA="TOUT", ANGL_REP=(21.4, 5.8, -16.7)),
-        _F(GROUP_MA=("GMA16", "GMA17", "GMA18"), ANGL_AXE=(57.4, 22.7), ORIG_AXE=(1.1, 0.5, 0.6)),
-    ),
-)
+CARA1 = AFFE_CARA_ELEM(MODELE=MO, MASSIF=_F(TOUT="OUI", CHAM_ORIE=cham_orie))
+CARA2 = AFFE_CARA_ELEM(MODELE=MOTH, MASSIF=_F(TOUT="OUI", CHAM_ORIE=cham_orie))
 
 # ----------------------------------------------------------------------
 #    DEFINITION ET AFFECTATION DU MATERIAU

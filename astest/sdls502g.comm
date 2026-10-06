@@ -38,8 +38,11 @@ PLAQ_MA = DEFI_GROUP(
 #                     CARACTERISTIQUES ELEMENTAIRES
 # ---------------------------------------------------------------------
 #
-CARA_ELE = AFFE_CARA_ELEM(MODELE=MODEL, MASSIF=_F(GROUP_MA="TOUT_ELT", ANGL_REP=(15.5, 0.0)))
+CHAMORIE = DEFI_REPERE(
+    MODELE=MODEL, DEFI=_F(GROUP_MA="TOUT_ELT", SYST_COOR="CARTESIEN", ANGL_NAUT=(15.5, 0.0, 0.0))
+)
 
+CARA_ELE = AFFE_CARA_ELEM(MODELE=MODEL, MASSIF=_F(TOUT="OUI", CHAM_ORIE=CHAMORIE))
 #
 # ---------------------------------------------------------------------
 #                     CARACTERISTIQUES MATERIAUX

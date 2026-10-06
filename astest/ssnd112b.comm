@@ -155,10 +155,12 @@ phi = NP.arccos(l / NP.sqrt(h * h + k * k + l * l)) * 180.0 / NP.pi
 phi2 = NP.arctan2(h / NP.sqrt(h * h + k * k), k / NP.sqrt(h * h + k * k)) * 180.0 / NP.pi
 
 pena = 1.0e4
-
+cham_orie = DEFI_REPERE(
+    MODELE=TROISD, DEFI=(_F(GROUP_MA="VOL", SYST_COOR="CARTESIEN", ANGL_EULER=(phi1, phi, phi2)),)
+)
 ORIEN = AFFE_CARA_ELEM(
     MODELE=TROISD,
-    MASSIF=_F(GROUP_MA="VOL", ANGL_EULER=(phi1, phi, phi2)),
+    MASSIF=_F(TOUT="OUI", CHAM_ORIE=cham_orie),
     DISCRET=_F(GROUP_MA=("PX1",), CARA="K_T_D_N", VALE=(0.0, pena, 0.0)),
 )
 
