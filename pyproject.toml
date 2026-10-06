@@ -27,11 +27,13 @@ gmsh = ["gmsh"]
 matplotlib = ["matplotlib"]
 pandas = ["pandas"]
 sympy = ["sympy"]
+vscode = ["pygls==1.3.1", "medcoupling"]
 all = [
     "codeaster-src[gmsh]",
     "codeaster-src[matplotlib]",
     "codeaster-src[pandas]",
     "codeaster-src[sympy]",
+    "codeaster-src[vscode]",
 ]
 
 [build-system]

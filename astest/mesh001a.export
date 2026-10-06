@@ -6,6 +6,7 @@ P mpi_nbnoeud 1
 P testlist submit verification sequential
 
 F comm mesh001a.py D 1
+F comm mesh001a_part2.py D 1
 F nom ssnp14c.mail D 0
 F nom ssnv187a.msh D 0
 F nom erreu03a.mgib D 0

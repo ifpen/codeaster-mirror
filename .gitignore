@@ -21,6 +21,7 @@ vola.*
 .hg*
 .jenkins*
 .vscode/*
+**/.vs-code-aster
 devtools
 
 code_aster/pkginfo.py
