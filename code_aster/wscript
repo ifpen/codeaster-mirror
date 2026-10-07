@@ -1,4 +1,3 @@
-# coding=utf-8
 # --------------------------------------------------------------------
 # Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
@@ -68,12 +67,12 @@ def check_version(self):
         assert type(chg) is int, (9, values)
         assert type(loc) in (list, tuple), (10, values)
         if loc:
-            types = list(set([type(i) for i in loc]))
+            types = list({type(i) for i in loc})
             assert len(types) == 1, (11, types)
             assert types[0] is str, (12, values)
     except AssertionError as exc:
         raise Errors.ConfigurationError(
-            "Can not find official parent revision. Unexpected values: {0}".format(str(exc))
+            f"Can not find official parent revision. Unexpected values: {exc}"
         )
     self.env.append_value("ASTER_VERSION", values)
     self.end_msg(self.env.ASTER_VERSION[:-1])
@@ -127,7 +126,8 @@ def check_aster_version(self):
     pkginfo = get_srcs("**/pkginfo.py")
     if pkginfo:
         ctxt = {}
-        exec(compile(open(pkginfo[0].abspath()).read(), pkginfo[0].abspath(), "exec"), ctxt)
+        with open(pkginfo[0].abspath()) as pkgf:
+            exec(compile(pkgf.read(), pkginfo[0].abspath(), "exec"), ctxt)
         return ctxt["pkginfo"]
     # get revision informations
     return get_revision_info(self)
@@ -146,7 +146,7 @@ DEFAULT_PKGINFO = [
 
 def _exec_cmd(cmd):
     # avoid conflict between hg and currently used python version
-    env = dict([(k, v) for k, v in os.environ.items() if not k.startswith("PYTHON")])
+    env = {k: v for k, v in os.environ.items() if not k.startswith("PYTHON")}
     out = Popen(cmd, stdout=PIPE, env=env).communicate()[0]
     return out.decode().strip()
 
@@ -156,59 +156,8 @@ ERROR_MSG = (
     "repository or create manually a file named "
     "`code_aster/pkginfo.py` with the necessary informations "
     "about the version. Example:\n"
-    "pkginfo = {}".format(DEFAULT_PKGINFO)
+    f"pkginfo = {DEFAULT_PKGINFO}"
 )
-
-
-def get_revision_info_hg(self, depth):
-    """Return details about changes between the last official tagged revision
-    and the current revision."""
-    try:
-        self.find_program("hg")
-    except Errors.WafError:
-        raise Errors.ConfigurationError("'hg' not found\n" + ERROR_MSG)
-
-    rev = "."
-    from_rev = "({0})~{1}".format(rev, depth)
-    ancestors = "({0})::({1})".format(from_rev, rev)
-    loc = _exec_cmd(["hg", "status", "-namrdu"]).split()
-    logs = _exec_cmd([
-        "hg",
-        "log",
-        "-r",
-        ancestors,
-        "--template",
-        "{rev}:{node}:{tags}:{branch}:{date|shortdate}:{files}\n",
-    ]).splitlines()
-    if not logs:
-        raise ValueError("empty revs range: {0}\n".format(ancestors) + ERROR_MSG)
-    last = logs[-1].split(":")
-    # print "\n".join(logs)
-    _revn, revid, _tag, branch, date, _files = last
-    Y, m, d = date.strip().split("-")
-    date = "/".join([d, m, Y])
-    brs = [i.split(":")[3] for i in logs]
-    # search official branch
-    BR = ["main"] + ["v%d" % i for i in range(10, 30)]
-    frbr = "?"
-    while brs:
-        br_i = brs.pop()
-        if br_i in BR:
-            frbr = br_i
-            break
-    # search last tag
-    vers = "?"
-    chg = 0
-    for info in reversed(logs):
-        _rev, _node, tag, br, _idat, _files = info.split(":")
-        # ignore non official branches
-        if br not in BR:
-            continue
-        if tag not in ("", "tip"):
-            vers = version2tuple(tag)[:3]
-            break
-        chg += 1
-    return [vers, revid, branch, date, frbr, chg, loc]
 
 
 def get_revision_info_git(self, depth):
@@ -230,13 +179,13 @@ def get_revision_info_git(self, depth):
         raise Errors.ConfigurationError("'git' not found\n" + ERROR_MSG)
 
     rev = "HEAD"
-    from_rev = "{0}~{1}".format(rev, depth)
-    ancestors = "{0}..{1}".format(from_rev, rev)
+    from_rev = f"{rev}~{depth}"
+    ancestors = f"{from_rev}..{rev}"
     lines = _exec_cmd(["git", "status", "--porcelain=v1"]).splitlines()
     loc = [i.split()[1] for i in lines]
     logs = _exec_cmd(["git", "log", ancestors, "--format=%H@%at@%D"]).splitlines()
     if not logs:
-        raise ValueError("empty revs range: {0}\n".format(ancestors) + ERROR_MSG)
+        raise ValueError(f"empty revs range: {ancestors}\n" + ERROR_MSG)
     revid, tdate, refs = logs[0].split("@")
     date = strftime("%d/%m/%Y", localtime(int(tdate)))
     refs = refs.split(", ")
@@ -244,7 +193,7 @@ def get_revision_info_git(self, depth):
     brs = list(chain.from_iterable(brs))
     branch = "?" if not brs else brs[0]
     # search for official branch
-    BR = ["main"] + ["v%d" % i for i in range(10, 30)]
+    BR = ["main"] + [f"v{i}" for i in range(10, 30)]
     frbr = "?"
     while brs:
         br_i = brs.pop()
