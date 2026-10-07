@@ -263,7 +263,8 @@ class Serializer:
                         names.append(name)
                 except EOFError:
                     pass
-                PicklingHelper.reset()
+                # FIXME this "fix" breaks to many cases, to be reviewed
+                # PicklingHelper.reset()
 
         not_read = set(objList).difference(names)
         if not_read:
