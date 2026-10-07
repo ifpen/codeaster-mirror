@@ -22,6 +22,13 @@
 #                       MEMBRANE DE COOK                               #
 ########################################################################
 
+from code_aster.Commands import *
+from code_aster.Utilities import SharedTmpdir
+import os.path as osp
+from code_aster import CA
+
+test = CA.TestCase()
+
 DEBUT(CODE="OUI", ERREUR=_F(ALARME="EXCEPTION"), DEBUG=_F(SDVERI="OUI"))
 
 mesh_quad = LIRE_MAILLAGE(FORMAT="MED")
@@ -41,6 +48,19 @@ mesh = DEFI_GROUP(
     MAILLAGE=mesh,
     CREA_GROUP_NO=_F(NOM="B", OPTION="ENV_SPHERE", POINT=(24, 22), RAYON=1e-3, PRECISION=0.01),
 )
+
+# Test med print of non med elements
+with SharedTmpdir("sslp104e_") as tmpdir:
+    medfile = osp.join(tmpdir.path, "zzzz505k.med")
+    mesh.printMedFile(medfile)
+    mesh2 = CA.Mesh()
+    mesh2.readMedFile(medfile)
+    conn1 = mesh.getConnectivity()
+    conn2 = mesh2.getConnectivity()
+    # Check connectivity
+    for elem1, elem2 in zip(conn1, conn2):
+        for i in range(len(elem2)):
+            test.assertEqual(elem1[i], elem2[i])
 
 model = AFFE_MODELE(
     AFFE=_F(MODELISATION=("D_PLAN",), PHENOMENE="MECANIQUE", TOUT="OUI"), MAILLAGE=mesh

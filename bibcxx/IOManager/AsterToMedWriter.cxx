@@ -195,6 +195,7 @@ bool AsterToMedWriter::printMesh( const Mesh &toPrint, const std::filesystem::pa
         irange( (ASTERINTEGER)0, (ASTERINTEGER)( toPrint.getNumberOfCells() - 1 ) );
     return _printMeshFromList( toPrint, filename, nodeList, cellList, local, meshName, mode );
 };
+
 #ifdef ASTER_HAVE_MPI
 bool AsterToMedWriter::printMesh( const ConnectionMesh &toPrint,
                                   const std::filesystem::path &filename, bool local,
@@ -280,6 +281,7 @@ bool AsterToMedWriter::printMesh( const ParallelMesh &toPrint,
     return cret;
 };
 #endif
+
 bool AsterToMedWriter::_printMeshFromList( const BaseMesh &toPrint,
                                            const std::filesystem::path &filename,
                                            const VectorLong &nodeList, const VectorLong &cellList,
@@ -399,7 +401,10 @@ bool AsterToMedWriter::_printMeshFromList( const BaseMesh &toPrint,
         const auto cellNb = cellIds.size();
         if ( !localEmpty ) {
             const auto &firstCell = ( *connectivity )[cellIds[0] + 1];
-            nodeNbInCell = firstCell->size();
+            nodeNbInCell = mesh->getNodeNumberForGeometricType( geotype );
+            if ( nodeNbInCell > firstCell->size() ) {
+                throw std::runtime_error( "Error in cell printing" );
+            }
             curConn = std::vector< med_int >( nodeNbInCell * cellNb, 0 );
             curFamilies = std::vector< med_int >( cellNb, 0 );
             int curPos = 0, posInFamilies = 0;
@@ -548,6 +553,7 @@ void AsterToMedWriter::_sortCellsByType( const VectorLong &cellVector, JeveuxVec
         cellIdByType[cellTypeMod - 1].push_back( cellId );
     }
 };
+
 #ifdef ASTER_HAVE_MPI
 void AsterToMedWriter::_buildFilterInformations(
     const VectorLong &nodeVector, const VectorLong &cellVector, JeveuxVectorLong cellTypeVec,
