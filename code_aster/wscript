@@ -172,16 +172,14 @@ def get_revision_info_hg(self, depth):
     from_rev = "({0})~{1}".format(rev, depth)
     ancestors = "({0})::({1})".format(from_rev, rev)
     loc = _exec_cmd(["hg", "status", "-namrdu"]).split()
-    logs = _exec_cmd(
-        [
-            "hg",
-            "log",
-            "-r",
-            ancestors,
-            "--template",
-            "{rev}:{node}:{tags}:{branch}:{date|shortdate}:{files}\n",
-        ]
-    ).splitlines()
+    logs = _exec_cmd([
+        "hg",
+        "log",
+        "-r",
+        ancestors,
+        "--template",
+        "{rev}:{node}:{tags}:{branch}:{date|shortdate}:{files}\n",
+    ]).splitlines()
     if not logs:
         raise ValueError("empty revs range: {0}\n".format(ancestors) + ERROR_MSG)
     last = logs[-1].split(":")
@@ -271,13 +269,11 @@ def get_revision_info(self):
     and the current revision."""
     if self.options.without_repo:
         return DEFAULT_PKGINFO
-    # check repository type
-    getinfo = get_revision_info_git if osp.isdir(".git") else get_revision_info_hg
     # search on last `depth` revisions - must be lesser than GIT_DEPTH in CI
     depth = 99
     found = False
     while not found and depth < 20000:
-        infos = getinfo(self, depth=depth)
+        infos = get_revision_info_git(self, depth=depth)
         depth = depth * 4
         found = infos[0] != "?"
     return infos
