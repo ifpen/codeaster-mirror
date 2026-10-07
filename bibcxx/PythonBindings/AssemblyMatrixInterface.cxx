@@ -176,9 +176,11 @@ Arguments:
         .def( "getLowerValues", &AssemblyMatrixDisplacementReal::getLowerValues )
         // -----------------------------------------------------------------------------------------
         .def(
-            "__call__",
-            []( const AssemblyMatrixDisplacementReal &self, const ASTERINTEGER i_row,
-                const ASTERINTEGER i_col ) { return self( i_row, i_col ); },
+            "__getitem__",
+            []( const AssemblyMatrixDisplacementReal &self,
+                const std::pair< ASTERINTEGER, ASTERINTEGER > &indices ) {
+                return self( indices.first, indices.second );
+            },
             R"(
 Return one matrix coefficient.
 Only supports Morse storage. A coefficient absent from the profile is zero.
@@ -191,7 +193,7 @@ Arguments:
 Returns:
     [float]: value of the matritx at (i_row, j_col)
         )",
-            py::arg( "i_row" ), py::arg( "i_col" ) )
+            py::arg( "indices" ) )
         // -----------------------------------------------------------------------------------------
         .def( "updateValuePointers", &AssemblyMatrixDisplacementReal::updateValuePointers, R"(
 Update pointers.
@@ -361,9 +363,11 @@ Arguments:
                             const FieldOnNodesComplex &v ) { return M * v; } )
         // -----------------------------------------------------------------------------------------
         .def(
-            "__call__",
-            []( const AssemblyMatrixDisplacementComplex &self, const ASTERINTEGER i_row,
-                const ASTERINTEGER i_col ) { return self( i_row, i_col ); },
+            "__getitem__",
+            []( const AssemblyMatrixDisplacementComplex &self,
+                const std::pair< ASTERINTEGER, ASTERINTEGER > &indices ) {
+                return self( indices.first, indices.second );
+            },
             R"(
 Return one matrix coefficient.
 Only supports Morse storage. A coefficient absent from the profile is zero.
@@ -376,7 +380,7 @@ Arguments:
 Returns:
     [cmplx]: value of the matritx at (i_row, j_col)
         )",
-            py::arg( "i_row" ), py::arg( "i_col" ) )
+            py::arg( "indices" ) )
         // -----------------------------------------------------------------------------------------
         .def( "updateValuePointers", &AssemblyMatrixDisplacementComplex::updateValuePointers, R"(
 Update pointers.
@@ -540,9 +544,11 @@ Arguments:
         .def( "getLowerValues", &AssemblyMatrixTemperatureReal::getLowerValues )
         // -----------------------------------------------------------------------------------------
         .def(
-            "__call__",
-            []( const AssemblyMatrixTemperatureReal &self, const ASTERINTEGER i_row,
-                const ASTERINTEGER i_col ) { return self( i_row, i_col ); },
+            "__getitem__",
+            []( const AssemblyMatrixTemperatureReal &self,
+                const std::pair< ASTERINTEGER, ASTERINTEGER > &indices ) {
+                return self( indices.first, indices.second );
+            },
             R"(
 Return one matrix coefficient.
 Only supports Morse storage. A coefficient absent from the profile is zero.
@@ -555,7 +561,7 @@ Arguments:
 Returns:
     [float]: value of the matritx at (i_row, j_col)
         )",
-            py::arg( "i_row" ), py::arg( "i_col" ) )
+            py::arg( "indices" ) )
         // -----------------------------------------------------------------------------------------
         .def( "updateValuePointers", &AssemblyMatrixTemperatureReal::updateValuePointers, R"(
 Update pointers.

@@ -8127,7 +8127,7 @@ class AssemblyMatrixDisplacementReal(BaseAssemblyMatrix):
     def __add__(self, arg0):
         pass
 
-    def __call__(self, i_row, i_col):
+    def __getitem__(self, indices):
         """Return one matrix coefficient.
         Only supports Morse storage. A coefficient absent from the profile is zero.
         UpdateValuePointers() has to be called first.
@@ -8346,7 +8346,7 @@ class AssemblyMatrixDisplacementComplex(BaseAssemblyMatrix):
 
     # Methods defined here:
 
-    def __call__(self, i_row, i_col):
+    def __getitem__(self, indices):
         """Return one matrix coefficient.
         Only supports Morse storage. A coefficient absent from the profile is zero.
         UpdateValuePointers() has to be called first.
@@ -8516,7 +8516,7 @@ class AssemblyMatrixTemperatureReal(BaseAssemblyMatrix):
     def __add__(self, arg0):
         pass
 
-    def __call__(self, i_row, i_col):
+    def __getitem__(self, indices):
         """Return one matrix coefficient.
         Only supports Morse storage. A coefficient absent from the profile is zero.
         UpdateValuePointers() has to be called first.
