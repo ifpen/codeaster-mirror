@@ -144,7 +144,7 @@ contains
                 ! order 3 - by triangle
                 elga_fami = 'FPG4'
                 nbPtGauss = 4
-                order = 2
+                order = 3
             case (4, 5)
                 ! order 5 - by triangle
                 elga_fami = 'FPG7'
