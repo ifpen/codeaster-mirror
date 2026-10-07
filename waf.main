@@ -42,12 +42,10 @@ waf_main()
             export VERSION
             args=( "-v" )
             [ ${ASTER_REQS_USE_DEBUG} -eq 1 ] && args=()
-            ${prefix}/.devhelper/check_requirements.sh
+            source ${prefix}/.devhelper/check_requirements.sh
             iret=$?
             [ ${iret} -eq 4 ] && exit ${iret}
-            if [ ${iret} -eq 0 ]; then
-                export ASTER_CONFIG=$(ls ${prefix}/build/codeaster-prerequisites-${VERSION}-*/*.sh 2> /dev/null | grep ${args[@]} debug | head -1)
-            else
+            if [ ${iret} -ne 0 ]; then
                 printf "⚠️  code_aster requirements not found, configuration may fail!\n\n"
             fi
             host=$(detect_host)
