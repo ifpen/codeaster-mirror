@@ -55,7 +55,7 @@ subroutine te0527(nomopt, nomte)
     type(FE_Quadrature) :: FEQuadSl
     type(HHO_Quadrature) :: hhoQuadMa
     type(CouplingMap) :: cplMap
-    type(HHO_matrix) :: lhs, projFEM2HHORHS
+    type(HHO_matrix) :: lhs, projFEM2HHO
     integer(kind=8) :: iFe, irow, jFE, jcol
 !
     if (nomte(1:2) == 'CP') then
@@ -87,11 +87,12 @@ subroutine te0527(nomopt, nomte)
     call cplGetQuadFEMHHO(FEFaceSl, hhoFaceMa, hhoDataMa, FEQuadSl, hhoQuadMa)
 !
 ! ----- Compute RHS of Pi_F^k(phi_i^CG) on the whole HHO face F.
-!       The FEM basis is evaluated by projecting each HHO face quadrature point
-!       onto the current slave face.
+!       This is only the local part of the projector since a cG node
+!       can be shared by two face. To compute the non-local operator,
+!       it is necessary to assemble them together.
 
-    call cplCmpProjFEM2HHOFaceFullRHSVec(FEFaceSl, hhoFaceMa, hhoDataMa, &
-                                         projFEM2HHORHS)
+    call cplCmpProjFEM2HHOFaceLocVec(FEFaceSl, hhoFaceMa, hhoDataMa, &
+                                     FEQuadSl, hhoQuadMa, projFEM2HHO)
 !
 !  Assemble matrix
 !
@@ -101,10 +102,10 @@ subroutine te0527(nomopt, nomte)
         jcol = cplMap%mapDoFsFEFaceSl(jFE)
         do iFE = 1, cplMap%nbDoFshhoFaceMa
             irow = cplMap%mapDoFshhoFaceMa(iFE)
-            lhs%m(irow, jcol) = projFEM2HHORHS%m(iFE, jFE)
+            lhs%m(irow, jcol) = projFEM2HHO%m(iFE, jFE)
         end do
     end do
-    call projFEM2HHORHS%free()
+    call projFEM2HHO%free()
 !
 ! - Write matrix
 !

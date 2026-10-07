@@ -56,8 +56,8 @@ module coupling_quadrature_module
 #define PROJ_TOLE  1.0d-10
 
 !
-    private :: cplGetQuad, getQuadOrderFEM, cplProjFEM2HHO
-    public :: cplGetQuadFEMHHO, cplGetQuadFEMFEM
+    private :: cplGetQuad, cplProjFEM2HHO
+    public :: cplGetQuadFEMHHO, cplGetQuadFEMFEM, cplGetQuadOrderFEM
 !
 contains
 !
@@ -66,7 +66,7 @@ contains
 !===================================================================================================
 !
 !
-    integer(kind=8) function getQuadOrderFEM(typema)
+    integer(kind=8) function cplGetQuadOrderFEM(typema)
 !
         implicit none
 !
@@ -78,11 +78,11 @@ contains
 !
         select case (typema)
         case ("SE2", "TR3", "QU4")
-            getQuadOrderFEM = 1
+            cplGetQuadOrderFEM = 1
         case ("SE3", "TR6", "TR7", "QU8", "QU9")
-            getQuadOrderFEM = 2
+            cplGetQuadOrderFEM = 2
         case ("SE4", "TR1", "Q12")
-            getQuadOrderFEM = 3
+            cplGetQuadOrderFEM = 3
         case default
             ASSERT(ASTER_FALSE)
         end select
@@ -94,20 +94,21 @@ contains
 !===================================================================================================
 !
 !
-    subroutine cplGetQuad(FEFaceSl, max_order, FEQuadSl)
+    subroutine cplGetQuad(FEFaceSl, max_order, FEQuadSl, order_)
 !
         implicit none
 !
         type(FE_Skin), intent(in) :: FEFaceSl
         integer(kind=8), intent(in) :: max_order
         type(FE_Quadrature), intent(out) :: FEQuadSl
+        integer(kind=8), intent(out), optional :: order_
 !
 !===================================================================================================
 !    FEM/HHO - Get quadrature
 !===================================================================================================
 !
         integer(kind=8) :: nbPoinInte, jpair, iPoinInte, ndim
-        integer(kind=8) :: nbPtGauss, nb_qp, i
+        integer(kind=8) :: nbPtGauss, nb_qp, i, order
         integer(kind=8) :: iTria, iGauss, nbTria, nbGauss
         real(kind=8) :: triaCoorSlav(2, 3), jaco, coorac(3)
         real(kind=8) :: gausWeightSlav(12), gausCoorSlav(2, 12)
@@ -133,41 +134,64 @@ contains
             else
                 nbTria = nbPoinInte
             end if
-            if (max_order <= 2) then
+            select case (max_order)
+            case (1, 2)
                 ! order 2 - by triangle
                 elga_fami = 'FPG3'
                 nbPtGauss = 3
-            else if (max_order <= 3) then
+                order = 2
+            case (3)
                 ! order 3 - by triangle
                 elga_fami = 'FPG4'
                 nbPtGauss = 4
-            else if (max_order <= 5) then
+                order = 2
+            case (4, 5)
                 ! order 5 - by triangle
                 elga_fami = 'FPG7'
                 nbPtGauss = 7
-            else
+                order = 5
+            case (6, 7)
+                ! order 7 - by triangle
+                elga_fami = 'FPG13'
+                nbPtGauss = 13
+                order = 7
+            case default
                 ASSERT(ASTER_FALSE)
-            end if
+            end select
+
         elseif (ndim .eq. 2) then
             nbTria = 1
 !
-            if (max_order <= 3) then
-                ! order 5
+            select case (max_order)
+            case (1, 2, 3)
+                ! order 3
                 elga_fami = 'FPG2'
                 nbPtGauss = 2
-            elseif (max_order <= 5) then
+                order = 3
+            case (4, 5)
                 ! order 5
                 elga_fami = 'FPG3'
                 nbPtGauss = 3
-            else if (max_order <= 7) then
+                order = 5
+            case (6, 7)
                 ! order 7
                 elga_fami = 'FPG4'
                 nbPtGauss = 4
-            else
+                order = 7
+            case (8, 9)
+                ! order 7
+                elga_fami = 'FPG5'
+                nbPtGauss = 5
+                order = 9
+            case default
                 ASSERT(ASTER_FALSE)
-            end if
+            end select
         else
             ASSERT(ASTER_FALSE)
+        end if
+!
+        if (present(order_)) then
+            order_ = order
         end if
 !
         ASSERT(nbTria*nbPtGauss <= 64)
@@ -225,13 +249,14 @@ contains
 !===================================================================================================
 !
 !
-    subroutine cplProjFEM2HHO(FEFaceSl, hhoFaceMa, FEQuadSl, hhoQuadMa)
+    subroutine cplProjFEM2HHO(FEFaceSl, hhoFaceMa, FEQuadSl, order, hhoQuadMa)
 !
         implicit none
 !
         type(FE_Skin), intent(in) :: FEFaceSl
         type(HHO_Face), intent(in) :: hhoFaceMa
         type(FE_Quadrature), intent(in) :: FEQuadSl
+        integer(kind=8), intent(in) :: order
         type(HHO_Quadrature), intent(out) :: hhoQuadMa
 !
 !===================================================================================================
@@ -244,6 +269,7 @@ contains
         real(kind=8) :: tau1_mast(3), tau2_mast(3), coor_nodes(3, MT_NNOMAX2D)
         character(len=8) :: type_mast
 !
+        hhoQuadMa%order = order
         hhoQuadMa%nbQuadPoints = FEQuadSl%nbQuadPoints
         ndim = FEFaceSl%ndim+1
 !
@@ -360,12 +386,13 @@ contains
 !    FEM/HHO - Get quadrature
 !===================================================================================================
 !
-        integer(kind=8) :: max_order
+        integer(kind=8) :: max_order, order_used
 !
-        max_order = 2*(max(hhoData%face_degree(), getQuadOrderFEM(FEFaceSl%typemas)))
+!       We add +1 for quadrature by security
+        max_order = 2*(max(hhoData%face_degree(), cplGetQuadOrderFEM(FEFaceSl%typemas)))+1
 !
-        call cplGetQuad(FEFaceSl, max_order, FEQuadSl)
-        call cplProjFEM2HHO(FEFaceSl, hhoFaceMa, FEQuadSl, hhoQuadMa)
+        call cplGetQuad(FEFaceSl, max_order, FEQuadSl, order_used)
+        call cplProjFEM2HHO(FEFaceSl, hhoFaceMa, FEQuadSl, order_used, hhoQuadMa)
 !
     end subroutine
 !
@@ -388,8 +415,8 @@ contains
 !
         integer(kind=8) :: max_order
 !
-        max_order = 2*(max(getQuadOrderFEM(FEFaceSl%typemas), &
-                           getQuadOrderFEM(FEFaceMa%typemas)))
+        max_order = 2*(max(cplGetQuadOrderFEM(FEFaceSl%typemas), &
+                           cplGetQuadOrderFEM(FEFaceMa%typemas)))+1
 !
         call cplGetQuad(FEFaceSl, max_order, FEQuadSl)
         call cplProjFEM2FEM(FEFaceSl, FEFaceMa, FEQuadSl, FEQuadMa)

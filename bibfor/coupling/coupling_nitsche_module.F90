@@ -309,6 +309,7 @@ contains
 !
         call cplCmpGradLiftFEMHHOMatVec(FEFaceSl, FECellSl, hhoFaceMa, hhoDataMa, &
                                         FEQuadSl, hhoQuadMa, cplData, lhs_gradlift)
+        lhs_gradlift%m = 0.d0
 !
         call cplNitsAssLhsFEMHHO(cplMap, lhs_pena, lhs_stress, lhs_gradlift, lhs)
 !
