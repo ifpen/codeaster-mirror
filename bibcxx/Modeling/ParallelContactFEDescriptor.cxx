@@ -30,6 +30,7 @@
 #include "Utilities/Tools.h"
 
 #include <algorithm>
+#include <limits>
 
 #ifdef ASTER_HAVE_MPI
 
@@ -71,8 +72,8 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor( const std::string &nam
       _outerMultiplicity( JeveuxVectorLong( getName() + ".MUL2" ) ),
       _globalNumberingVirtualNodes( JeveuxVectorLong( getName() + ".NULG" ) ),
       _FEDesc( FEDesc ),
-      _localDelayedIdToGlobalNodeId( JeveuxVectorLong( getName() + ".LOGL" ) ),
-      _globalNodeIdToLocalDelayed( JeveuxVectorLong( getName() + ".GLLO" ) ),
+      _localVirtualIdToGlobalNodeId( JeveuxVectorLong( getName() + ".LOGL" ) ),
+      _globalNodeIdToLocalVirtual( JeveuxVectorLong( getName() + ".GLLO" ) ),
       _cMeshName( JeveuxVectorChar24( getName() + ".CMNO" ) ) {
     _cMeshName->allocate( 1 );
     ( *_cMeshName )[0] = mesh->getName();
@@ -86,13 +87,13 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor( const std::string &nam
     const int nbProcs = getMPISize();
 
     const auto &owner = *( mesh->getNodesOwner() );
-    _globalNodeIdToLocalDelayed->allocate( owner.size(), -1 );
+    _globalNodeIdToLocalVirtual->allocate( owner.size(), -1 );
     owner.updateValuePointer();
     const auto &explorer = FEDesc->getVirtualCellsExplorer();
 
     VectorInt virtualCellToKeep;
     VectorInt meshNodesToKeep( owner.size(), -1 );
-    _contactFEDToKeep = VectorLong( explorer.size(), 1 );
+    _virtualCellToKeep = VectorLong( explorer.size(), 1 );
     // Dans cette map, on stocke en face du numero physique :
     //  - le numero global du faux Lagrange
     //  - le numéro des processeurs qui possedent ce Lagrange
@@ -100,7 +101,8 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor( const std::string &nam
     std::map< int, int > vNodesSet;
     ASTERINTEGER globalVNodeNumber = 0, nbElemToKeep = 0, totalSizeToKeep = 0;
     ASTERINTEGER localVNodeNumber = 0;
-    VectorInt tmpVec( 4, 0 );
+    // 400 - maximum number of nodes of a cell
+    VectorInt tmpVec( 400, 0 );
     for ( int num2 = 0; num2 < owner.size(); ++num2 ) {
         const int &curOwner = owner[num2];
         if ( curOwner == rank ) {
@@ -113,13 +115,9 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor( const std::string &nam
     const auto &cellOwner = mesh->getCellsOwner();
     const auto &cellLocalId = mesh->getCellsLocalNumbering();
     const auto &liel = FEDesc->getListOfGroupsOfElementsExplorer();
-    int nbCollObj = 1, totalCollSize = 0;
     std::vector< VectorLong > toLiel( liel.size(), VectorLong() );
-    _lielMatching = VectorOfVectorsLong( liel.size(), VectorLong() );
-
-    VectorOfVectorsLong vCellToAdd;
-    std::set< int > cellAldreadyAdd;
-    const bool addSlaveNodes = ( explorer.size() == 0 ? true : false );
+    _cellMatching = VectorOfVectorsLong( liel.size(), VectorLong() );
+    _lielMatching = VectorLong( liel.size(), std::numeric_limits< ASTERINTEGER >::min() );
 
     // On commence par regarder les noeuds et elements qui doivent etre
     // gardes dans le nouveau ligrel
@@ -127,13 +125,13 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor( const std::string &nam
         const auto numElem = meshElem.getId();
         bool keepElem = false;
         int pos = 0, curOwner = -1, oldCurOwner;
-        bool allElemNodesToKeep = false;
         VectorInt curOwners;
+        const auto nbNodesElem = meshElem.getNumberOfNodes();
         for ( auto numNode : meshElem ) {
             // Si on est sur un noeud tardif...
             if ( numNode < 0 ) {
                 throw std::runtime_error(
-                    "No delayed nodes allowed in contact finite element descriptor" );
+                    "No virtual nodes allowed in contact finite element descriptor" );
             }
             // Si on a un noeud physique...
             const ASTERINTEGER num2 = numNode - 1;
@@ -146,44 +144,42 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor( const std::string &nam
             }
             tmpVec[pos] = num2;
             curOwners.push_back( curOwner );
-            if ( pos > 0 && oldCurOwner != curOwner )
-                allElemNodesToKeep = true;
             ++pos;
             oldCurOwner = curOwner;
         }
         // Si l'element est a conserver, on le note
-        if ( allElemNodesToKeep ) {
-            if ( keepElem ) {
-                virtualCellToKeep.push_back( numElem );
-                _contactFEDToKeep[numElem] = nbElemToKeep - 1;
-                --nbElemToKeep;
-                for ( const auto &num2 : tmpVec ) {
-                    ++totalSizeToKeep;
-                    if ( addedVirtualNodes.count( num2 ) == 0 ) {
-                        addedVirtualNodes[num2] = DNInformations();
-                        if ( vNodesSet.count( num2 ) == 0 ) {
-                            vNodesSet[num2] = globalVNodeNumber;
-                            addedVirtualNodes[num2].globalNum = globalVNodeNumber;
-                            ++globalVNodeNumber;
-                        } else {
-                            addedVirtualNodes[num2].globalNum = vNodesSet[num2];
-                        }
-                        if ( owner[num2] != rank ) {
-                            addedVirtualNodes[num2].localNum = localVNodeNumber;
-                            ++localVNodeNumber;
-                        }
-                    }
-                    auto &rankSet = addedVirtualNodes[num2].ranks;
-                    for ( const auto &curOwner2 : curOwners ) {
-                        rankSet.insert( curOwner2 );
-                    }
-                }
-            } else {
-                for ( const auto &num2 : tmpVec ) {
+        if ( keepElem ) {
+            virtualCellToKeep.push_back( numElem );
+            _virtualCellToKeep[numElem] = nbElemToKeep - 1;
+            --nbElemToKeep;
+            totalSizeToKeep += nbNodesElem;
+            for ( ASTERINTEGER ino = 0; ino < nbNodesElem; ++ino ) {
+                const auto num2 = tmpVec[ino];
+                if ( addedVirtualNodes.count( num2 ) == 0 ) {
+                    addedVirtualNodes[num2] = DNInformations();
                     if ( vNodesSet.count( num2 ) == 0 ) {
                         vNodesSet[num2] = globalVNodeNumber;
+                        addedVirtualNodes[num2].globalNum = globalVNodeNumber;
                         ++globalVNodeNumber;
+                    } else {
+                        addedVirtualNodes[num2].globalNum = vNodesSet[num2];
                     }
+                    if ( owner[num2] != rank ) {
+                        addedVirtualNodes[num2].localNum = localVNodeNumber;
+                        ++localVNodeNumber;
+                    }
+                }
+                auto &rankSet = addedVirtualNodes[num2].ranks;
+                for ( const auto &curOwner2 : curOwners ) {
+                    rankSet.insert( curOwner2 );
+                }
+            }
+        } else {
+            for ( ASTERINTEGER ino = 0; ino < nbNodesElem; ++ino ) {
+                const auto num2 = tmpVec[ino];
+                if ( vNodesSet.count( num2 ) == 0 ) {
+                    vNodesSet[num2] = globalVNodeNumber;
+                    ++globalVNodeNumber;
                 }
             }
         }
@@ -256,12 +252,6 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor( const std::string &nam
         // Allocation du .NEMA
         _virtualCellsDescriptor->allocate( -nbElemToKeep, totalSizeToKeep - nbElemToKeep );
 
-        int cmpt = 0;
-        for ( const auto &vCell : vCellToAdd ) {
-            _virtualCellsDescriptor->push_back( vCell );
-            ++cmpt;
-        }
-
         const auto &endIter = addedVirtualNodes.end();
         // Remplissage du .NEMA avec les elements tardifs a conserver
         for ( auto &numElem : virtualCellToKeep ) {
@@ -284,47 +274,44 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor( const std::string &nam
             }
             toCopy.push_back( explorer[numElem].getType() );
             _virtualCellsDescriptor->push_back( toCopy );
-            ++cmpt;
         }
     }
 
     int lielPos = 0;
+    int nbCollObj = 0, totalCollSize = 0;
     for ( const auto &colObj : liel ) {
         bool addedElem = false;
         int curPos = 0;
-        auto &curLM = _lielMatching[lielPos];
+        auto &curCM = _cellMatching[lielPos];
         for ( const auto &val : colObj ) {
-            if ( val < 0 ) {
-                if ( _contactFEDToKeep[-val - 1] != 1 ) {
-                    curLM.push_back( curPos );
-                    toLiel[nbCollObj - 1].push_back( _contactFEDToKeep[-val - 1] );
-                    addedElem = true;
-                    ++totalCollSize;
-                }
-            } else {
-                if ( cellAldreadyAdd.count( val - 1 ) == 0 ) {
-                    if ( ( *cellOwner )[val - 1] == rank ) {
-                        toLiel[nbCollObj - 1].push_back( ( *cellLocalId )[val - 1] );
-                        addedElem = true;
-                        ++totalCollSize;
-                        curLM.push_back( curPos );
-                    }
-                }
+            // Si on est sur une maille physique...
+            if ( val >= 0 ) {
+                throw std::runtime_error(
+                    "No physical cells allowed in contact finite element descriptor" );
+            }
+            if ( _virtualCellToKeep[-val - 1] != 1 ) {
+                curCM.push_back( curPos );
+                toLiel[nbCollObj].push_back( _virtualCellToKeep[-val - 1] );
+                addedElem = true;
+                ++totalCollSize;
             }
             ++curPos;
         }
-        ++lielPos;
         if ( addedElem ) {
             const ASTERINTEGER &type = colObj.getType();
-            toLiel[nbCollObj - 1].push_back( type );
+            toLiel[nbCollObj].push_back( type );
+            _lielMatching[lielPos] = nbCollObj;
             ++nbCollObj;
         }
+        ++lielPos;
     }
 
-    _listOfGroupsOfElements->allocate( nbCollObj, totalCollSize + nbCollObj );
-    for ( const auto &vec : toLiel ) {
-        if ( vec.size() != 0 ) {
-            _listOfGroupsOfElements->push_back( vec );
+    if ( nbCollObj > 0 ) {
+        _listOfGroupsOfElements->allocate( nbCollObj, totalCollSize + nbCollObj );
+        for ( const auto &vec : toLiel ) {
+            if ( vec.size() != 0 ) {
+                _listOfGroupsOfElements->push_back( vec );
+            }
         }
     }
 
@@ -361,7 +348,7 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor( const std::string &nam
         // Recopie des valeurs sur les noeuds tardifs du nouveau ligrel
         _virtualNodesNumbering->allocate( localVNodeNumber + 2, 0 );
         _dofOfDelayedNumberedConstraintNodes->allocate( localVNodeNumber * nec );
-        _localDelayedIdToGlobalNodeId->allocate( localVNodeNumber );
+        _localVirtualIdToGlobalNodeId->allocate( localVNodeNumber );
 
         int checkCount = 0;
         for ( const auto &[numNodeM1, curInfo] : addedVirtualNodes ) {
@@ -369,8 +356,8 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor( const std::string &nam
             const auto &bSDN = curInfo.slaveDN;
             if ( vNodeLocNum == -1 )
                 continue;
-            ( *_localDelayedIdToGlobalNodeId )[vNodeLocNum] = numNodeM1 + 1;
-            ( *_globalNodeIdToLocalDelayed )[numNodeM1] = vNodeLocNum + 1;
+            ( *_localVirtualIdToGlobalNodeId )[vNodeLocNum] = numNodeM1 + 1;
+            ( *_globalNodeIdToLocalVirtual )[numNodeM1] = vNodeLocNum + 1;
             if ( !bSDN )
                 continue;
             ++checkCount;
@@ -385,6 +372,8 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor( const std::string &nam
     }
 
     build();
+
+    // debugPrint();
 };
 
 ParallelContactFEDescriptor::ParallelContactFEDescriptor(
@@ -398,8 +387,8 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor(
       _outerMultiplicity( JeveuxVectorLong( getName() + ".MUL2" ) ),
       _globalNumberingVirtualNodes( JeveuxVectorLong( getName() + ".NULG" ) ),
       _FEDesc( FEDesc ),
-      _localDelayedIdToGlobalNodeId( JeveuxVectorLong( getName() + ".LOGL" ) ),
-      _globalNodeIdToLocalDelayed( JeveuxVectorLong( getName() + ".GLLO" ) ),
+      _localVirtualIdToGlobalNodeId( JeveuxVectorLong( getName() + ".LOGL" ) ),
+      _globalNodeIdToLocalVirtual( JeveuxVectorLong( getName() + ".GLLO" ) ),
       _cMeshName( JeveuxVectorChar24( getName() + ".CMNO" ) ) {
     _cMeshName->allocate( 1 );
     ( *_cMeshName )[0] = mesh->getName();
@@ -421,14 +410,14 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor(
     }
 
     const auto &owner = *( mesh->getNodesOwner() );
-    _globalNodeIdToLocalDelayed->allocate( owner.size(), -1 );
+    _globalNodeIdToLocalVirtual->allocate( owner.size(), -1 );
     owner.updateValuePointer();
     // const auto &explorer = FEDesc->getVirtualCellsExplorer();
     const auto &explorer = FEDesc->getListOfGroupsOfElementsExplorer();
 
     VectorInt virtualCellToKeep;
     VectorInt meshNodesToKeep( owner.size(), -1 );
-    _contactFEDToKeep = VectorLong( explorer.size(), 1 );
+    _virtualCellToKeep = VectorLong( explorer.size(), 1 );
     // Dans cette map, on stocke en face du numero physique :
     //  - le numero global du faux Lagrange
     //  - le numéro des processeurs qui possedent ce Lagrange
@@ -436,7 +425,6 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor(
     std::map< int, int > vNodesSet;
     ASTERINTEGER globalVNodeNumber = 0, nbElemToKeep = 0, totalSizeToKeep = 0;
     ASTERINTEGER localVNodeNumber = 0;
-    VectorInt tmpVec( 4, 0 );
     for ( int num2 = 0; num2 < owner.size(); ++num2 ) {
         const int &curOwner = owner[num2];
         if ( curOwner == rank ) {
@@ -451,7 +439,7 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor(
     const auto &liel = FEDesc->getListOfGroupsOfElementsExplorer();
     int nbCollObj = 1, totalCollSize = 0;
     std::vector< VectorLong > toLiel( liel.size() + lmasterCells.size(), VectorLong() );
-    _lielMatching = VectorOfVectorsLong( liel.size() + lmasterCells.size(), VectorLong() );
+    _cellMatching = VectorOfVectorsLong( liel.size() + lmasterCells.size(), VectorLong() );
 
     VectorOfVectorsLong vCellToAdd;
     std::set< int > cellAldreadyAdd;
@@ -516,7 +504,6 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor(
     // gardes dans le nouveau ligrel
     for ( const auto meshElem : explorer ) {
         const auto numElem = meshElem.getId();
-        // std::cout << "numElem " << numElem << " " << meshElem.getType() << std::endl;
 
         const auto &curCell = cMeshExplorer[numElem];
         bool nemaAdd = false;
@@ -669,12 +656,12 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor(
     for ( const auto &colObj : liel ) {
         bool addedElem = false;
         int curPos = 0;
-        auto &curLM = _lielMatching[lielPos];
+        auto &curCM = _cellMatching[lielPos];
         for ( const auto &val : colObj ) {
             if ( val < 0 ) {
-                if ( _contactFEDToKeep[-val - 1] != 1 ) {
-                    curLM.push_back( curPos );
-                    toLiel[nbCollObj - 1].push_back( _contactFEDToKeep[-val - 1] );
+                if ( _virtualCellToKeep[-val - 1] != 1 ) {
+                    curCM.push_back( curPos );
+                    toLiel[nbCollObj - 1].push_back( _virtualCellToKeep[-val - 1] );
                     addedElem = true;
                     ++totalCollSize;
                 }
@@ -684,7 +671,7 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor(
                         toLiel[nbCollObj - 1].push_back( ( *cellLocalId )[val - 1] );
                         addedElem = true;
                         ++totalCollSize;
-                        curLM.push_back( curPos );
+                        curCM.push_back( curPos );
                     }
                 }
             }
@@ -738,7 +725,7 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor(
         // Recopie des valeurs sur les noeuds tardifs du nouveau ligrel
         _virtualNodesNumbering->allocate( localVNodeNumber + 2, 0 );
         _dofOfDelayedNumberedConstraintNodes->allocate( localVNodeNumber * nec );
-        _localDelayedIdToGlobalNodeId->allocate( localVNodeNumber );
+        _localVirtualIdToGlobalNodeId->allocate( localVNodeNumber );
 
         int checkCount = 0;
         for ( const auto &[numNodeM1, curInfo] : addedVirtualNodes ) {
@@ -746,8 +733,8 @@ ParallelContactFEDescriptor::ParallelContactFEDescriptor(
             const auto &bSDN = curInfo.slaveDN;
             if ( vNodeLocNum == -1 )
                 continue;
-            ( *_localDelayedIdToGlobalNodeId )[vNodeLocNum] = numNodeM1 + 1;
-            ( *_globalNodeIdToLocalDelayed )[numNodeM1] = vNodeLocNum + 1;
+            ( *_localVirtualIdToGlobalNodeId )[vNodeLocNum] = numNodeM1 + 1;
+            ( *_globalNodeIdToLocalVirtual )[numNodeM1] = vNodeLocNum + 1;
             if ( !bSDN )
                 continue;
             ++checkCount;

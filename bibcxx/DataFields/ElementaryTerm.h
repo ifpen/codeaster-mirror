@@ -63,6 +63,7 @@ class ElementaryTerm : public DataField {
 
     void allocate( const FiniteElementDescriptorPtr fEDesc, const std::string &option,
                    const ASTERINTEGER &physicalQuantityId, const ASTERINTEGER &localModeId ) {
+        _FEDesc = fEDesc;
         _noli->allocate( 4 );
         ( *_noli )[0] = fEDesc->getName();
         ( *_noli )[1] = option;
@@ -73,7 +74,9 @@ class ElementaryTerm : public DataField {
         ( *_descriptor )[1] = nbGrel;
         for ( int i = 0; i < nbGrel; ++i )
             ( *_descriptor )[i + 2] = localModeId;
-        _resl->allocate( nbGrel );
+        if ( nbGrel > 0 ) {
+            _resl->allocate( nbGrel );
+        }
     };
 
     void setFiniteElementDescriptor( const FiniteElementDescriptorPtr FEDesc ) {

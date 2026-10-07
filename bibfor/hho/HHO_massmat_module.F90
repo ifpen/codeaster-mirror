@@ -75,7 +75,7 @@ contains
 !
 !===================================================================================================
 !
-    subroutine hhoMassMatCellScal(this, hhoCell, min_order, max_order, hhoQuad_)
+    subroutine hhoMassMatCellScal(this, hhoCell, min_order, max_order, hhoQuad_, type_basis_)
 !
         implicit none
 !
@@ -84,6 +84,8 @@ contains
         integer(kind=8), intent(in) :: min_order
         integer(kind=8), intent(in) :: max_order
         type(HHO_quadrature), intent(in), optional :: hhoQuad_
+        integer(kind=8), optional, intent(in) :: type_basis_
+
 !
 ! --------------------------------------------------------------------------------------------------
 !   HHO
@@ -104,7 +106,11 @@ contains
 ! --------------------------------------------------------------------------------------------------
 !
 ! ----- init basis
-        call hhoBasisCell%initialize(hhoCell)
+        if (present(type_basis_)) then
+            call hhoBasisCell%initialize(hhoCell, type_basis_)
+        else
+            call hhoBasisCell%initialize(hhoCell)
+        end if
 ! ----- dimension of massMat
         dimMat = hhoBasisCell%BSSize(min_order, max_order)
         this%m = 0.d0
@@ -153,12 +159,14 @@ contains
 !
             if (hhoBasisCell%isOrthonormal() .and. dbg) then
                 if (hhoCell%measure .ge. 1.d-8) then
-                    ASSERT(hhoIsIdentityMat(this%m, dimMat))
+                    if (.not. hhoIsIdentityMat(this%m, dimMat)) then
+                        call hhoPrintMat(this%m(1:dimMat, 1:dimMat))
+                        ASSERT(ASTER_FALSE)
+                    end if
                 end if
             end if
 !
         end if
-! call hhoPrintMat(this%m(1:dimMat, 1:dimMat))
 !
     end subroutine
 !

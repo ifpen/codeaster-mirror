@@ -255,7 +255,7 @@ ModelPtr XfemCrack::enrichModelWithXfem( ModelPtr &baseModel ) {
     cmdSt.define( dict );
 
     // Create model and get its name
-    ModelPtr newModelPtr( new Model( baseModel->getMesh() ) );
+    ModelPtr newModelPtr = std::make_shared< Model >( baseModel->getMesh() );
     cmdSt.setResult( newModelPtr->getName(), "MODELE" );
 
     // Call  OP00113

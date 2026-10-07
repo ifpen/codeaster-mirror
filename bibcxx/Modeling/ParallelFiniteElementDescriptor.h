@@ -42,7 +42,7 @@
 class ParallelFiniteElementDescriptor : public FiniteElementDescriptor {
   protected:
     /** @brief Matching numbering between keeped delayed elements and base elements */
-    VectorLong _contactFEDToKeep;
+    VectorLong _virtualCellToKeep;
     /** @brief Join to send */
     std::vector< JeveuxVectorLong > _joinToSend;
     /** @brief Join to receive */
@@ -76,7 +76,7 @@ class ParallelFiniteElementDescriptor : public FiniteElementDescriptor {
      * @brief Get vector of delayed elements keeped from the base FiniteElementDescriptor
      * @return reference on VectorLong
      */
-    const VectorLong &getVirtualCellsToKeep() const { return _contactFEDToKeep; };
+    const VectorLong &getVirtualCellsToKeep() const { return _virtualCellToKeep; };
 
     /**
      * @brief Get vector of joints between subdomains

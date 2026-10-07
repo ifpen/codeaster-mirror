@@ -42,7 +42,7 @@ module coupling_nitsche_module
 #include "asterfort/coupling_type.h"
 #include "asterfort/HHO_size_module.h"
 #include "asterfort/jevech.h"
-#include "FE_module.h"
+#include "FE_basis_module.h"
 #include "MeshTypes_type.h"
 !
 ! --------------------------------------------------------------------------------------------------
@@ -238,7 +238,7 @@ contains
 !    NITSCHE - FEM/HHO - Compute matrix
 !===================================================================================================
 !
-        type(HHO_matrix) :: lhs_pena, lhs_stress
+        type(HHO_matrix) :: lhs_pena, lhs_stress, lhs_gradlift
 !
         call cplCmpPenaFEMHHOMatVec(FEFaceSl, hhoFaceMa, hhoDataMa, FEQuadSl, hhoQuadMa, &
                                     cplData%coef_pena, lhs_pena)
@@ -246,10 +246,14 @@ contains
         call cplCmpStressFEMHHOMat(FEFaceSl, FECellSl, hhoFaceMa, hhoDataMa, FEQuadSl, hhoQuadMa, &
                                    cplData, lhs_stress)
 !
-        call cplNitsAssLhsFEMHHO(cplMap, lhs_pena, lhs_stress, lhs)
+        call cplCmpGradLiftFEMHHOMatVec(FEFaceSl, FECellSl, hhoFaceMa, hhoDataMa, &
+                                        FEQuadSl, hhoQuadMa, cplData, lhs_gradlift)
+!
+        call cplNitsAssLhsFEMHHO(cplMap, lhs_pena, lhs_stress, lhs_gradlift, lhs)
 !
         call lhs_pena%free()
         call lhs_stress%free()
+        call lhs_gradlift%free()
 !
     end subroutine
 !
@@ -258,12 +262,12 @@ contains
 !===================================================================================================
 !
 !
-    subroutine cplNitsAssLhsFEMHHO(cplMap, lhs_pena, lhs_stress, lhs)
+    subroutine cplNitsAssLhsFEMHHO(cplMap, lhs_pena, lhs_stress, lhs_gradlift, lhs)
 !
         implicit none
 !
         type(CouplingMap), intent(in) :: cplMap
-        type(HHO_matrix), intent(in) :: lhs_pena, lhs_stress
+        type(HHO_matrix), intent(in) :: lhs_pena, lhs_stress, lhs_gradlift
         type(HHO_matrix), intent(inout) :: lhs
 !
 !===================================================================================================
@@ -274,14 +278,18 @@ contains
 !
         call lhs%initialize(cplMap%nbDoFs, cplMap%nbDoFs, 0.d0)
 !
-!      Term: gamma/h*(v^S - v^M, u^S-u^M)
+!      Terms acting on the projected interface jump:
+!        gamma/h*(v^S-v^M, u^S-u^M)
+!        +(C:sym(R_T(u)), sym(R_T(v)))_T
         ASSERT(lhs_pena%nrows == cplMap%nbDoFsFEFace)
         ASSERT(lhs_pena%ncols == cplMap%nbDoFsFEFace)
+        ASSERT(lhs_gradlift%nrows == cplMap%nbDoFsFEFace)
+        ASSERT(lhs_gradlift%ncols == cplMap%nbDoFsFEFace)
         do jFE = 1, cplMap%nbDoFsFEFace
             jcol = cplMap%mapDoFsFEFace(jFE)
             do iFE = 1, cplMap%nbDoFsFEFace
                 irow = cplMap%mapDoFsFEFace(iFE)
-                lhs%m(irow, jcol) = lhs_pena%m(iFE, jFE)
+                lhs%m(irow, jcol) = lhs_pena%m(iFE, jFE)+lhs_gradlift%m(iFE, jFE)
             end do
         end do
 !

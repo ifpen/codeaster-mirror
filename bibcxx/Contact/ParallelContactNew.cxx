@@ -39,7 +39,7 @@ using VectorLongIter = VectorLong::iterator;
 ParallelContactNew::ParallelContactNew( const std::string name, const ModelPtr model,
                                         ParallelMeshPtr mesh, const std::string type )
     : ContactNew( name, nullptr, type ), _pMesh( mesh ), _pModel( model ) {
-    if ( model->getMesh()->getName() != mesh->getName() ) {
+    if ( model->getMesh() != mesh ) {
         throw std::runtime_error( "Mesh and model inconsistent" );
     }
 };
@@ -57,14 +57,14 @@ bool ParallelContactNew::build() {
         masters.push_back( ma );
     }
 
-    auto connectionMesh = ConnectionMeshPtr( new ConnectionMesh( _pMesh, empty, mastersSlaves ) );
-    _model = ModelPtr( new Model( connectionMesh ) );
+    auto connectionMesh = std::make_shared< ConnectionMesh >( _pMesh, empty, mastersSlaves );
+    _model = std::make_shared< Model >( connectionMesh );
     _model->setFrom( _pModel );
 
     ContactNew::build();
     _SFEDesc = _FEDesc;
-    _PFEDesc = ParallelContactFEDescriptorPtr( new ParallelContactFEDescriptor(
-        _FEDesc, connectionMesh, _model, _pModel, masters, slaves ) );
+    _PFEDesc = std::make_shared< ParallelContactFEDescriptor >( _FEDesc, connectionMesh, _model,
+                                                                _pModel, masters, slaves );
 
     CALL_JEDEMA();
 

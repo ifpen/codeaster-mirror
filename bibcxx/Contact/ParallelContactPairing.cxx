@@ -35,8 +35,6 @@
 
 #ifdef ASTER_HAVE_MPI
 
-using VectorLongIter = VectorLong::iterator;
-
 ParallelContactPairing::ParallelContactPairing( const std::string name,
                                                 const ParallelContactNewPtr cont )
     : ContactPairing( name, cont ), _pContNew( cont ) {};
@@ -46,8 +44,8 @@ void ParallelContactPairing::buildFiniteElementDescriptor() {
     _SFEDesc = _fed;
     const auto cMesh = std::dynamic_pointer_cast< ConnectionMesh >( _pContNew->getMesh() );
     if ( cMesh ) {
-        _PFEDesc = ParallelContactFEDescriptorPtr(
-            new ParallelContactFEDescriptor( _fed, cMesh, _pContNew->getParallelModel() ) );
+        _PFEDesc = std::make_shared< ParallelContactFEDescriptor >( _fed, cMesh,
+                                                                    _pContNew->getParallelModel() );
     } else {
         throw std::runtime_error( "Problem with ConnectionMesh while contact pairing" );
     }

@@ -19,7 +19,8 @@
 !
 !
 interface
-    subroutine crnulg(numddl)
+    subroutine crnulg(numddl, printz)
         character(len=14) :: numddl
+        aster_logical, optional :: printz
     end subroutine crnulg
 end interface

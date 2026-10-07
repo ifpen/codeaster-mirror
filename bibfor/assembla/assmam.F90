@@ -31,6 +31,7 @@ subroutine assmam(jvBase, matrAsseZ, &
 #include "asterc/cheksd.h"
 #include "asterfort/asmpi_barrier.h"
 #include "asterfort/asmpi_comm_vect.h"
+#include "asterfort/asmpi_info.h"
 #include "asterfort/assert.h"
 #include "asterfort/assma1.h"
 #include "asterfort/assma2.h"
@@ -125,6 +126,7 @@ subroutine assmam(jvBase, matrAsseZ, &
     integer(kind=8) :: ncmp, nbvel, nec, nel, nequ, nbproc
     integer(kind=8) :: niv, nlili, nmxcmp, nnoe
     integer(kind=8) :: nugd, rang, ieq, idia, ellagr, iexi, ilinu2
+    mpi_int :: msize
     integer(kind=8), pointer :: smde(:) => null()
     character(len=24), pointer :: noli(:) => null()
     character(len=24), pointer :: relr(:) => null()
@@ -474,7 +476,10 @@ subroutine assmam(jvBase, matrAsseZ, &
                 lligrel_cp = (tco(1) .eq. 'LIGREL_CP')
             end if
             if (lligrel_cp) then
-                call jeveuo(jexnum(nu14//'.NUME.CRCO', ilinu), 'L', vi=v_crco)
+                call asmpi_info(size=msize)
+                if (msize > 1) then
+                    call jeveuo(jexnum(nu14//'.NUME.CRCO', ilinu), 'L', vi=v_crco)
+                end if
                 call jeveuo(ligre1//".CMNO", 'L', vk24=v_cmno)
                 cMeshName = v_cmno(1)
                 ilinu2 = v_refp(ilinu)

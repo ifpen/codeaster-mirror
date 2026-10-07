@@ -125,7 +125,7 @@ subroutine numero(numeDofZ, base, &
     call gettco(mesh, typsd)
     if (typsd .eq. 'MAILLAGE_P') then
         numeDof = numeDofZ
-        call crnulg(numeDof)
+        call crnulg(numeDof, to_aster_logical(modeLoc .eq. ' '))
     end if
 !
     call uttcpu('CPU.RESO.1', 'FIN', ' ')

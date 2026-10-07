@@ -134,6 +134,12 @@ class MechanicalLoadDefinition(ExecuteCommand):
                     )
                 else:
                     self._result = MechanicalLoadReal(model)
+            if "LIAISON_MASSIF" in keywords.keys():
+                if l_neum or l_diri:
+                    raise TypeError(
+                        "LIAISON_MASSIF has to be the only \
+                                            loading in the same parallel AFFE_CHAR_MECA"
+                    )
             if self._hasOnlyDDL_IMPO(keywords):
                 self._result = MechanicalLoadReal(model)
 
@@ -265,7 +271,7 @@ def _getGroups(cata, keywords):
                 _addGroup(mcf, nodeGroups, ("GROUP_NO_1", "GROUP_NO_2", "SANS_GROUP_NO"))
                 _addGroup(mcf, cellGroups, ("GROUP_MA_1", "GROUP_MA_2"))
                 _excludeGroup(mcf, ("NOEUD_1", "NOEUD_2", "SANS_NOEUD"))
-        elif key in ("LIAISON_RBE3", "LIAISON_MAIL"):
+        elif key in ("LIAISON_RBE3", "LIAISON_MAIL", "LIAISON_MASSIF"):
             for mcf in keywords[key]:
                 _addGroup(mcf, nodeGroups, ("GROUP_NO_MAIT", "GROUP_NO_ESCL"))
                 _addGroup(mcf, cellGroups, ("GROUP_MA_MAIT", "GROUP_MA_ESCL"))

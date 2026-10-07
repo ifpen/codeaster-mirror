@@ -26,6 +26,7 @@ subroutine promor(nuz, base, printz)
 #include "asterfort/dismoi.h"
 #include "asterfort/exisd.h"
 #include "asterfort/infniv.h"
+#include "asterfort/isParallelMesh.h"
 #include "asterfort/jedema.h"
 #include "asterfort/jedetr.h"
 #include "asterfort/jeexin.h"
@@ -321,8 +322,7 @@ subroutine promor(nuz, base, printz)
                             call jeveuo('&&PROMOR.ANCIEN.LM', 'E', jalm)
                         end if
                         do iddl = 1, nddl1
-                            zi4(jalm+nddlt+iddl-1) = zi(jnueq-1+iad1+ &
-                                                        iddl-1)
+                            zi4(jalm+nddlt+iddl-1) = int(zi(jnueq-1+iad1+iddl-1), kind=4)
                         end do
                         nddlt = nddlt+nddl1
                     end do
@@ -356,8 +356,7 @@ subroutine promor(nuz, base, printz)
                             call jeveuo('&&PROMOR.ANCIEN.LM', 'E', jalm)
                         end if
                         do iddl = 1, nddl1
-                            zi4(jalm+nddlt+iddl-1) = zi(jnueq-1+iad1+ &
-                                                        iddl-1)
+                            zi4(jalm+nddlt+iddl-1) = int(zi(jnueq-1+iad1+iddl-1), kind=4)
                         end do
                         nddlt = nddlt+nddl1
                     end do
@@ -398,7 +397,7 @@ subroutine promor(nuz, base, printz)
                         call jeveuo('&&PROMOR.ANCIEN.LM', 'E', jalm)
                     end if
                     do iddl = 1, nddl1
-                        zi4(jalm+nddlt+iddl-1) = zi(jnueq-1+iad1+iddl-1)
+                        zi4(jalm+nddlt+iddl-1) = int(zi(jnueq-1+iad1+iddl-1), kind=4)
                     end do
                     nddlt = nddlt+nddl1
                 end do
@@ -439,7 +438,7 @@ subroutine promor(nuz, base, printz)
     zi(jsmde-1+3) = 1
     call jedetr('&&PROMOR.ANCIEN.LM   ')
 !
-    if (niv .ge. 1 .and. printt) then
+    if (niv .ge. 1 .and. printt .and. .not. isParallelMesh(ma)) then
         vali(1) = nequ
         vali(2) = ncoef
         vali(3) = 2*ncoef-nequ

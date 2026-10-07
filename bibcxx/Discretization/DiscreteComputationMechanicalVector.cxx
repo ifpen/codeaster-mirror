@@ -26,6 +26,7 @@
 #include "aster_fort_superv.h"
 #include "aster_fort_utils.h"
 
+#include "DataFields/FieldConverter.h"
 #include "DataFields/FieldOnCellsBuilder.h"
 #include "Discretization/Calcul.h"
 #include "Discretization/DiscreteComputation.h"
@@ -1070,43 +1071,98 @@ FieldOnNodesRealPtr DiscreteComputation::getMechanicalCouplingForces(
     // Select option for vector
     std::string option = "CHAR_MECA_CPL";
 
-    AS_ASSERT( _phys_problem->getModel()->isMechanical() );
+    const auto model = _phys_problem->getModel();
 
-    auto elemVect =
-        std::make_shared< ElementaryVectorDisplacementReal >( _phys_problem->getModel() );
+    AS_ASSERT( model->isMechanical() );
 
-    const auto listOfLoads = _phys_problem->getListOfLoads();
-    const auto mecaLoadReal = listOfLoads->getMechanicalLoadsReal();
+    auto elemVect = std::make_shared< ElementaryVectorDisplacementReal >( model );
 
-    for ( const auto &load : mecaLoadReal ) {
+    const auto isHPC = model->getMesh()->isParallel();
 
-        const auto pairing = load->getPairingField();
-        if ( pairing && pairing->exists() ) {
+    auto getFED = []( const auto &load ) {
+#ifdef ASTER_HAVE_MPI
+        if constexpr ( std::is_same_v< std::decay_t< decltype( load ) >,
+                                       ParallelMechanicalLoadRealPtr > ) {
+            return load->getParallelCouplingFEDescriptor()->getSupportFiniteElementDescriptor();
+        } else
+#endif
+        {
+            return load->getPairingField()->getDescription();
+        }
+    };
 
-            // Prepare computing
-            CalculPtr calcul = std::make_unique< Calcul >( option );
-            calcul->setFiniteElementDescriptor( pairing->getDescription() );
+    auto addET = []( const auto &load, const ElementaryTermRealPtr &ET ) {
+#ifdef ASTER_HAVE_MPI
+        if constexpr ( std::is_same_v< std::decay_t< decltype( load ) >,
+                                       ParallelMechanicalLoadRealPtr > ) {
+            return transfertToParallelFEDesc( ET, load->getParallelCouplingFEDescriptor() );
+        }
+#endif
+        return ET;
+    };
 
-            // Set input field
-            calcul->addInputField( "PGEOMER", _phys_problem->getMesh()->getCoordinates() );
-            calcul->addInputField( "PDEPLMR", displ_prev );
-            calcul->addInputField( "PDEPLPR", displ_step );
-            calcul->addInputField( "PPAIRR", pairing );
-            calcul->addHHOField( _phys_problem->getModel() );
+    auto transfertField = []( const auto &load, const FieldOnNodesRealPtr &field ) {
+#ifdef ASTER_HAVE_MPI
+        if constexpr ( std::is_same_v< std::decay_t< decltype( load ) >,
+                                       ParallelMechanicalLoadRealPtr > ) {
+            const auto cMesh = std::dynamic_pointer_cast< ConnectionMesh >(
+                load->getParallelCouplingFEDescriptor()
+                    ->getSupportFiniteElementDescriptor()
+                    ->getMesh() );
+            return transferToConnectionMesh( field, cMesh );
+        }
+#endif
+        return field;
+    };
 
-            // Add time fields
-            calcul->addTimeField( "PINSTMR", time_prev );
-            calcul->addTimeField( "PINSTPR", time_prev + time_step );
+    auto impl = [&]( auto loads ) {
+        for ( const auto &load : loads ) {
 
-            // Add output elementary
-            calcul->addOutputElementaryTerm( "PVECTUR", std::make_shared< ElementaryTermReal >() );
+            FieldOnNodesRealPtr mate_noeu = nullptr;
 
-            // Computation
-            calcul->compute();
-            if ( calcul->hasOutputElementaryTerm( "PVECTUR" ) ) {
-                elemVect->addElementaryTerm( calcul->getOutputElementaryTermReal( "PVECTUR" ) );
+            const auto pairing = load->getPairingField();
+            if ( pairing && pairing->exists() ) {
+
+                const auto fed = getFED( load );
+
+                // Prepare computing
+                CalculPtr calcul = std::make_unique< Calcul >( option );
+                calcul->setFiniteElementDescriptor( fed );
+
+                // Set input field
+                calcul->addInputField( "PGEOMER", fed->getMesh()->getCoordinates() );
+                calcul->addInputField( "PDEPLMR", transfertField( load, displ_prev ) );
+                calcul->addInputField( "PDEPLPR", transfertField( load, displ_step ) );
+                calcul->addInputField( "PPAIRR", pairing );
+                std::cout << "PAIR: " << pairing->getName() << std::endl;
+                calcul->addHHOField( model );
+
+                // Add time fields
+                calcul->addTimeField( "PINSTMR", time_prev );
+                calcul->addTimeField( "PINSTPR", time_prev + time_step );
+
+                // Add output elementary
+                calcul->addOutputElementaryTerm( "PVECTUR",
+                                                 std::make_shared< ElementaryTermReal >() );
+
+                // Computation
+                calcul->compute();
+                if ( calcul->hasOutputElementaryTerm( "PVECTUR" ) ) {
+                    elemVect->addElementaryTerm(
+                        addET( load, calcul->getOutputElementaryTermReal( "PVECTUR" ) ) );
+                }
             }
         }
+    };
+
+    const auto listOfLoads = _phys_problem->getListOfLoads();
+
+    if ( isHPC ) {
+#ifdef ASTER_HAVE_MPI
+        impl( listOfLoads->getParallelMechanicalLoadsReal() );
+#endif
+    } else {
+        impl( listOfLoads->getMechanicalLoadsReal() );
     }
 
     elemVect->build();

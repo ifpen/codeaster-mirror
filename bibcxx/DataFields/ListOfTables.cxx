@@ -56,7 +56,7 @@ bool ListOfTables::update_tables() {
         if ( id == "" )
             continue;
         if ( _mapTables[id] == nullptr ) {
-            _mapTables[id] = TablePtr( new Table( name ) );
+            _mapTables[id] = std::make_shared< Table >( name );
             _mapTables[id]->build();
         }
     }

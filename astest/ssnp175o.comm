@@ -1,0 +1,135 @@
+# coding=utf-8
+# --------------------------------------------------------------------
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
+# This file is part of code_aster.
+#
+# code_aster is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# code_aster is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
+# --------------------------------------------------------------------
+
+from code_aster.Commands import *
+from code_aster import CA
+from ssnp175a_func import create_grp_3d
+
+DEBUT(CODE="OUI", DEBUG=_F(SDVERI="OUI"), INFO=1)
+
+Mail0 = LIRE_MAILLAGE(UNITE=20, FORMAT="MED")
+
+Mail = create_grp_3d(Mail0)
+
+
+Mail = MODI_MAILLAGE(
+    reuse=Mail,
+    MAILLAGE=Mail,
+    ORIE_PEAU=_F(GROUP_MA_PEAU=("LIAISON_Haut", "LIAISON_Bas", "Encast", "Pres")),
+)
+
+MODI = AFFE_MODELE(MAILLAGE=Mail, AFFE=(_F(TOUT="OUI", PHENOMENE="MECANIQUE", MODELISATION="3D"),))
+
+E = 2000.0
+
+mat1 = DEFI_MATERIAU(ELAS=_F(E=E, NU=0.3))
+
+AFFE = AFFE_MATERIAU(MAILLAGE=Mail, MODELE=MODI, AFFE=_F(TOUT="OUI", MATER=mat1))
+
+RACCORD = AFFE_CHAR_MECA(
+    MODELE=MODI,
+    INFO=1,
+    LIAISON_MASSIF=_F(
+        GROUP_MA_ESCL="LIAISON_Bas",
+        GROUP_MA_MAIT="LIAISON_Haut",
+        METHODE="LAGRANGIEN",
+        TYPE_APPA="FORCEBRUTE",
+        COEF_PENA=E / 100.0,
+    ),
+    DDL_IMPO=_F(GROUP_MA="Encast", DZ=0),
+)
+
+
+CINE_FEM = AFFE_CHAR_CINE(
+    MODELE=MODI,
+    MECA_IMPO=(
+        _F(GROUP_MA="Symx_Haut", DX=0),
+        _F(GROUP_MA="Symx_Bas", DX=0),
+        _F(GROUP_MA="Symy_Haut", DY=0),
+        _F(GROUP_MA="Symy_Bas", DY=0),
+    ),
+)
+
+CHAR_PRES = AFFE_CHAR_MECA(MODELE=MODI, PRES_REP=_F(GROUP_MA="Pres", PRES=25))
+
+lisi = DEFI_LIST_REEL(DEBUT=0, INTERVALLE=_F(JUSQU_A=1, PAS=0.5))
+
+RAMPE = DEFI_FONCTION(NOM_PARA="INST", VALE=(0, 0, 1, 1))
+
+
+RES = MECA_NON_LINE(
+    INFO=1,
+    MODELE=MODI,
+    CHAM_MATER=AFFE,
+    EXCIT=(_F(CHARGE=CINE_FEM), _F(CHARGE=CHAR_PRES, FONC_MULT=RAMPE), _F(CHARGE=RACCORD)),
+    NEWTON=_F(MATRICE="TANGENTE", REAC_ITER=1),
+    INCREMENT=_F(LIST_INST=lisi),
+    COMPORTEMENT=_F(RELATION="ELAS", DEFORMATION="PETIT", TOUT="OUI"),
+    SOLVEUR=_F(METHODE="MUMPS", RESI_RELA=1.0e-6, PCENT_PIVOT=30, POSTTRAITEMENTS="FORCE"),
+    CONVERGENCE=_F(RESI_GLOB_MAXI=1.0e-6, ITER_GLOB_MAXI=3),
+)
+
+RES = CALC_CHAMP(
+    reuse=RES, RESULTAT=RES, CONTRAINTE=("SIEF_NOEU", "SIEF_ELNO", "SIGM_NOEU", "SIGM_ELNO")
+)
+
+TEST_RESU(
+    RESU=(
+        _F(
+            INST=1.0,
+            TYPE_TEST="MIN",
+            RESULTAT=RES,
+            NOM_CHAM="SIEF_NOEU",
+            LEGENDE="SIEF_NOEU",
+            NOM_CMP="SIZZ",
+            VALE_CALC=-45.40419317278341,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MAX",
+            RESULTAT=RES,
+            NOM_CHAM="SIEF_NOEU",
+            LEGENDE="SIEF_NOEU",
+            NOM_CMP="SIZZ",
+            VALE_CALC=6.71336584954928,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MIN",
+            RESULTAT=RES,
+            NOM_CHAM="DEPL",
+            LEGENDE="LAGZ",
+            NOM_CMP="LAGZ",
+            CRITERE="ABSOLU",
+            VALE_CALC=0.0,
+            ORDRE_GRANDEUR=1e-8,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MAX",
+            RESULTAT=RES,
+            NOM_CHAM="DEPL",
+            LEGENDE="LAGZ",
+            NOM_CMP="LAGZ",
+            VALE_CALC=205.21266556297613,
+        ),
+    )
+)
+
+FIN()

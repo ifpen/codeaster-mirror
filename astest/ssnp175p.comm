@@ -1,0 +1,280 @@
+# coding=utf-8
+# --------------------------------------------------------------------
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
+# This file is part of code_aster.
+#
+# code_aster is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# code_aster is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
+# --------------------------------------------------------------------
+
+from code_aster.Commands import *
+from code_aster import CA
+from code_aster.CA import MPI
+
+DEBUT(CODE="OUI", DEBUG=_F(SDVERI="OUI"), INFO=1)
+
+nbproc = MPI.ASTER_COMM_WORLD.Get_size()
+rank = MPI.ASTER_COMM_WORLD.Get_rank()
+
+Mail = LIRE_MAILLAGE(UNITE=20, FORMAT="MED", PARTITIONNEUR="PTSCOTCH")
+
+Mail = MODI_MAILLAGE(
+    reuse=Mail,
+    MAILLAGE=Mail,
+    ORIE_PEAU=_F(GROUP_MA_PEAU=("LIAISON_Haut", "LIAISON_Bas", "Encast", "Pres")),
+)
+
+MODI = AFFE_MODELE(
+    MAILLAGE=Mail,
+    AFFE=(
+        _F(
+            GROUP_MA=("Haut", "LIAISON_Haut", "Pres", "Sym_Haut"),
+            PHENOMENE="MECANIQUE",
+            MODELISATION="D_PLAN",
+        ),
+        _F(
+            GROUP_MA=("Bas", "LIAISON_Bas", "Encast", "Sym_Bas"),
+            PHENOMENE="MECANIQUE",
+            MODELISATION="D_PLAN_INCO_UPG",
+        ),
+    ),
+)
+
+E = 2000.0
+
+mat1 = DEFI_MATERIAU(ELAS=_F(E=E, NU=0.3))
+
+AFFE = AFFE_MATERIAU(MAILLAGE=Mail, MODELE=MODI, AFFE=_F(TOUT="OUI", MATER=mat1))
+
+RACCORD = AFFE_CHAR_MECA(
+    MODELE=MODI,
+    INFO=1,
+    LIAISON_MASSIF=_F(
+        GROUP_MA_ESCL="LIAISON_Haut",
+        GROUP_MA_MAIT="LIAISON_Bas",
+        METHODE="PENALISATION",
+        COEF_PENA=E,
+    ),
+)
+
+DDL_IMPO = AFFE_CHAR_MECA(
+    MODELE=MODI, INFO=1, DDL_IMPO=(_F(GROUP_MA="Sym_Bas", DX=0), _F(GROUP_MA="Encast", DY=0))
+)
+
+DDL_IMPO2 = AFFE_CHAR_CINE(
+    MODELE=MODI, INFO=1, MECA_IMPO=(_F(GROUP_MA="Sym_Bas", DX=0), _F(GROUP_MA="Encast", DY=0))
+)
+
+
+CINE_FEM = AFFE_CHAR_CINE(MODELE=MODI, MECA_IMPO=(_F(GROUP_MA="Sym_Haut", DX=0),))
+
+CHAR_PRES = AFFE_CHAR_MECA(MODELE=MODI, PRES_REP=_F(GROUP_MA="Pres", PRES=25))
+
+lisi = DEFI_LIST_REEL(DEBUT=0, INTERVALLE=_F(JUSQU_A=1, PAS=0.5))
+
+RAMPE = DEFI_FONCTION(NOM_PARA="INST", VALE=(0, 0, 1, 1))
+
+
+RES = MECA_NON_LINE(
+    INFO=1,
+    MODELE=MODI,
+    CHAM_MATER=AFFE,
+    EXCIT=(
+        _F(CHARGE=CINE_FEM),
+        _F(CHARGE=CHAR_PRES, FONC_MULT=RAMPE),
+        _F(CHARGE=RACCORD),
+        _F(CHARGE=DDL_IMPO2),
+    ),
+    NEWTON=_F(MATRICE="TANGENTE", REAC_ITER=1),
+    INCREMENT=_F(LIST_INST=lisi),
+    COMPORTEMENT=_F(RELATION="ELAS", DEFORMATION="PETIT", TOUT="OUI"),
+    SOLVEUR=_F(METHODE="MUMPS", RESI_RELA=1.0e-6, PCENT_PIVOT=30),
+    CONVERGENCE=_F(RESI_GLOB_MAXI=1.0e-6, ITER_GLOB_MAXI=3),
+)
+
+RES = CALC_CHAMP(
+    reuse=RES, RESULTAT=RES, CONTRAINTE=("SIEF_NOEU", "SIEF_ELNO", "SIGM_NOEU", "SIGM_ELNO")
+)
+
+
+TEST_RESU(
+    RESU=(
+        _F(
+            INST=1.0,
+            TYPE_TEST="MIN",
+            RESULTAT=RES,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIEF_NOEU",
+            LEGENDE="SIEF_NOEU",
+            NOM_CMP="SIYY",
+            VALE_REFE=-25.0,
+            VALE_CALC=-25.0000000000001,
+            PRECISION=0.05,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MAX",
+            RESULTAT=RES,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIEF_NOEU",
+            LEGENDE="SIEF_NOEU",
+            NOM_CMP="SIYY",
+            VALE_REFE=-25.0,
+            VALE_CALC=-24.99999999999956,
+            PRECISION=1e-4,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MIN",
+            RESULTAT=RES,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIGM_NOEU",
+            LEGENDE="SIYY",
+            NOM_CMP="SIYY",
+            VALE_REFE=-25.0,
+            VALE_CALC=-25.0000000000001,
+            PRECISION=1e-4,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MAX",
+            RESULTAT=RES,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIGM_NOEU",
+            LEGENDE="SIYY",
+            NOM_CMP="SIYY",
+            VALE_REFE=-25.0,
+            VALE_CALC=-24.99999999999956,
+            PRECISION=1e-4,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MIN",
+            RESULTAT=RES,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIGM_NOEU",
+            LEGENDE="SIXY",
+            NOM_CMP="SIXY",
+            CRITERE="ABSOLU",
+            ORDRE_GRANDEUR=1e-5,
+            VALE_REFE=0.0,
+            VALE_CALC=0.0,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MAX",
+            RESULTAT=RES,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIGM_NOEU",
+            LEGENDE="SIXY",
+            NOM_CMP="SIXY",
+            CRITERE="ABSOLU",
+            ORDRE_GRANDEUR=1e-5,
+            VALE_REFE=0.0,
+            VALE_CALC=0.0,
+        ),
+    )
+)
+
+RES2 = MECA_STATIQUE(
+    INFO=1,
+    MODELE=MODI,
+    CHAM_MATER=AFFE,
+    EXCIT=(_F(CHARGE=CINE_FEM), _F(CHARGE=CHAR_PRES), _F(CHARGE=RACCORD), _F(CHARGE=DDL_IMPO2)),
+    INST=1.0,
+)
+
+RES2 = CALC_CHAMP(
+    reuse=RES2, RESULTAT=RES2, CONTRAINTE=("SIEF_NOEU", "SIEF_ELNO", "SIGM_NOEU", "SIGM_ELNO")
+)
+
+TEST_RESU(
+    RESU=(
+        _F(
+            INST=1.0,
+            TYPE_TEST="MIN",
+            RESULTAT=RES2,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIEF_NOEU",
+            LEGENDE="SIEF_NOEU",
+            NOM_CMP="SIYY",
+            VALE_REFE=-25.0,
+            VALE_CALC=-25.0000000000001,
+            PRECISION=0.05,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MAX",
+            RESULTAT=RES2,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIEF_NOEU",
+            LEGENDE="SIEF_NOEU",
+            NOM_CMP="SIYY",
+            VALE_REFE=-25.0,
+            VALE_CALC=-24.99999999999956,
+            PRECISION=1e-4,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MIN",
+            RESULTAT=RES2,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIGM_NOEU",
+            LEGENDE="SIYY",
+            NOM_CMP="SIYY",
+            VALE_REFE=-25.0,
+            VALE_CALC=-25.0000000000001,
+            PRECISION=1e-4,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MAX",
+            RESULTAT=RES2,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIGM_NOEU",
+            LEGENDE="SIYY",
+            NOM_CMP="SIYY",
+            VALE_REFE=-25.0,
+            VALE_CALC=-24.99999999999956,
+            PRECISION=1e-4,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MIN",
+            RESULTAT=RES2,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIGM_NOEU",
+            LEGENDE="SIXY",
+            NOM_CMP="SIXY",
+            CRITERE="ABSOLU",
+            ORDRE_GRANDEUR=1e-5,
+            VALE_REFE=0.0,
+            VALE_CALC=0.0,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MAX",
+            RESULTAT=RES2,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIGM_NOEU",
+            LEGENDE="SIXY",
+            NOM_CMP="SIXY",
+            CRITERE="ABSOLU",
+            ORDRE_GRANDEUR=1e-5,
+            VALE_REFE=0.0,
+            VALE_CALC=0.0,
+        ),
+    )
+)
+
+FIN()

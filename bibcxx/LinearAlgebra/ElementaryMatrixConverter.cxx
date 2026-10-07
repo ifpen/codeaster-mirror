@@ -31,41 +31,62 @@ ElementaryTermRealPtr transfertToParallelFEDesc( const ElementaryTermRealPtr cur
     const auto &lielC = fEDesc->getListOfGroupsOfElementsExplorer();
     const auto &lielP = pFEDesc->getListOfGroupsOfElementsExplorer();
     const auto &cellMatching = pFEDesc->getCellMatching();
+    const auto &lielMatching = pFEDesc->getListOfGroupsOfElementsMatching();
+    const auto nbGrelC = fEDesc->getNumberOfGroupsOfElements();
+    const auto nbGrelP = pFEDesc->getNumberOfGroupsOfElements();
 
-    const auto &values = curElemT->getValues();
-    const auto name = values->getName();
-    if ( !values->isBuilt() ) {
-        values->build();
-    }
-    values->updateValuePointer();
-    const auto &nbElemColl = values->size();
+    // fEDesc->debugPrint();
+    // pFEDesc->debugPrint();
+
+    AS_ASSERT( nbGrelP <= nbGrelC );
 
     ElementaryTermRealPtr termToReturn = std::make_shared< ElementaryTermReal >();
     termToReturn->allocate( pFEDesc, curElemT->getOption(), curElemT->getPhysicalQuantityId(),
                             curElemT->getLocalModeId() );
 
+    if ( nbGrelP <= 0 ) {
+        return termToReturn;
+    }
+
+    const auto &values = curElemT->getValues();
+    values->build();
+    values->updateValuePointer();
+
     auto &newVal = termToReturn->getValues();
-    for ( int i = 0; i < nbElemColl; ++i ) {
-        const auto &curLielP = lielP[i];
-        const auto &cellNbC = lielC[i].getNumberOfNodes();
-        const auto &cellNbP = curLielP.getNumberOfNodes();
-        const auto &valueNb = ( *values )[i + 1]->size();
-        const double matrixTermNbC = valueNb / cellNbC;
-        const int valueNbP = matrixTermNbC * cellNbP;
-        newVal->allocateObject( i + 1, valueNbP );
-        ( *values )[i + 1]->updateValuePointer();
-        ( *newVal )[i + 1]->updateValuePointer();
-        int curPos = 0;
-        for ( const auto &cellId : curLielP ) {
-            const auto &cellIdC = cellMatching[i][curPos];
-            for ( int iMatTerm = 0; iMatTerm < matrixTermNbC; ++iMatTerm ) {
-                const auto pos1 = curPos * matrixTermNbC + iMatTerm;
-                const auto pos2 = cellIdC * matrixTermNbC + iMatTerm;
-                ( *( *newVal )[i + 1] )[pos1] = ( *( *values )[i + 1] )[pos2];
+    for ( int iC = 0; iC < nbGrelC; ++iC ) {
+        const auto iP = lielMatching[iC];
+        if ( iP >= 0 ) {
+            const auto elemCIdx = iC + 1;
+            const auto &curLielP = lielP[iP];
+            const auto &cellNbC = lielC[iC].getNumberOfNodes();
+            const auto &cellNbP = curLielP.getNumberOfNodes();
+            const auto &valueNb = ( *values )[elemCIdx]->size();
+            const int matrixTermNbC = valueNb / cellNbC;
+            AS_ASSERT( matrixTermNbC * cellNbC == valueNb );
+            const int valueNbP = matrixTermNbC * cellNbP;
+            // std::cout << "ET: " << iC << ", " << iP << ", " << valueNb << ", " << matrixTermNbC
+            //           << std::endl;
+            // std::cout << cellNbC << ", " << cellNbP << std::endl;
+
+            AS_ASSERT( valueNbP > 0 );
+            const auto elemPIdx = iP + 1;
+            newVal->allocateObject( elemPIdx, valueNbP );
+            ( *values )[elemCIdx]->updateValuePointer();
+            ( *newVal )[elemPIdx]->updateValuePointer();
+            const auto &cellM = cellMatching[iC];
+            int curPos = 0;
+            for ( const auto &cellId : curLielP ) {
+                const auto &cellIdC = cellM[curPos];
+                for ( int iMatTerm = 0; iMatTerm < matrixTermNbC; ++iMatTerm ) {
+                    const auto pos1 = curPos * matrixTermNbC + iMatTerm;
+                    const auto pos2 = cellIdC * matrixTermNbC + iMatTerm;
+                    ( *( *newVal )[elemPIdx] )[pos1] = ( *( *values )[elemCIdx] )[pos2];
+                }
+                ++curPos;
             }
-            ++curPos;
         }
     }
+
     return termToReturn;
 }
 
@@ -88,10 +109,10 @@ transfertToParallelFEDesc( const ElementaryMatrixDisplacementRealPtr eMIn,
 
     for ( const auto &curElemT : elemTerms ) {
         const auto curFEDesc = curElemT->getFiniteElementDescriptor();
-        if ( curFEDesc->getName() != fEDesc->getName() ) {
+        if ( curFEDesc != fEDesc ) {
             throw std::runtime_error(
                 "SupportFiniteElementDescriptor of "
-                "ParallelContactFEDescriptor must be the same than  elementary matrix "
+                "ParallelContactFEDescriptor must be the same than elementary matrix "
                 "FiniteElementDescriptor" );
         }
 
@@ -119,16 +140,14 @@ transfertToParallelFEDesc( const ElementaryVectorDisplacementRealPtr eVIn,
 
     for ( const auto &curElemT : elemTerms ) {
         const auto curFEDesc = curElemT->getFiniteElementDescriptor();
-        if ( curFEDesc->getName() != fEDesc->getName() ) {
+        if ( curFEDesc != fEDesc ) {
             throw std::runtime_error(
                 "SupportFiniteElementDescriptor of "
-                "ParallelContactFEDescriptor must be the same than  elementary matrix "
+                "ParallelContactFEDescriptor must be the same than elementary matrix "
                 "FiniteElementDescriptor" );
         }
-        const auto newET = transfertToParallelFEDesc( curElemT, pFEDesc );
-        newET->setFiniteElementDescriptor( pFEDesc );
 
-        eV->addElementaryTerm( newET );
+        eV->addElementaryTerm( transfertToParallelFEDesc( curElemT, pFEDesc ) );
     }
     return eV;
 };

@@ -235,7 +235,7 @@ class JeveuxVectorClass : public JeveuxObjectClass, private AllowedJeveuxType< V
             if ( _valuePtr == NULL )
                 ret = false;
         } else {
-            AS_ABORT( "JeveuxVector " + _name + "allocate null size" );
+            AS_ABORT( "JeveuxVector " + _name + " allocate null size" );
         }
 
         AS_ASSERT( ret );

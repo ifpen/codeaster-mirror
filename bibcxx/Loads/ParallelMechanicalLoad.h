@@ -36,6 +36,7 @@
 #include "Meshes/MeshExplorer.h"
 #include "Modeling/FiniteElementDescriptor.h"
 #include "Modeling/Model.h"
+#include "Modeling/ParallelContactFEDescriptor.h"
 #include "Modeling/ParallelFiniteElementDescriptor.h"
 #include "ParallelUtilities/AsterMPI.h"
 #include "Supervis/ResultNaming.h"
@@ -96,7 +97,7 @@ class ParallelMechanicalLoad : public DataStructure {
         fieldOut->build();
     };
 
-    void allocateFields( const MechanicalLoadPtr< ConstantFieldOnCellsType > &load ) {
+    void allocateType( const MechanicalLoadPtr< ConstantFieldOnCellsType > &load ) {
         auto typeLoadStd = load->getType();
         typeLoadStd->updateValuePointer();
 
@@ -104,12 +105,41 @@ class ParallelMechanicalLoad : public DataStructure {
         ( *_type )[0] = ( *typeLoadStd )[0];
         _modelName->allocate( 1 );
         ( *_modelName )[0] = _model->getName();
+    }
+
+    void allocateFields( const MechanicalLoadPtr< ConstantFieldOnCellsType > &load ) {
 
         transferConstantFieldOnCells( load->getMechanicalLoadDescription()->getImposedField(),
                                       _cimpo );
         transferConstantFieldOnCells(
             load->getMechanicalLoadDescription()->getMultiplicativeField(), _cmult );
     };
+
+    void buildParallelCouplingFED( const MechanicalLoadPtr< ConstantFieldOnCellsType > &load ) {
+        AS_ASSERT( load->getPairingField() && load->getPairingField()->exists() );
+        _pairingPts = std::make_shared< FieldOnCellsReal >( getName() + ".CHME.PAIRS",
+                                                            *( load->getPairingField() ) );
+
+        const auto cMesh =
+            std::dynamic_pointer_cast< ConnectionMesh >( load->getModel()->getMesh() );
+
+        if ( cMesh ) {
+            // as ParallelContactPairing - same objects.
+            _FEDesc = nullptr;
+            _cplFED = std::make_shared< ParallelContactFEDescriptor >(
+                getName() + ".CHME.LIGRE", _pairingPts->getDescription(), cMesh, _model );
+        } else {
+            throw std::runtime_error( "Problem with ConnectionMesh while coupling pairing" );
+        }
+    };
+
+    void buildParallelFED( const MechanicalLoadPtr< ConstantFieldOnCellsType > &load ) {
+        _FEDesc = std::make_shared< ParallelFiniteElementDescriptor >(
+            getName() + ".CHME.LIGRE", load->getFiniteElementDescriptor(),
+            load->getModel()->getConnectionMesh(), _model );
+        _cimpo = std::make_shared< ConstantFieldOnCellsType >( getName() + ".CHME.CIMPO", _FEDesc );
+        _cmult = std::make_shared< ConstantFieldOnCellsReal >( getName() + ".CHME.CMULT", _FEDesc );
+    }
 
   protected:
     /** @brief Modele */
@@ -128,6 +158,10 @@ class ParallelMechanicalLoad : public DataStructure {
     SyntaxSaverPtr _syntax;
     /** @brief node and cell support groups of ParallelMechnicalLoad */
     VectorString _grpNo, _grpMa;
+    /** @brief Field '.PAIRS' */
+    FieldOnCellsRealPtr _pairingPts;
+    /** @brief For LIAISON_MASSIF */
+    ParallelContactFEDescriptorPtr _cplFED;
 
   public:
     /**
@@ -153,19 +187,15 @@ class ParallelMechanicalLoad : public DataStructure {
         _grpNo = load->_grpNo;
         _grpMa = load->_grpMa;
         auto pMesh = std::static_pointer_cast< ParallelMesh >( model->getMesh() );
-        ConnectionMeshPtr connectionMesh( new ConnectionMesh( pMesh, _grpNo, _grpMa ) );
-        ModelPtr connectionModel( new Model( connectionMesh ) );
+        auto connectionMesh = std::make_shared< ConnectionMesh >( pMesh, _grpNo, _grpMa );
+        auto connectionModel = std::make_shared< Model >( connectionMesh );
         connectionModel->setFrom( model );
-        MechanicalLoadPtr< ConstantFieldOnCellsType > partialMechanicalLoad(
-            new MechanicalLoad< ConstantFieldOnCellsType >( connectionModel ) );
+        auto partialMechanicalLoad =
+            std::make_shared< MechanicalLoad< ConstantFieldOnCellsType > >( connectionModel );
         partialMechanicalLoad->buildFromSyntax( _syntax );
 
-        _FEDesc = std::make_shared< ParallelFiniteElementDescriptor >(
-            getName() + ".CHME.LIGRE", partialMechanicalLoad->getFiniteElementDescriptor(),
-            partialMechanicalLoad->getModel()->getConnectionMesh(), model );
-        _cimpo = std::make_shared< ConstantFieldOnCellsType >( getName() + ".CHME.CIMPO", _FEDesc );
-        _cmult = std::make_shared< ConstantFieldOnCellsReal >( getName() + ".CHME.CMULT", _FEDesc );
-
+        buildParallelFED( partialMechanicalLoad );
+        allocateType( partialMechanicalLoad );
         allocateFields( partialMechanicalLoad );
     };
 
@@ -176,17 +206,24 @@ class ParallelMechanicalLoad : public DataStructure {
                             const MechanicalLoadPtr< ConstantFieldOnCellsType > &load,
                             const ModelPtr &model )
         : DataStructure( name, 8, "CHAR_MECA" ),
-          _FEDesc( std::make_shared< ParallelFiniteElementDescriptor >(
-              getName() + ".CHME.LIGRE", load->getFiniteElementDescriptor(),
-              load->getModel()->getConnectionMesh(), model ) ),
-          _cimpo(
-              std::make_shared< ConstantFieldOnCellsType >( getName() + ".CHME.CIMPO", _FEDesc ) ),
-          _cmult(
-              std::make_shared< ConstantFieldOnCellsReal >( getName() + ".CHME.CMULT", _FEDesc ) ),
           _type( getName() + ".TYPE" ),
           _modelName( getName() + ".CHME.MODEL.NOMO" ),
           _model( model ) {
-        allocateFields( load );
+
+        allocateType( load );
+
+        const auto pairing = load->getPairingField();
+
+        if ( pairing && pairing->exists() ) {
+            // Can not mixed LIAISON_MASSIF with loads
+            AS_ASSERT( !load->getMechanicalLoadDescription()->getImposedField()->exists() );
+            AS_ASSERT( !load->getMechanicalLoadDescription()->getMultiplicativeField()->exists() );
+
+            buildParallelCouplingFED( load );
+        } else {
+            buildParallelFED( load );
+            allocateFields( load );
+        }
     };
 
     /**
@@ -243,7 +280,13 @@ class ParallelMechanicalLoad : public DataStructure {
     /**
      * @brief Get the finite element descriptor
      */
-    ParallelFiniteElementDescriptorPtr getFiniteElementDescriptor() const { return _FEDesc; };
+    FiniteElementDescriptorPtr getFiniteElementDescriptor() const {
+        if ( _cplFED ) {
+            return _cplFED;
+        }
+
+        return _FEDesc;
+    };
 
     /**
      * @brief Get the model
@@ -270,6 +313,10 @@ class ParallelMechanicalLoad : public DataStructure {
         _grpNo = grpNo;
         _grpMa = grpMa;
     };
+
+    auto getPairingField() const { return _pairingPts; }
+
+    auto getParallelCouplingFEDescriptor() const { return _cplFED; }
 };
 
 /**
