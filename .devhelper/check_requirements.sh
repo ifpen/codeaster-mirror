@@ -4,6 +4,9 @@ prefix=$(dirname $(dirname $(readlink -n -f ${0})))
 
 export ASTER_REQS_USE_DEBUG=${ASTER_REQS_USE_DEBUG:-0}
 
+defaultdir=${SCRATCHDIR:-${HOME}}/.cache/codeaster-prerequisites
+export ASTER_REQS_ROOT="${ASTER_REQS_ROOT:-${defaultdir}}"
+
 _test() {
     printf "\nchecking for ${1}...\n"
     ${1} --version 2> /dev/null
@@ -52,23 +55,23 @@ do_install() {
     is_intranet
     okintranet=$?
 
-    mkdir -p ${prefix}/build
+    mkdir -p "${ASTER_REQS_ROOT}"
     echo
     if [ ${okintranet} -eq 0 ]; then
         echo "⏳ downloading requirements archive ${arch} (it may take a few minutes)..."
         curl -fsSL https://minio.retd.edf.fr/codeaster/prereq/${arch} \
-            -o ${prefix}/build/${arch}
+            -o "${ASTER_REQS_ROOT}/${arch}"
     else
         echo "❌ downloading requirements from internet is not yet supported, sorry"
         return 1
     fi
-    if [ ! -f ${prefix}/build/${arch} ]; then
+    if [ ! -f "${ASTER_REQS_ROOT}/${arch}" ]; then
         echo "❌ download failed"
         return 1
     fi
 
     (
-        cd ${prefix}/build
+        cd "${ASTER_REQS_ROOT}"
         chmod 755 ${arch}
         ./${arch} && rm -f ${arch}
     )
@@ -82,15 +85,15 @@ check_requirements_main() {
     args=( "-v" )
     [ ${ASTER_REQS_USE_DEBUG} -eq 1 ] && args=()
 
-    found=$(find build -name "codeaster-prerequisites-${VERSION}-*" -type d | grep ${args[@]} debug)
+    found=$(find "${ASTER_REQS_ROOT}" -name "codeaster-prerequisites-${VERSION}-*" -type d 2> /dev/null | grep ${args[@]} debug)
     if [ -z "${found}" ]; then
         echo
-        echo "code_aster requirements not found in 'build/'."
+        echo "code_aster requirements not found in '${ASTER_REQS_ROOT}/'."
         echo "If they are already installed, define ASTER_CONFIG environment variable" \
             "to the environment file."
         do_install || return 4
     fi
-    found=$(find build -name "codeaster-prerequisites-${VERSION}-*" -type d | grep ${args[@]} debug)
+    found=$(find "${ASTER_REQS_ROOT}" -name "codeaster-prerequisites-${VERSION}-*" -type d 2> /dev/null | grep ${args[@]} debug)
     if [ -z "${found}" ]; then
         return 1
     fi
@@ -98,8 +101,8 @@ check_requirements_main() {
         echo "package details:"
         cat "${found}/VERSION"
     fi
+    export ASTER_CONFIG=$(ls ${found}/*.sh 2> /dev/null | head -1)
     return 0
 }
 
 check_requirements_main "$@"
-exit $?
