@@ -69,7 +69,7 @@ subroutine te0519(option, nomte)
 !
 ! --- Initialize data
 !
-    call cplNitsInitData(option, cplNitsMap, cplNitsData)
+    call cplNitsInitData(option, FECellSl, cplNitsMap, cplNitsData)
 !
 ! - Computation
 !

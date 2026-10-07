@@ -137,6 +137,7 @@ contains
         integer(kind=8) :: nbNodes, nodes(MT_NNOMAX2D), iBase, idim, fbs, node, iNode, iDoF
 !
         call readNitSlavMap(nbNodes, nodes)
+        cplMap%face2cellSl(1:nbNodes) = nodes(1:nbNodes)
         call FEBasisSl%initCell(FECellSl)
         ASSERT(FEBasisSl%typeEF == EF_LAGRANGE)
 !
@@ -203,6 +204,7 @@ contains
         integer(kind=8) :: nbNodes, nodes(MT_NNOMAX2D), iBase, fbs, node, iNode, iDoF
 !
         call readNitSlavMap(nbNodes, nodes)
+        cplMap%face2cellSl(1:nbNodes) = nodes(1:nbNodes)
         call FEBasisSl%initCell(FECellSl)
         ASSERT(FEBasisSl%typeEF == EF_LAGRANGE)
 !
@@ -225,6 +227,7 @@ contains
             cplMap%nbDoFsFEFaceSl = cplMap%nbDoFsFEFaceSl+1
             iDoF = cplMap%mapDoFsFECellSl(node)
             cplMap%mapDoFsFEFaceSl(cplMap%nbDoFsFEFaceSl) = iDoF
+            cplMap%mapDoFsFace(cplMap%nbDoFsFace) = iDoF
         end do
 !
         call hhoTherFaceDofs(hhoFaceMa, hhoDataMa, fbs)
@@ -247,11 +250,12 @@ contains
 !===================================================================================================
 !
 !
-    subroutine cplNitsInitData(option, cplMap, cplData)
+    subroutine cplNitsInitData(option, FECellSl, cplMap, cplData)
 !
         implicit none
 !
         character(len=16), intent(in) :: option
+        type(FE_Cell), intent(in) :: FECellSl
         type(CouplingMap), intent(in) :: cplMap
         type(CouplingData), intent(inout) :: cplData
 !
@@ -260,17 +264,15 @@ contains
 !===================================================================================================
 !
         integer(kind=8), parameter :: nbPara = 9
-        integer(kind=8) :: jmater, iNode, nbNodes, nodes(MT_NNOMAX2D), node
+        integer(kind=8) :: jmater, iNode
 !
-        call readNitSlavMap(nbNodes, nodes)
         call cplPenaInitData(option, cplMap, cplData)
 !
         call jevech('PMATERR', 'L', jmater)
 !
-        do iNode = 1, nbNodes
-            node = nodes(iNode)
-            cplData%E(iNode) = zr(jmater-1+nbPara*(node-1)+4)
-            cplData%nu(iNode) = zr(jmater-1+nbPara*(node-1)+5)
+        do iNode = 1, FECellSl%nbnodes
+            cplData%E(iNode) = zr(jmater-1+nbPara*(iNode-1)+4)
+            cplData%nu(iNode) = zr(jmater-1+nbPara*(iNode-1)+5)
         end do
 !
     end subroutine
@@ -305,7 +307,7 @@ contains
                                     cplData%coef_pena, lhs_pena)
 !
         call cplCmpStressFEMHHOMat(FEFaceSl, FECellSl, hhoFaceMa, hhoDataMa, FEQuadSl, hhoQuadMa, &
-                                   cplData, lhs_stress)
+                                   cplMap, cplData, lhs_stress)
 !
         call cplCmpGradLiftFEMHHOMatVec(FEFaceSl, FECellSl, hhoFaceMa, hhoDataMa, &
                                         FEQuadSl, hhoQuadMa, cplData, lhs_gradlift)

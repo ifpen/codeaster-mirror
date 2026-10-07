@@ -71,7 +71,8 @@ module coupling_computation_module
     public :: cplCmpPenaFEMFEMMatScal, cplCmpPenaFEMFEMMatVec
     public :: cplCmpLagrFEMFEMMatScal, cplCmpLagrFEMFEMMatVec
     public :: cplCmpStressFEMHHOMat, cplCmpGradLiftFEMHHOMatVec
-    private :: cplEvalElasPara, cplEvalMatrHB, cplEvalMatrHBn
+    private :: cplEvalElasParaFace, cplEvalElasParaCell
+    private :: cplEvalMatrHB, cplEvalMatrHBn
     private :: cplCmpProjFEM2HHOFaceScalRead
     public :: cplCmpProjFEM2HHOFaceResScal
     public :: cplCmpProjFEM2HHOFaceResVec
@@ -149,6 +150,10 @@ contains
         if (USE_L2_HHO_PROJ) then
 !
 ! ----- Compute Pi_F^k(phi_i^CG) on the intersection and not whole HHO face F.
+! Projected term on the current intersection S:
+! - the HHO polynomial space is restricted from the complete face F to S;
+! - the L2 projection is computed using the mass matrix restricted to S;
+! - the resulting operator depends only on the CG dofs of the current intersection.
 !
             call cplCmpProjFEM2HHOFaceScalRead(FEFaceSl, hhoFaceMa, hhoDataMa, &
                                                projFEM2HHO)
@@ -289,6 +294,7 @@ contains
         b_nrhs = to_blas_int(FEBasis%size)
         b_lda = to_blas_int(MSIZE_FACE_SCAL)
         b_ldb = to_blas_int(MSIZE_FACE_SCAL)
+        info = 0
         call dposv('U', b_n, b_nrhs, massMat, b_lda, &
                    projFEM2HHO, b_ldb, info)
 !
@@ -401,14 +407,14 @@ contains
         type(HHO_basis_cell) :: hhoBasisCell
         type(HHO_basis_face) :: hhoBasisFace
         type(HHO_Quadrature) :: hhoQuadCellSl
-        type(FE_Basis) :: FEBasisFaceSl
+        type(FE_Basis) :: FEBasisFaceSl, FEBasisCellSl
         type(HHO_massmat_cell) :: hhoMassMatCellSl
         type(HHO_matrix) :: rhs
         real(kind=8), dimension(MSIZE_FACE_SCAL, MAX_BS_CG) :: projFEM2HHO
         real(kind=8), dimension(MSIZE_CELL_SCAL) :: BSCEvalGradSl
         real(kind=8), dimension(MSIZE_FACE_SCAL) :: BSEvalFaceMa
         real(kind=8), dimension(MAX_BS_CG) :: BSEvalFaceSlProj
-        real(kind=8), dimension(MAX_BS_CG) :: BSEvalFaceSl
+        real(kind=8), dimension(MAX_BS_CG) :: BSEvalCellSl
         real(kind=8), dimension(6, MAX_BV_CG+MSIZE_FACE_VEC) :: strain, cstrain
         real(kind=8) :: normalSl(3), coeff, weight
         real(kind=8) :: E, nu, lambda, mu, trace
@@ -450,9 +456,10 @@ contains
         end select
 !
         call hhoCellInit(typema, FECellSl%coorno, hhoCellSl)
-        call hhoQuadCellSl%getQuadCell(hhoCellSl, 2*gradDegree)
+        call hhoQuadCellSl%getQuadCell(hhoCellSl, 2*gradDegree, param=ASTER_TRUE)
 !
         call FEBasisFaceSl%initFace(FEFaceSl)
+        call FEBasisCellSl%initCell(FECellSl)
 !
 ! ----- Use inertial basis since orthonormal does not exist for FEM side
         call hhoBasisCell%initialize(hhoCellSl, BASIS_INERTIAL)
@@ -714,9 +721,8 @@ contains
 !
 ! ------- Compute elastic parameters
 !
-            ! FIXME - work only with face
-            BSEvalFaceSl = FEBasisFaceSl%func(FEQuadSl%points_param(1:3, ipg))
-            call cplEvalElasPara(cplData, FEBasisFaceSl%size, BSEvalFaceSl, E, nu, lambda, mu)
+            BSEvalCellSl = FEBasisCellSl%func(hhoQuadCellSl%points_param(1:3, ipg))
+            call cplEvalElasParaCell(cplData, FEBasisCellSl%size, BSEvalCellSl, E, nu, lambda, mu)
 !
 ! ------- Compute elastic rigidity
 !
@@ -1049,7 +1055,7 @@ contains
 !
 !
     subroutine cplCmpStressFEMHHOMat(FEFaceSl, FECellSl, hhoFaceMa, hhoDataMa, &
-                                     FEQuadSl, hhoQuadMa, cplData, lhs)
+                                     FEQuadSl, hhoQuadMa, cplMap, cplData, lhs)
 !
         implicit none
 !
@@ -1059,6 +1065,7 @@ contains
         type(HHO_Data), intent(in) :: hhoDataMa
         type(FE_Quadrature), intent(in) :: FEQuadSl
         type(HHO_Quadrature), intent(in) :: hhoQuadMa
+        type(CouplingMap), intent(in) :: cplMap
         type(CouplingData), intent(in) :: cplData
         type(HHO_matrix), intent(out) :: lhs
 !
@@ -1147,7 +1154,8 @@ contains
 !
 ! ------- Compute elastic parameters
 !
-            call cplEvalElasPara(cplData, FEBasisFaceSl%size, BSEvalFaceSl, E, nu, lambda, mu)
+            call cplEvalElasParaFace(cplData, cplMap, FEBasisFaceSl%size, BSEvalFaceSl, &
+                                     E, nu, lambda, mu)
 !
 ! --------  Product (sigma(u^s).n^s, v^s-v^m)
 !
@@ -1192,13 +1200,13 @@ contains
 !===================================================================================================
 !
 !
-    subroutine cplEvalElasPara(cplData, nbNodes, BSEvalFaceSl, E, nu, lambda, mu)
+    subroutine cplEvalElasParaCell(cplData, nbNodes, BSEvalCellSl, E, nu, lambda, mu)
 !
         implicit none
 !
         type(CouplingData), intent(in) :: cplData
         integer(kind=8), intent(in) :: nbNodes
-        real(kind=8), dimension(MAX_BS_CG), intent(in) :: BSEvalFaceSl
+        real(kind=8), dimension(MAX_BS_CG), intent(in) :: BSEvalCellSl
         real(kind=8), intent(out) :: E, nu, lambda, mu
 !
 !===================================================================================================
@@ -1211,8 +1219,43 @@ contains
         nu = 0.d0
 !
         do iNode = 1, nbNodes
-            E = E+cplData%E(iNode)*BSEvalFaceSl(iNode)
-            nu = nu+cplData%nu(iNode)*BSEvalFaceSl(iNode)
+            E = E+cplData%E(iNode)*BSEvalCellSl(iNode)
+            nu = nu+cplData%nu(iNode)*BSEvalCellSl(iNode)
+        end do
+!
+        lambda = E*nu/(1.d0+nu)/(1.d0-2.d0*nu)
+        mu = 0.5d0*E/(1.d0+nu)
+!
+    end subroutine
+!
+!===================================================================================================
+!
+!===================================================================================================
+!
+!
+    subroutine cplEvalElasParaFace(cplData, cplMap, nbNodes, BSEvalFaceSl, E, nu, lambda, mu)
+!
+        implicit none
+!
+        type(CouplingData), intent(in) :: cplData
+        type(CouplingMap), intent(in) :: cplMap
+        integer(kind=8), intent(in) :: nbNodes
+        real(kind=8), dimension(MAX_BS_CG), intent(in) :: BSEvalFaceSl
+        real(kind=8), intent(out) :: E, nu, lambda, mu
+!
+!===================================================================================================
+!    Evaluate elastic parameter by interpolation
+!===================================================================================================
+!
+        integer(kind=8) :: iNode, node
+!
+        E = 0.d0
+        nu = 0.d0
+!
+        do iNode = 1, nbNodes
+            node = cplMap%face2cellSl(iNode)
+            E = E+cplData%E(node)*BSEvalFaceSl(iNode)
+            nu = nu+cplData%nu(node)*BSEvalFaceSl(iNode)
         end do
 !
         lambda = E*nu/(1.d0+nu)/(1.d0-2.d0*nu)

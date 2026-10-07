@@ -47,6 +47,7 @@ module coupling_type
         integer(kind=8) :: mapDoFsFEFaceMa(MAX_BV_CG) = 0
         integer(kind=8) :: mapDoFsFace(2*MAX_BV_CG) = 0
         integer(kind=8) :: mapDoFshhoFaceMa(MSIZE_FACE_VEC) = 0
+        integer(kind=8) :: face2cellSl(MT_NNOMAX2D) = 0
     end type
 !
     type CouplingData
@@ -64,7 +65,7 @@ module coupling_type
 !
         real(kind=8) :: coef_pena = 0.d0
 !
-        real(kind=8), dimension(MT_NNOMAX2D) :: E = 0.d0, nu = 0.d0
+        real(kind=8), dimension(MT_NNOMAX3D) :: E = 0.d0, nu = 0.d0
     end type
 !
     public :: CouplingMap, CouplingData
