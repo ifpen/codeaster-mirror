@@ -688,15 +688,7 @@ CouplingPairing::getHHOProjector( const FieldOnCellsRealPtr pairing ) const {
             elemMatr->addElementaryTerm( calcul->getOutputElementaryTermReal( "PMATUNS" ) );
         }
 
-        auto dofNume = std::make_shared< DOFNumbering >();
-        dofNume->computeNumbering( { elemMatr }, false );
-
-        auto matrAsse = std::make_shared< AssemblyMatrixDisplacementReal >( dofNume );
-        matrAsse->assemble( elemMatr );
-
-        auto subMat = matrAsse->extractSubMatrix( _fed, option, "PMATUNS" );
-
-        return subMat;
+        return elemMatr;
     }
 
     return nullptr;

@@ -73,8 +73,8 @@ module coupling_computation_module
     public :: cplCmpStressFEMHHOMat, cplCmpGradLiftFEMHHOMatVec
     private :: cplEvalElasPara, cplEvalMatrHB, cplEvalMatrHBn
     private :: cplCmpProjFEM2HHOFaceScalRead
-    public :: cplCmpProjFEM2HHOFaceLocScal
-    public :: cplCmpProjFEM2HHOFaceLocVec
+    public :: cplCmpProjFEM2HHOFaceResScal
+    public :: cplCmpProjFEM2HHOFaceResVec
 !
 ! -- Section 6 projected cG unknowns.
 !    .true.  => use Pi_F^k(u_CG) - u_F in the penalty term.
@@ -148,8 +148,8 @@ contains
 !
         if (USE_L2_HHO_PROJ) then
 !
-! ----- Compute Pi_F^k(phi_i^CG) on the whole HHO face F.
-!       This operator is precomputed since it is non-local
+! ----- Compute Pi_F^k(phi_i^CG) on the intersection and not whole HHO face F.
+!
             call cplCmpProjFEM2HHOFaceScalRead(FEFaceSl, hhoFaceMa, hhoDataMa, &
                                                projFEM2HHO)
         end if
@@ -205,9 +205,8 @@ contains
         real(kind=8), intent(out) :: projFEM2HHO(MSIZE_FACE_SCAL, MAX_BS_CG)
 !
 !===================================================================================================
-!    Read the L2 projection coefficients Pi_F^k(phi_i^CG) on the whole HHO face F.
-!    This operator is precomputed since it is non-local
-!
+!    Read the L2 projection coefficients Pi_F^k(phi_i^CG) on the intersection and
+!    not the whole HHO face F. It could be computed directly since it is local.
 !===================================================================================================
 !
         integer(kind=8) :: fbs_cmp
@@ -223,7 +222,7 @@ contains
 !
 !===================================================================================================
 !
-    subroutine cplCmpProjFEM2HHOFaceLocScal(FEFaceSl, hhoFaceMa, hhoDataMa, FEQuadSl, hhoQuadMa, &
+    subroutine cplCmpProjFEM2HHOFaceResScal(FEFaceSl, hhoFaceMa, hhoDataMa, FEQuadSl, hhoQuadMa, &
                                             projFEM2HHO)
 !
         implicit none
@@ -236,14 +235,14 @@ contains
         real(kind=8), intent(out) :: projFEM2HHO(MSIZE_FACE_SCAL, MAX_BS_CG)
 !
 !===================================================================================================
-!    Compute the local L2 projection coefficients Pi_F^k(phi_i^CG) on the whole HHO face F.
-!    The non-local projection has to be assembled after.
+!    Compute the local L2 projection coefficients Pi_F^k(phi_i^CG) on the intersection
+!    and not on the whole HHO face F. Since, it is not local.
 !===================================================================================================
 !
         type(FE_Basis) :: FEBasis
         type(HHO_basis_face) :: hhoBasisFace
-        type(HHO_massmat_face) :: faceMass
         real(kind=8) :: BSFEEval(MAX_BS_CG), BSHHOEval(MSIZE_FACE_SCAL)
+        real(kind=8) :: massMat(MSIZE_FACE_SCAL, MSIZE_FACE_SCAL)
         integer(kind=8) :: face_degree, ndim, ipg, feOrder, fbs
         blas_int :: b_incx, b_incy, b_lda, b_m, b_n, b_nrhs, b_ldb, info
 !
@@ -256,7 +255,7 @@ contains
         face_degree = hhoDataMa%face_degree()
         ndim = FEFaceSl%ndim+1
 !
-! -- HHO full face quadrature for the L2 projection on F.
+! -- HHO face quadrature for the L2 projection on the intersection.
 !    The RHS of the projection contains FEM basis functions times HHO basis functions.
 !    Therefore the quadrature order must be high enough for both the HHO face
 !    mass matrix check and the FEM/HHO product in the RHS.
@@ -272,6 +271,7 @@ contains
 ! -- Compute local RHS of the projection (uF, u_cG) on the intersection part
 !
         projFEM2HHO = 0.d0
+        massMat = 0.d0
         ASSERT(hhoQuadMa%nbQuadPoints == FEQuadSl%nbQuadPoints)
         do ipg = 1, hhoQuadMa%nbQuadPoints
             BSFEEval = FEBasis%func(FEQuadSl%points_param(1:3, ipg))
@@ -279,29 +279,23 @@ contains
 !
             call dger(b_m, b_n, hhoQuadMa%weights(ipg), BSHHOEval, b_incx, BSFEEval, b_incy, &
                       projFEM2HHO, b_lda)
+
+            call dsyr("U", b_m, hhoQuadMa%weights(ipg), BSHHOEval, b_incx, massMat, b_lda)
         end do
 !
-        if (.not. hhoBasisFace%isOrthonormal()) then
+! -- Solve the system - Local mass matrix too.
 !
-! -------- Compute face mass matrix
+        b_n = to_blas_int(fbs)
+        b_nrhs = to_blas_int(FEBasis%size)
+        b_lda = to_blas_int(MSIZE_FACE_SCAL)
+        b_ldb = to_blas_int(MSIZE_FACE_SCAL)
+        call dposv('U', b_n, b_nrhs, massMat, b_lda, &
+                   projFEM2HHO, b_ldb, info)
 !
-            call faceMass%compute(hhoFaceMa, 0, face_degree)
+! -- Sucess ?
 !
-! ------- Solve the system
-!         We can invert the system since even for local RHS, the mass matrix is constant.
-!
-            b_n = to_blas_int(faceMass%nrows)
-            b_nrhs = to_blas_int(FEBasis%size)
-            b_lda = to_blas_int(faceMass%max_nrows)
-            b_ldb = to_blas_int(MSIZE_FACE_SCAL)
-            call dposv('U', b_n, b_nrhs, faceMass%m, b_lda, &
-                       projFEM2HHO, b_ldb, info)
-!
-! ------- Sucess ?
-!
-            if (info .ne. 0) then
-                call utmess('F', 'HHO1_4')
-            end if
+        if (info .ne. 0) then
+            call utmess('F', 'HHO1_4')
         end if
 !
     end subroutine
@@ -310,7 +304,7 @@ contains
 !
 !===================================================================================================
 !
-    subroutine cplCmpProjFEM2HHOFaceLocVec(FEFaceSl, hhoFaceMa, hhoDataMa, FEQuadSl, hhoQuadMa, &
+    subroutine cplCmpProjFEM2HHOFaceResVec(FEFaceSl, hhoFaceMa, hhoDataMa, FEQuadSl, hhoQuadMa, &
                                            projFEM2HHO)
 !
         implicit none
@@ -322,12 +316,18 @@ contains
         type(HHO_Quadrature), intent(in) :: hhoQuadMa
         type(HHO_matrix), intent(out) :: projFEM2HHO
 !
-
+!
+!===================================================================================================
+!    Compute the local L2 projection coefficients Pi_F^k(phi_i^CG) on the intersection
+!    and not on the whole HHO face F. Since, it is not local.
+!    Vectorial case by tensorization.
+!===================================================================================================
+!
         real(kind=8) :: rhs_scal(MSIZE_FACE_SCAL, MAX_BS_CG)
         integer(kind=8) :: ndim, fbs_scal, fbs, nFE_scal, nFE
         integer(kind=8) :: i, j, idim, irow, jcol
 
-        call cplCmpProjFEM2HHOFaceLocScal(FEFaceSl, hhoFaceMa, hhoDataMa, FEQuadSl, hhoQuadMa, &
+        call cplCmpProjFEM2HHOFaceResScal(FEFaceSl, hhoFaceMa, hhoDataMa, FEQuadSl, hhoQuadMa, &
                                           rhs_scal)
 !
         ndim = hhoFaceMa%ndim+1
@@ -465,9 +465,8 @@ contains
 !
         call hhoBasisFace%initialize(hhoFaceMa)
         call hhoTherFaceDofs(hhoFaceMa, hhoDataMa, fbsCmp)
-        ! Why this one work ?
-        call cplCmpProjFEM2HHOFaceLocScal(FEFaceSl, hhoFaceMa, hhoDataMa, FEQuadSl, hhoQuadMa, &
-                                          projFEM2HHO)
+        call cplCmpProjFEM2HHOFaceScalRead(FEFaceSl, hhoFaceMa, hhoDataMa, &
+                                           projFEM2HHO)
         nbDoFsFE = FEBasisFaceSl%size
         nbDoFs = ndim*(nbDoFsFE+fbsCmp)
 !

@@ -86,12 +86,10 @@ subroutine te0527(nomopt, nomte)
 !
     call cplGetQuadFEMHHO(FEFaceSl, hhoFaceMa, hhoDataMa, FEQuadSl, hhoQuadMa)
 !
-! ----- Compute RHS of Pi_F^k(phi_i^CG) on the whole HHO face F.
-!       This is only the local part of the projector since a cG node
-!       can be shared by two face. To compute the non-local operator,
-!       it is necessary to assemble them together.
-
-    call cplCmpProjFEM2HHOFaceLocVec(FEFaceSl, hhoFaceMa, hhoDataMa, &
+! ----- Compute RHS of Pi_F^k(phi_i^CG) on the intersection and
+!       the whole HHO face F.
+!
+    call cplCmpProjFEM2HHOFaceResVec(FEFaceSl, hhoFaceMa, hhoDataMa, &
                                      FEQuadSl, hhoQuadMa, projFEM2HHO)
 !
     ASSERT(projFEM2HHO%nrows == cplMap%nbDoFshhoFaceMa)
