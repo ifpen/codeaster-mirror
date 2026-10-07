@@ -325,7 +325,7 @@ contains
 
         real(kind=8) :: rhs_scal(MSIZE_FACE_SCAL, MAX_BS_CG)
         integer(kind=8) :: ndim, fbs_scal, fbs, nFE_scal, nFE
-        integer(kind=8) :: i, j, idim, jdim, irow, jcol
+        integer(kind=8) :: i, j, idim, irow, jcol
 
         call cplCmpProjFEM2HHOFaceLocScal(FEFaceSl, hhoFaceMa, hhoDataMa, FEQuadSl, hhoQuadMa, &
                                           rhs_scal)
@@ -338,17 +338,19 @@ contains
 !
         call projFEM2HHO%initialize(fbs, nFE, 0.d0)
 !
-        do j = 1, nFE_scal
-            do jdim = 1, ndim
-                jcol = (j-1)*ndim+jdim
-                do i = 1, fbs_scal
-                    do idim = 1, ndim
-                        irow = (idim-1)*fbs_scal+i
-                        projFEM2HHO%m(irow, jcol) = rhs_scal(i, j)
-                    end do
+        irow = 0
+        do idim = 1, ndim
+            do i = 1, fbs_scal
+                irow = irow+1
+                jcol = idim
+                do j = 1, nFE_scal
+                    projFEM2HHO%m(irow, jcol) = rhs_scal(i, j)
+                    jcol = jcol+ndim
                 end do
             end do
         end do
+!
+        ASSERT(irow == fbs)
 !
     end subroutine
 !
@@ -713,6 +715,7 @@ contains
 !
 ! ------- Compute elastic parameters
 !
+            ! FIXME - work only with face
             BSEvalFaceSl = FEBasisFaceSl%func(FEQuadSl%points_param(1:3, ipg))
             call cplEvalElasPara(cplData, FEBasisFaceSl%size, BSEvalFaceSl, E, nu, lambda, mu)
 !

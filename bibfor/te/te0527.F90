@@ -94,6 +94,9 @@ subroutine te0527(nomopt, nomte)
     call cplCmpProjFEM2HHOFaceLocVec(FEFaceSl, hhoFaceMa, hhoDataMa, &
                                      FEQuadSl, hhoQuadMa, projFEM2HHO)
 !
+    ASSERT(projFEM2HHO%nrows == cplMap%nbDoFshhoFaceMa)
+    ASSERT(projFEM2HHO%ncols == cplMap%nbDoFsFEFaceSl)
+!
 !  Assemble matrix
 !
     call lhs%initialize(cplMap%nbDoFs, cplMap%nbDoFs, 0.d0)
