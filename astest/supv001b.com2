@@ -1,6 +1,5 @@
-# coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2024 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -17,6 +16,7 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
+import sys
 
 from code_aster.Commands import *
 from code_aster import CA
@@ -29,6 +29,10 @@ CA.init("--test", "--continue", debug=True, ERREUR=_F(ALARME="EXCEPTION"))
 
 test = CA.TestCase()
 test.assertEqual(four(0.0), 4.0, msg="evaluate four")
+
+expected = 2 + 1  # should be 2, to be fixed
+test.assertEqual(sys.getrefcount(six), expected)
+
 test.printSummary()
 
 FIN()

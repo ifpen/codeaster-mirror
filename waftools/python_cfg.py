@@ -47,9 +47,11 @@ def check_python(self):
         for lang in ("CFLAGS", "CXXFLAGS"):
             for feat in ("PYEMBED", "PYEXT"):
                 self.env[lang + "_" + feat] = []
-    for lang in ("CFLAGS", "CXXFLAGS"):
+    for lang in ("CFLAGS", "CXXFLAGS", "LINKFLAGS"):
         for feat in ("PYEMBED", "PYEXT"):
-            self.remove_optflags(lang + "_" + feat)
+            self.remove_flags(lang + "_" + feat, "^-O[0-9]")
+            self.remove_flags(lang + "_" + feat, "^-flto")
+            self.remove_flags(lang + "_" + feat, "^-ffat\-lto")
     cfgext = self.env["CONFIG_PARAMETERS"].get("cfgext", "yaml")
     if cfgext in ("", "yaml"):
         try:

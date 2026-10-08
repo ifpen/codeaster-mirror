@@ -89,7 +89,7 @@ MAIN = "      program main\n      end program main\n"
 @Configure.conf
 def check_fortran_compiler_flags(self):
     self.check_fortran_compiler_options("-fPIC")
-    # self.check_fortran_compiler_options("-fno-lto")
+    self.check_fortran_compiler_options(self.get_lto_options())
     if "gfortran" in self.env.FC_NAME.lower():
         if "64" in self.env.DEST_CPU:
             self.check_fortran_compiler_options("-fdefault-integer-8", dest="FCFLAGS_INT64")
@@ -458,7 +458,7 @@ def check_c_fortran_real8(self):
 @Configure.conf
 def check_optimization_fcflags(self):
     """Check for optimization FCFLAGS."""
-    self.remove_optflags("FCFLAGS")
+    self.remove_flags("FCFLAGS", "^-O[0-9]")
     self.setenv("debug")
     self.start_msg("Setting fortran debug flags")
     self.define("ASTER_DEBUG_FC", 1)

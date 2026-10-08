@@ -29,26 +29,18 @@ def options(self):
     # already done by waftools/parallel.py: self.load("compiler_c")
     group = self.get_option_group("code_aster options")
     group.add_option(
-        "-e",
-        "--build-executable",
-        dest="embed_aster",
-        default=False,
+        "--enable-lto",
+        dest="lto",
+        default=None,
         action="store_true",
-        help="build aster as an executable: it is an alias for --embed-aster",
+        help="enable link time optimization (LTO)",
     )
     group.add_option(
-        "--embed-aster",
-        dest="embed_aster",
-        default=True,
-        action="store_true",
-        help="embed all aster components within a python interpreter",
-    )
-    group.add_option(
-        "--shared-aster",
-        dest="embed_aster",
-        default=True,
+        "--disable-lto",
+        dest="lto",
+        default=None,
         action="store_false",
-        help="build each aster component as a shared python module",
+        help="disable link time optimization (LTO)",
     )
 
 
@@ -71,7 +63,8 @@ def configure(self):
     self.add_linkflags("-Wl,--no-warn-execstack")
 
     self.add_linkflags("-Wl,--no-as-needed", dest="LINKFLAGS_LIBASTER")
-    self.add_linkflags("-Wl,-flto=auto", dest="LINKFLAGS")
+    self.add_linkflags([f"-Wl,{i}" for i in self.get_lto_options()], dest="LINKFLAGS")
+
     # seems incompatible with subroutines like zerofr that takes function as argument (test ssnv168f)
     # self.add_linkflags("-Wl,-z,noexecstack", dest="LINKFLAGS")
 
@@ -239,8 +232,7 @@ def build_libaster(self, env):
 @Configure.conf
 def check_c_compiler_flags(self):
     self.check_c_compiler_options("-fPIC")
-    # needs more tests (size and build time)
-    # self.check_c_compiler_options("-fno-lto")
+    self.check_c_compiler_options(self.get_lto_options())
     self.start_msg("C compiler flags")
     self.end_msg(self.env["CFLAGS"])
 
@@ -260,7 +252,7 @@ def check_c_compiler_options(self, options):
 
 @Configure.conf
 def check_optimization_cflags(self):
-    self.remove_optflags("CFLAGS")
+    self.remove_flags("CFLAGS", "^-O[0-9]")
     self.setenv("debug")
     self.start_msg("Setting C debug flags")
     flags = ["-g", "-O0"] + Utils.to_list(self.env["CFLAGS_ASTER_DEBUG"])

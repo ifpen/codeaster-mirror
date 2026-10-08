@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
-# person_in_charge: mathieu.courtois@edf.fr
 """
 :py:class:`DataStructure` --- Base of all objects
 *************************************************
@@ -163,6 +162,9 @@ DICT_SDJ = {
     "Grid": "SD.sd_grille.sd_grille",
     "HarmoGeneralizedResult": "SD.sd_dyna_gene.sd_dyna_gene",
     "InterspectralMatrix": "SD.sd_interspectre.sd_interspectre",
+    "MechanicalLoadReal": "SD.sd_char_meca.sd_char_meca",
+    "MechanicalLoadFunction": "SD.sd_char_meca.sd_char_meca",
+    "MechanicalLoadComplex": "SD.sd_char_meca.sd_char_meca",
     "MeshesMapping": "SD.sd_corresp_2_mailla.sd_corresp_2_mailla",
     "ModeResultComplex": "SD.sd_dyna_phys.sd_dyna_phys",
     "ParallelContactNew": "SD.sd_char_cont.sd_char_cont",

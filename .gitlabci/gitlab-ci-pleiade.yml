@@ -1,6 +1,6 @@
 variables:
   GIT_STRATEGY: fetch
-  # depth must be higher than the range used to search the last tag
+  # only 'prepare' download more revisions to search the last tag
   GIT_DEPTH: 100
   MINIO_URL: https://minio.retd.edf.fr
   ROOT_URL: https://$GITLAB_TOKEN_NAME:$GITLAB_TOKEN@gitlab.pleiade.edf.fr/codeaster
@@ -8,6 +8,7 @@ variables:
   OSNAME: debian-12
   IMAGE_URL: ${DOCKER_NEXUS_URL}/codeaster-prerequisites:${PREREQ_VERSION}-${OSNAME}
   ASTER_BUILD: mpi
+  ASTER_SKIP_CHECK_UPDATES: 1
   # BUILDTYPE: ci, nightly, nightly-coverage, nightly-sanitize, code-checking, docker
   BUILDTYPE: ci
   # RUNNER_TAG_TEST: allow to override the runner for running tests (in schedule parameters)
