@@ -323,6 +323,24 @@ contains
             nbnodes_post = 7
             node_init = 7
             elem_dim = 2
+        elseif (typma == 'T11') then
+            typma = 'TRIA3'
+            nbnodes = 3
+            nbnodes_post = 7
+            node_init = 5
+            elem_dim = 2
+        elseif (typma == 'T17') then
+            typma = 'TRIA3'
+            nbnodes = 3
+            nbnodes_post = 7
+            node_init = 11
+            elem_dim = 2
+        elseif (typma == 'T27') then
+            typma = 'TRIA3'
+            nbnodes = 3
+            nbnodes_post = 7
+            node_init = 21
+            elem_dim = 2
         else
             print *, typma
             ASSERT(ASTER_FALSE)

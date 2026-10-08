@@ -18,7 +18,7 @@
 !
 
 ! Total number of cell types
-#define MT_NTYMAX  91
+#define MT_NTYMAX  94
 ! Total number of real (physical) cell types
 #define MT_NPHMAX  28
 ! Maximum number of nodes of all cells

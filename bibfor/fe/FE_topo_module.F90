@@ -200,6 +200,12 @@ contains
             this%typemas = "QU8"
         case ("QS5", "QS6")
             this%typemas = "QU9"
+        case ("T11")
+            this%typemas = "TE4"
+        case ("T17")
+            this%typemas = "T10"
+        case ("T27")
+            this%typemas = "T20"
         case default
             this%typemas = typ
         end select

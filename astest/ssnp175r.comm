@@ -1,0 +1,177 @@
+# coding=utf-8
+# --------------------------------------------------------------------
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
+# This file is part of code_aster.
+#
+# code_aster is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# code_aster is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
+# --------------------------------------------------------------------
+
+from code_aster.Commands import *
+from code_aster import CA
+from ssnp175a_func import create_grp_3d
+
+DEBUT(CODE="OUI", DEBUG=_F(SDVERI="OUI"), INFO=1)
+
+Mail0 = LIRE_MAILLAGE(UNITE=20, FORMAT="MED")
+
+Mail0 = create_grp_3d(Mail0)
+
+Mail = CREA_MAILLAGE(MAILLAGE=Mail0, MODI_HHO=_F(GROUP_MA="Bas"))
+
+
+Mail = MODI_MAILLAGE(
+    reuse=Mail,
+    MAILLAGE=Mail,
+    ORIE_PEAU=_F(GROUP_MA_PEAU=("LIAISON_Haut", "LIAISON_Bas", "Encast", "Pres")),
+)
+
+MODI = AFFE_MODELE(
+    MAILLAGE=Mail,
+    AFFE=(
+        _F(
+            GROUP_MA=("Haut", "LIAISON_Haut", "Pres", "Symx_Haut", "Symy_Haut"),
+            PHENOMENE="MECANIQUE",
+            MODELISATION="3D",
+        ),
+        _F(
+            GROUP_MA=("Bas", "LIAISON_Bas", "Encast", "Symx_Bas", "Symy_Bas"),
+            PHENOMENE="MECANIQUE",
+            MODELISATION="3D_HHO",
+        ),
+    ),
+)
+
+E = 2000.0
+
+mat1 = DEFI_MATERIAU(ELAS=_F(E=E, NU=0.3))
+
+AFFE = AFFE_MATERIAU(MAILLAGE=Mail, MODELE=MODI, AFFE=_F(TOUT="OUI", MATER=mat1))
+
+RACCORD = AFFE_CHAR_MECA(
+    MODELE=MODI,
+    INFO=1,
+    LIAISON_MASSIF=_F(
+        GROUP_MA_ESCL="LIAISON_Haut", GROUP_MA_MAIT="LIAISON_Bas", METHODE="NITSCHE", COEF_PENA=E
+    ),
+)
+
+CINE_HHO = AFFE_CHAR_CINE(
+    MODELE=MODI,
+    MECA_IMPO=(
+        _F(GROUP_MA="Symx_Bas", DX=0),
+        _F(GROUP_MA="Symy_Bas", DY=0),
+        _F(GROUP_MA="Encast", DZ=0),
+    ),
+)
+
+CINE_FEM = AFFE_CHAR_CINE(
+    MODELE=MODI, MECA_IMPO=(_F(GROUP_MA="Symx_Haut", DX=0), _F(GROUP_MA="Symy_Haut", DY=0))
+)
+
+CHAR_PRES = AFFE_CHAR_MECA(MODELE=MODI, PRES_REP=_F(GROUP_MA="Pres", PRES=25))
+
+
+RES = MECA_STATIQUE(
+    INFO=1,
+    MODELE=MODI,
+    CHAM_MATER=AFFE,
+    EXCIT=(_F(CHARGE=CINE_FEM), _F(CHARGE=CINE_HHO), _F(CHARGE=CHAR_PRES), _F(CHARGE=RACCORD)),
+    INST=1.0,
+)
+
+RES = CALC_CHAMP(
+    reuse=RES, RESULTAT=RES, CONTRAINTE=("SIEF_NOEU", "SIEF_ELNO", "SIGM_NOEU", "SIGM_ELNO")
+)
+
+
+TEST_RESU(
+    RESU=(
+        _F(
+            INST=1.0,
+            TYPE_TEST="MIN",
+            RESULTAT=RES,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIEF_NOEU",
+            LEGENDE="SIEF_NOEU",
+            NOM_CMP="SIZZ",
+            VALE_REFE=-25.0,
+            VALE_CALC=-25.000000000005045,
+            PRECISION=1e-12,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MAX",
+            RESULTAT=RES,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIEF_NOEU",
+            LEGENDE="SIEF_NOEU",
+            NOM_CMP="SIZZ",
+            VALE_REFE=-25.0,
+            VALE_CALC=-25.000000000005045,
+            PRECISION=1e-12,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MIN",
+            RESULTAT=RES,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIGM_NOEU",
+            LEGENDE="SIZZ",
+            NOM_CMP="SIZZ",
+            VALE_REFE=-25.0,
+            VALE_CALC=-25.000000000005045,
+            PRECISION=1e-12,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MAX",
+            RESULTAT=RES,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIGM_NOEU",
+            LEGENDE="SIZZ",
+            NOM_CMP="SIZZ",
+            VALE_REFE=-25.0,
+            VALE_CALC=-25.000000000005045,
+            PRECISION=1e-12,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MIN",
+            RESULTAT=RES,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIGM_NOEU",
+            LEGENDE="SIXY",
+            NOM_CMP="SIXY",
+            CRITERE="ABSOLU",
+            ORDRE_GRANDEUR=1e-5,
+            VALE_REFE=0.0,
+            VALE_CALC=0.0,
+        ),
+        _F(
+            INST=1.0,
+            TYPE_TEST="MAX",
+            RESULTAT=RES,
+            REFERENCE="ANALYTIQUE",
+            NOM_CHAM="SIGM_NOEU",
+            LEGENDE="SIXY",
+            NOM_CMP="SIXY",
+            CRITERE="ABSOLU",
+            ORDRE_GRANDEUR=1e-5,
+            VALE_REFE=0.0,
+            VALE_CALC=0.0,
+        ),
+    )
+)
+
+FIN()

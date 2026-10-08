@@ -821,6 +821,14 @@ SEG44 = MeshType(nbno=8, dim=1, code="S44")
 
 SEG43 = MeshType(nbno=7, dim=1, code="S43")
 
+# For Nitsche 3D
+
+TE4TR7 = MeshType(nbno=11, dim=2, code="T11")
+
+T10TR7 = MeshType(nbno=17, dim=2, code="T17")
+
+T20TR7 = MeshType(nbno=27, dim=2, code="T27")
+
 
 # store all MeshType objects
 ELREFS = objects_from_context(globals(), Elrefe)

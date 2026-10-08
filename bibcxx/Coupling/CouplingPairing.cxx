@@ -48,6 +48,12 @@ const std::map< std::pair< std::string, std::string >, std::string > cplCellNits
     { { "MEDPQU8", "MECA_2D_HHO2_F" }, "CN_Q8S3_HHO2" },
     { { "MEDPQU9", "MECA_2D_HHO2_F" }, "CN_Q9S3_HHO2" },
     { { "MEDPQU12", "MECA_2D_HHO2_F" }, "CN_Q12S3_HHO2" },
+    { { "MECA_TETRA4", "MECA3DTR7_HHO1_F" }, "CN_TE4TR7_HHO1" },
+    { { "MECA_TETRA10", "MECA3DTR7_HHO1_F" }, "CN_T10TR7_HHO1" },
+    { { "MECA_TETRA20", "MECA3DTR7_HHO1_F" }, "CN_T20TR7_HHO1" },
+    { { "MECA_TETRA4", "MECA3DTR7_HHO2_F" }, "CN_TE4TR7_HHO2" },
+    { { "MECA_TETRA10", "MECA3DTR7_HHO2_F" }, "CN_T10TR7_HHO2" },
+    { { "MECA_TETRA20", "MECA3DTR7_HHO2_F" }, "CN_T20TR7_HHO2" },
 };
 
 const std::map< std::pair< std::string, std::string >, std::string > cplCellPena {

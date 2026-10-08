@@ -3964,6 +3964,44 @@ phen.add(
     ),
 )
 
+phen.add(
+    "CPL_NIT_H1_EL_3D",
+    Modelisation(
+        dim=(2, 3),
+        code="HN6",
+        attrs=(
+            (AT.HHO, "OUI"),
+            (AT.FORMULATION, "HHO_LINE"),
+            (AT.TYPMOD2, "HHO"),
+            (AT.RACCORD, "OUI"),
+        ),
+        elements=(
+            (MT.TE4TR7, EL.CN_TE4TR7_HHO1),
+            (MT.T10TR7, EL.CN_T10TR7_HHO1),
+            (MT.T20TR7, EL.CN_T20TR7_HHO1),
+        ),
+    ),
+)
+
+phen.add(
+    "CPL_NIT_H2_EL_3D",
+    Modelisation(
+        dim=(2, 3),
+        code="HN7",
+        attrs=(
+            (AT.HHO, "OUI"),
+            (AT.FORMULATION, "HHO_QUAD"),
+            (AT.TYPMOD2, "HHO"),
+            (AT.RACCORD, "OUI"),
+        ),
+        elements=(
+            (MT.TE4TR7, EL.CN_TE4TR7_HHO2),
+            (MT.T10TR7, EL.CN_T10TR7_HHO2),
+            (MT.T20TR7, EL.CN_T20TR7_HHO2),
+        ),
+    ),
+)
+
 # ------------------------------------------------------------------------------------
 # Modelisations sous-terraines pour :
 #  * Forces nodales

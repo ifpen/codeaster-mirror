@@ -18,23 +18,20 @@
 !
 module coupling_computation_module
 !
+    use coupling_quadrature_module, only: cplGetQuadOrderFEM
     use coupling_type
     use FE_Basis_module
-    use FE_mass_module
     use FE_quadrature_module
     use FE_topo_module
     use HHO_basis_module
-    use HHO_eval_module
-    use HHO_L2proj_module, only: hhoL2ProjFaceScal
+    use HHO_geometry_module
+    use HHO_init_module
     use HHO_massmat_module
     use HHO_matrix_module
     use HHO_quadrature_module
     use HHO_size_module
     use HHO_type
-    use HHO_init_module
-    use HHO_geometry_module
-    use HHO_utils_module, only: hhoCopySymPartMat, CellNameL2S, hhoPrintMat
-    use coupling_quadrature_module, only: cplGetQuadOrderFEM
+    use HHO_utils_module, only: hhoCopySymPartMat
 !
     implicit none
 !
@@ -73,6 +70,7 @@ module coupling_computation_module
     public :: cplCmpStressFEMHHOMat, cplCmpGradLiftFEMHHOMatVec
     private :: cplEvalElasParaFace, cplEvalElasParaCell
     private :: cplEvalMatrHB, cplEvalMatrHBn
+    private :: cplTensorizeFEMHHOMat
     private :: cplCmpProjFEM2HHOFaceScalRead
     public :: cplCmpProjFEM2HHOFaceResScal
     public :: cplCmpProjFEM2HHOFaceResVec
@@ -84,6 +82,85 @@ module coupling_computation_module
 !
 !
 contains
+!
+    subroutine cplTensorizeFEMHHOMat(matScal, ndim, nFEScal, nHHOScal, matVec)
+!
+        implicit none
+!
+        type(HHO_matrix), intent(in) :: matScal
+        integer(kind=8), intent(in) :: ndim
+        integer(kind=8), intent(in) :: nFEScal
+        integer(kind=8), intent(in) :: nHHOScal
+        type(HHO_matrix), intent(out) :: matVec
+!
+!===================================================================================================
+! Tensorize a scalar FEM/HHO matrix.
+!
+! Scalar ordering:
+! [CG node 1, ..., CG node nFE,
+! HHO basis 1, ..., HHO basis nHHO]
+!
+! Vector ordering:
+! CG:
+! [u1_x, u1_y, (u1_z), u2_x, u2_y, (u2_z), ...]
+!
+! HHO:
+! [phi1_x, ..., phiN_x,
+! phi1_y, ..., phiN_y,
+! (phi1_z, ..., phiN_z)]
+!
+! The resulting operator is block diagonal with respect to the physical
+! components:
+!
+! A_vec = I_ndim tensor A_scal
+!
+! taking into account the different CG and HHO storage conventions.
+!===================================================================================================
+!
+        integer(kind=8) :: nScal, nVec
+        integer(kind=8) :: idim, iScal, jScal
+        integer(kind=8) :: iVec, jVec
+!
+        nScal = nFEScal+nHHOScal
+        nVec = ndim*nScal
+!
+        ASSERT(ndim >= 1)
+        ASSERT(matScal%nrows == nScal)
+        ASSERT(matScal%ncols == nScal)
+!
+        call matVec%initialize(nVec, nVec, 0.d0)
+!
+        do idim = 1, ndim
+        do jScal = 1, nScal
+!
+! -------- Map the scalar column to the vector column.
+            if (jScal <= nFEScal) then
+! ----------- CG ordering: node first, then component.
+                jVec = ndim*(jScal-1)+idim
+            else
+! ----------- HHO ordering: component first, then polynomial basis.
+                jVec = ndim*nFEScal &
+                       +(idim-1)*nHHOScal &
+                       +(jScal-nFEScal)
+            end if
+!
+            do iScal = 1, nScal
+!
+! ------------ Map the scalar row to the vector row.
+                if (iScal <= nFEScal) then
+                    iVec = ndim*(iScal-1)+idim
+                else
+                    iVec = ndim*nFEScal &
+                           +(idim-1)*nHHOScal &
+                           +(iScal-nFEScal)
+                end if
+!
+                matVec%m(iVec, jVec) = matScal%m(iScal, jScal)
+            end do
+        end do
+        end do
+!
+    end subroutine cplTensorizeFEMHHOMat
 !
 !===================================================================================================
 !
@@ -248,7 +325,7 @@ contains
         type(HHO_basis_face) :: hhoBasisFace
         real(kind=8) :: BSFEEval(MAX_BS_CG), BSHHOEval(MSIZE_FACE_SCAL)
         real(kind=8) :: massMat(MSIZE_FACE_SCAL, MSIZE_FACE_SCAL)
-        integer(kind=8) :: face_degree, ndim, ipg, feOrder, fbs
+        integer(kind=8) :: face_degree, ipg, feOrder, fbs
         blas_int :: b_incx, b_incy, b_lda, b_m, b_n, b_nrhs, b_ldb, info
 !
 ! -- init face basis
@@ -258,7 +335,6 @@ contains
 ! -- number of dofs and projection degree
         call hhoTherFaceDofs(hhoFaceMa, hhoDataMa, fbs)
         face_degree = hhoDataMa%face_degree()
-        ndim = FEFaceSl%ndim+1
 !
 ! -- HHO face quadrature for the L2 projection on the intersection.
 !    The RHS of the projection contains FEM basis functions times HHO basis functions.
@@ -430,7 +506,6 @@ contains
 !
         ndim = FECellSl%ndim
         ASSERT(hhoFaceMa%ndim+1 == ndim)
-        ASSERT(ndim == 2)
         if (ndim == 2) then
             nbSigm = 3
         else
@@ -449,7 +524,7 @@ contains
             typema = "QUAD9"
         case ("HE8", "H20", "H27")
             typema = "HEXA27"
-        case ("TE4", "T10", "T21")
+        case ("TE4", "T10", "T20")
             typema = "TETRA15"
         case default
             ASSERT(ASTER_FALSE)
@@ -774,52 +849,15 @@ contains
 !===================================================================================================
 !
         type(HHO_matrix) :: lhs_scal
-        integer(kind=8) :: ndim, ndofs, fbs, fbs_scal, nFE_scal, nFE
-        integer(kind=8) :: idim, i, j, deca_row, deca_col
+        integer(kind=8) :: ndim, fbs_scal
 
         call cplCmpPenaFEMHHOMatScal(FEFaceSl, hhoFaceMa, hhoDataMa, FEQuadSl, hhoQuadMa, &
                                      coef_pena, lhs_scal)
 !
         ndim = hhoFaceMa%ndim+1
-        ndofs = ndim*lhs_scal%nrows
-        call hhoMecaFaceDofs(hhoFaceMa, hhoDataMa, fbs)
-        fbs_scal = fbs/ndim
-        nFE_scal = lhs_scal%nrows-fbs_scal
-        nFE = nFE_scal*ndim
+        call hhoTherFaceDofs(hhoFaceMa, hhoDataMa, fbs_scal)
 !
-        call lhs%initialize(ndofs, ndofs, 0.d0)
-!
-        do idim = 1, ndim
-            deca_col = idim
-            do j = 1, nFE_scal
-                deca_row = idim
-                do i = 1, j
-                    lhs%m(deca_row, deca_col) = lhs_scal%m(i, j)
-                    deca_row = deca_row+ndim
-                end do
-                deca_col = deca_col+ndim
-            end do
-            deca_col = nFE+(idim-1)*fbs_scal+1
-            do j = nFE_scal+1, lhs_scal%nrows
-                deca_row = idim
-                do i = 1, nFE_scal
-                    lhs%m(deca_row, deca_col) = lhs_scal%m(i, j)
-                    deca_row = deca_row+ndim
-                end do
-                deca_col = deca_col+1
-            end do
-            deca_col = nFE+(idim-1)*fbs_scal+1
-            do j = nFE_scal+1, lhs_scal%nrows
-                deca_row = nFE+(idim-1)*fbs_scal+1
-                do i = nFE_scal+1, j
-                    lhs%m(deca_row, deca_col) = lhs_scal%m(i, j)
-                    deca_row = deca_row+1
-                end do
-                deca_col = deca_col+1
-            end do
-        end do
-!
-        call lhs%copySymU()
+        call cplTensorizeFEMHHOMat(lhs_scal, ndim, FEFaceSl%nbnodes, fbs_scal, lhs)
 !
         call lhs_scal%free()
 !
