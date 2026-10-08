@@ -24,7 +24,6 @@
  *   along with Code_Aster.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "astercxx.h"
 
 #include "aster_fort_jeveux.h"
