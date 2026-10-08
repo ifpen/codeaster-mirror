@@ -143,6 +143,22 @@ class CN_T6S3_HHO2(CN_T3S3_HHO2):
 
 
 # ------------------------------------------------------------
+class CN_T10S3_HHO2(CN_T3S3_HHO2):
+    """
+    CN_T6S3_HHO1 DERIVED FROM THE CN_T3S3_HHO1 CLASS ELEMENT : SEG3/SEG2
+    LIAISON_MASSIF / NITSCHE / SEGMENT-TO-SEGMENT
+        Coupling FEM/HHO Element in 2D : elementary treatments
+    """
+
+    meshType = MT.T10SE3
+    nodes = (
+        SetOfNodes("EN1", (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)),
+        SetOfNodes("EN2", (11, 12)),
+        SetOfNodes("EN3", (13,)),
+    )
+
+
+# ------------------------------------------------------------
 class CN_Q4S3_HHO2(CN_T3S3_HHO2):
     """
     CN_T6S3_HHO2 DERIVED FROM THE CN_T3S3_HHO2 CLASS ELEMENT : SEG3/SEG2
@@ -187,4 +203,19 @@ class CN_Q9S3_HHO2(CN_T3S3_HHO2):
         SetOfNodes("EN1", (1, 2, 3, 4, 5, 6, 7, 8, 9)),
         SetOfNodes("EN2", (10, 11)),
         SetOfNodes("EN3", (12,)),
+    )
+
+
+class CN_Q12S3_HHO2(CN_T3S3_HHO2):
+    """
+    CN_T6S3_HHO1 DERIVED FROM THE CN_T3S3_HHO1 CLASS ELEMENT : SEG3/SEG2
+    LIAISON_MASSIF / NITSCHE / SEGMENT-TO-SEGMENT
+        Coupling FEM/HHO Element in 2D : elementary treatments
+    """
+
+    meshType = MT.Q12SE3
+    nodes = (
+        SetOfNodes("EN1", (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)),
+        SetOfNodes("EN2", (13, 14)),
+        SetOfNodes("EN3", (15,)),
     )

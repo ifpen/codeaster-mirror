@@ -829,6 +829,14 @@ T10TR7 = MeshType(nbno=17, dim=2, code="T17")
 
 T20TR7 = MeshType(nbno=27, dim=2, code="T27")
 
+# For Nitsche 2D
+
+# ------------------------------------------------------------
+Q12SE3 = MeshType(nbno=15, dim=1, code="QS7")
+
+# ------------------------------------------------------------
+T10SE3 = MeshType(nbno=13, dim=1, code="TS7")
+
 
 # store all MeshType objects
 ELREFS = objects_from_context(globals(), Elrefe)

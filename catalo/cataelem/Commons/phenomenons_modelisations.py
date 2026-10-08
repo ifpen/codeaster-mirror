@@ -3936,9 +3936,11 @@ phen.add(
         elements=(
             (MT.TR3SE3, EL.CN_T3S3_HHO1),
             (MT.TR6SE3, EL.CN_T6S3_HHO1),
+            (MT.T10SE3, EL.CN_T10S3_HHO1),
             (MT.QU4SE3, EL.CN_Q4S3_HHO1),
             (MT.QU8SE3, EL.CN_Q8S3_HHO1),
             (MT.QU9SE3, EL.CN_Q9S3_HHO1),
+            (MT.Q12SE3, EL.CN_Q12S3_HHO1),
         ),
     ),
 )
@@ -3957,9 +3959,11 @@ phen.add(
         elements=(
             (MT.TR3SE3, EL.CN_T3S3_HHO2),
             (MT.TR6SE3, EL.CN_T6S3_HHO2),
+            (MT.T10SE3, EL.CN_T10S3_HHO2),
             (MT.QU4SE3, EL.CN_Q4S3_HHO2),
             (MT.QU8SE3, EL.CN_Q8S3_HHO2),
             (MT.QU9SE3, EL.CN_Q9S3_HHO2),
+            (MT.Q12SE3, EL.CN_Q12S3_HHO2),
         ),
     ),
 )

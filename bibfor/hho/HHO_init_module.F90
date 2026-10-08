@@ -227,6 +227,12 @@ contains
             nbnodes_post = 3
             node_init = 7
             elem_dim = 1
+        elseif (typma == 'TS7') then
+            typma = 'SEG2'
+            nbnodes = 2
+            nbnodes_post = 3
+            node_init = 11
+            elem_dim = 1
         elseif (typma == 'QS2') then
             typma = 'SEG2'
             nbnodes = 2
@@ -244,6 +250,12 @@ contains
             nbnodes = 2
             nbnodes_post = 3
             node_init = 10
+            elem_dim = 1
+        elseif (typma == 'QS7') then
+            typma = 'SEG2'
+            nbnodes = 2
+            nbnodes_post = 3
+            node_init = 13
             elem_dim = 1
         elseif (typma == 'S23') then
             typma = 'SEG2'
