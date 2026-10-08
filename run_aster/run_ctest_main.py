@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# coding=utf-8
 # --------------------------------------------------------------------
 # Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
@@ -266,7 +265,7 @@ def parse_args(argv):
 
 def _run(cmd, shell=False):
     print("execute:", " ".join(cmd))
-    return run(cmd, shell=shell)
+    return run(cmd, shell=shell, check=False)
 
 
 def _rmtree(dirpath):
@@ -386,7 +385,7 @@ def create_ctest_file(
     testdir = Path(testdir).absolute().as_posix()
 
     assert osp.isdir(testdir), f"no such directory {testdir}"
-    re_comment = re.compile("^ *#.*$", re.M)
+    re_comment = re.compile("^ *#.*$", re.MULTILINE)
     if osp.isfile(testlist):
         with open(testlist, "r") as fobj:
             text = re_comment.sub("", fobj.read())
@@ -444,12 +443,12 @@ zzzz401a
 
 
 def _build_def(datadir, lexport, options, testdir, slot_size):
-    re_list = re.compile("P +testlist +(.*)$", re.M)
-    re_nod = re.compile("P +mpi_nbnoeud +([0-9]+)", re.M)
-    re_mpi = re.compile("P +mpi_nbcpu +([0-9]+)", re.M)
-    re_thr = re.compile("P +ncpus +([0-9]+)", re.M)
-    re_time = re.compile("P +time_limit +([0-9]+)", re.M)
-    re_mem = re.compile("P +memory_limit +([0-9]+)", re.M)
+    re_list = re.compile("P +testlist +(.*)$", re.MULTILINE)
+    re_nod = re.compile("P +mpi_nbnoeud +([0-9]+)", re.MULTILINE)
+    re_mpi = re.compile("P +mpi_nbcpu +([0-9]+)", re.MULTILINE)
+    re_thr = re.compile("P +ncpus +([0-9]+)", re.MULTILINE)
+    re_time = re.compile("P +time_limit +([0-9]+)", re.MULTILINE)
+    re_mem = re.compile("P +memory_limit +([0-9]+)", re.MULTILINE)
     text = []
     for exp in lexport:
         if not osp.isfile(exp):
@@ -488,7 +487,7 @@ def _build_def(datadir, lexport, options, testdir, slot_size):
         # number of "slots" to be used
         slots = mpi * thr
         if slot_size:
-            slots = max(slots, int(ceil(mem / slot_size)))
+            slots = max(slots, ceil(mem / slot_size))
         timeout = int(tim * 1.1 * float(os.environ["FACMTPS"]))
         if "sbatch" in options:
             # only used by ctest to order runs (separated jobs)
