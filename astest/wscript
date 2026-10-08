@@ -1,4 +1,3 @@
-# coding=utf-8
 # --------------------------------------------------------------------
 # Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
@@ -30,7 +29,7 @@ def options(self):
         dest="with_validation",
         action="store",
         default=None,
-        help="location of the validation repository " "(default: ../validation)",
+        help="location of the validation repository (default: ../validation)",
     )
 
     group = self.add_option_group("code_aster options")
@@ -64,9 +63,9 @@ def configure_validation(self):
         self.end_msg(validation_path)
         self.env.validation_path = validation_path
     elif opts.with_validation is None:
-        self.end_msg("{0} not found".format(validation_path), "YELLOW")
+        self.end_msg(f"{validation_path} not found", "YELLOW")
     else:
-        raise Errors.ConfigurationError("{0} not found".format(validation_path))
+        raise Errors.ConfigurationError(f"{validation_path} not found")
 
 
 def build(self):
@@ -75,13 +74,15 @@ def build(self):
 
     if not env.install_tests:
         dest = osp.join(env.ASTERDATADIR, "tests")
-        if osp.exists(dest) and not osp.islink(dest):
-            Logs.warn(
-                "Symlink not created, {0!r} already exists "
-                "(use '--install-tests' to update this directory).".format(dest)
-            )
-        elif not osp.exists(dest):
-            self.symlink_as(dest, osp.abspath("astest"))
+        if osp.exists(dest):
+            if not osp.islink(dest):
+                Logs.warn(
+                    f"Symlink not created, {dest!r} already exists "
+                    "(use '--install-tests' to update this directory)."
+                )
+                return
+            os.remove(dest)
+        self.symlink_as(dest, osp.abspath("astest"))
 
     else:
         dest = osp.join(env.ASTERDATADIR, "tests")
