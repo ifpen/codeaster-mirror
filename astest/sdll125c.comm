@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
-# person_in_charge: mohamed-amine.hassini at edf.fr
 
 # CAS_TEST__:SDLL125C
 #
@@ -292,8 +291,7 @@ nbV = len(VIT)
 # --------------------------------------------------------------
 
 L_VITROT = [VIT[ii] * pi / 30.0 for ii in range(nbV)]
-Methode = "QZ"
-# Methode = 'SORENSEN'
+Methode = "SORENSEN"
 
 l_mod = CALC_MODE_ROTATION(
     MATR_RIGI=RIGIDITE,
@@ -302,8 +300,7 @@ l_mod = CALC_MODE_ROTATION(
     MATR_GYRO=GYASS,
     VITE_ROTA=L_VITROT,
     METHODE=Methode,
-    CALC_FREQ=_F(OPTION="PLUS_PETITE", NMAX_FREQ=nbF),
-    VERI_MODE=_F(STOP_ERREUR="NON", SEUIL=5.9999999999999995e-02),
+    CALC_FREQ=_F(OPTION="CENTRE", FREQ=100.0),
 )
 
 IMPR_TABLE(TABLE=l_mod)

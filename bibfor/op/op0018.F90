@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -32,6 +32,7 @@ subroutine op0018()
 #include "asterfort/as_deallocate.h"
 #include "asterfort/asmpi_comm_vect.h"
 #include "asterfort/asmpi_info.h"
+#include "asterfort/asmpi_any.h"
 #include "asterfort/assert.h"
 #include "asterfort/cetucr.h"
 #include "asterfort/cormgi.h"
@@ -94,7 +95,7 @@ subroutine op0018()
     integer(kind=8), pointer :: p_list_elem(:) => null()
     integer(kind=8) :: nb_elem
     aster_logical :: l_elem, l_grandeur_cara, lParallelMesh
-    aster_logical :: l_calc_rigi, l_need_neigh
+    aster_logical :: l_calc_rigi, l_need_neigh, has_hho
     aster_logical :: lCheckJacobian, lCheckFSINorms, lCheckPlaneity, lCheckFSIFormulation
     integer(kind=8) :: ielem, iaffe
     integer(kind=8) :: vali(4), ico, idx_modelisa
@@ -474,7 +475,9 @@ subroutine op0018()
 ! - Precomputation for HHO
 !
     call dismoi('EXI_HHO', ligrel, 'LIGREL', repk=repk)
-    if (repk == "OUI") then
+    has_hho = repk == "OUI"
+    has_hho = asmpi_any(has_hho, ASTER_TRUE)
+    if (has_hho) then
         call hhoPreCalc(model)
     end if
 !

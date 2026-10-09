@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -46,7 +46,6 @@ function nbddlMaxMa(nume_ddlz, matr_assez, nbmat, v_name_mat) result(maxDDLMa)
     character(len=*), intent(in) :: v_name_mat(nbmat)
     integer(kind=8)              :: maxDDLMa
 !     ------------------------------------------------------------------
-! person_in_charge: jacques.pellet at edf.fr
 !     RETOURNE LE NOMBRE DE DDL MAXIMUM POUR UN ELEMENT
 !     ------------------------------------------------------------------
 ! IN  K14 nume_ddlz     : NOM DE LA SD_NUME_DDL
@@ -265,7 +264,10 @@ function nbddlMaxMa(nume_ddlz, matr_assez, nbmat, v_name_mat) result(maxDDLMa)
                             lligrel_cp = (tco(1) .eq. 'LIGREL_CP')
                         end if
                         if (lligrel_cp) then
-                            call jeveuo(jexnum(nume_ddl//'.NUME.CRCO', ilinu), 'L', vi=v_crco)
+                            call asmpi_info(size=msize)
+                            if (msize > 1) then
+                                call jeveuo(jexnum(nume_ddl//'.NUME.CRCO', ilinu), 'L', vi=v_crco)
+                            end if
                             ilinu_ref = v_refp(ilinu)
                         end if
                         call jeexin(nomligrel//'.NTCM', iret)

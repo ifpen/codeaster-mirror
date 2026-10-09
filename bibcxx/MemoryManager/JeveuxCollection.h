@@ -6,7 +6,7 @@
  * @brief Fichier entete de la classe JeveuxCollection
  * @author Nicolas Sellenet
  * @section LICENCE
- *   Copyright (C) 1991 - 2025  EDF R&D                www.code-aster.org
+ *   Copyright (C) 1991 - 2026  EDF www.code-aster.org
  *
  *   This file is part of Code_Aster.
  *
@@ -23,8 +23,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Code_Aster.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* person_in_charge: nicolas.sellenet at edf.fr */
 
 #include "astercxx.h"
 
@@ -140,6 +138,9 @@ class JeveuxCollectionClass : public JeveuxObjectClass,
                             JeveuxCollectionObjectSizes objectSizes = Variable,
                             const std::string &name = "", ASTERINTEGER totalSize = 0 ) {
         ASTERINTEGER taille = size;
+        if ( taille <= 0 ) {
+            AS_ABORT( "JeveuxCollection " + _name + " allocate null size" );
+        }
         _capacity = size;
         const std::string strJeveuxBase = "G";
         const ASTERINTEGER intType = AllowedJeveuxType< ValueType >::numTypeJeveux;

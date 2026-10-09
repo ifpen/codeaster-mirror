@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -125,7 +125,7 @@ subroutine numero(numeDofZ, base, &
     call gettco(mesh, typsd)
     if (typsd .eq. 'MAILLAGE_P') then
         numeDof = numeDofZ
-        call crnulg(numeDof)
+        call crnulg(numeDof, to_aster_logical(modeLoc .eq. ' '))
     end if
 !
     call uttcpu('CPU.RESO.1', 'FIN', ' ')

@@ -6,7 +6,7 @@
  * @brief Fichier entete des outils
  * @author Nicolas Sellenet
  * @section LICENCE
- *   Copyright (C) 1991 - 2025  EDF R&D                www.code-aster.org
+ *   Copyright (C) 1991 - 2026  EDF www.code-aster.org
  *
  *   This file is part of Code_Aster.
  *
@@ -173,9 +173,9 @@ std::vector< T > set_difference( std::vector< T > &vec1, std::vector< T > &vec2 
 }
 
 template < typename T >
-void print( T &vec ) {
+void print( const T &vec ) {
     std::cout << "Size: " << vec.size() << std::endl;
-    for ( auto &e : vec ) {
+    for ( const auto &e : vec ) {
         std::cout << e << ", ";
     }
     std::cout << std::endl;

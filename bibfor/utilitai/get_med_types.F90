@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -16,7 +16,6 @@
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
 
-! person_in_charge: mathieu.courtois at edf.fr
 subroutine get_med_types(mesh, vect_types)
 
     implicit none
@@ -58,11 +57,13 @@ subroutine get_med_types(mesh, vect_types)
         call gnomsd_xx(vect_types)
     end if
 
-    call wkvect(vect_types, 'V V I', nbcell, vi=typmmed)
-    call jeveuo(mesh//'.TYPMAIL', 'L', vi=typmast)
-    do i = 1, nbcell
-        typmmed(i) = typgeo(typmast(i))
-    end do
+    if (nbcell .ne. 0) then
+        call wkvect(vect_types, 'V V I', nbcell, vi=typmmed)
+        call jeveuo(mesh//'.TYPMAIL', 'L', vi=typmast)
+        do i = 1, nbcell
+            typmmed(i) = typgeo(typmast(i))
+        end do
+    end if
 
     call jedema()
 
