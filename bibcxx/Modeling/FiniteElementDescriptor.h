@@ -124,7 +124,7 @@ class FiniteElementDescriptor : public DataStructure {
 
     ASTERINTEGER getNumberOfGroupsOfElements() const;
 
-    ASTERINTEGER getNumberOfElements( const ASTERINTEGER grel_idx ) const;
+    ASTERINTEGER getNumberOfElementsOfGroupOfElements( const ASTERINTEGER grel_idx ) const;
 
     void setNumberOfVirtualNodes( const ASTERINTEGER nbNodes );
 
@@ -162,7 +162,7 @@ class FiniteElementDescriptor : public DataStructure {
 
     JeveuxVectorLong getFiniteElementType() const;
 
-    ASTERINTEGER getFiniteElementType( const ASTERINTEGER grel_idx ) const;
+    ASTERINTEGER getFiniteElementTypeIdOfGroupOfElements( const ASTERINTEGER grel_idx ) const;
 
     SetString getFiniteElementNames() const;
 

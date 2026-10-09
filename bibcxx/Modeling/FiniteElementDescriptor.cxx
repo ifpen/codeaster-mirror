@@ -170,7 +170,8 @@ ASTERINTEGER FiniteElementDescriptor::getNumberOfGroupsOfElements() const {
     return _listOfGroupsOfElements->size();
 };
 
-ASTERINTEGER FiniteElementDescriptor::getNumberOfElements( const ASTERINTEGER grel_idx ) const {
+ASTERINTEGER
+FiniteElementDescriptor::getNumberOfElementsOfGroupOfElements( const ASTERINTEGER grel_idx ) const {
     return ( *_listOfGroupsOfElements )[grel_idx + 1]->size() - 1;
 };
 
@@ -202,7 +203,9 @@ const JeveuxVectorLong &FiniteElementDescriptor::getListOfGroupsOfElementsbyElem
 
 JeveuxVectorLong FiniteElementDescriptor::getFiniteElementType() const { return _typeOfCells; }
 
-ASTERINTEGER FiniteElementDescriptor::getFiniteElementType( const ASTERINTEGER grel_idx ) const {
+ASTERINTEGER
+FiniteElementDescriptor::getFiniteElementTypeIdOfGroupOfElements(
+    const ASTERINTEGER grel_idx ) const {
     const auto grel = ( *_listOfGroupsOfElements )[grel_idx + 1];
     grel->updateValuePointer();
     const auto size = grel->size();

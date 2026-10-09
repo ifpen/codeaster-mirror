@@ -106,7 +106,7 @@ class ElementaryTerm : public DataField {
         std::string parameterStr = ljust( strip( parameter ), 8, ' ' );
 
         for ( int i = 0; i < nbGrel; ++i ) {
-            const auto typeFE = fEDesc->getFiniteElementType( i );
+            const auto typeFE = fEDesc->getFiniteElementTypeIdOfGroupOfElements( i );
 
             CALL_GET_LOCAL_MODE( optionStr, parameterStr, &typeFE, &modloc );
             ( *_descriptor )[i + 2] = modloc;
@@ -226,14 +226,14 @@ class ElementaryTerm : public DataField {
         return modeId;
     }
 
-    ASTERINTEGER getLocalModeId( const ASTERINTEGER grel_idx ) const {
+    ASTERINTEGER getLocalModeIdOfGroupOfElements( const ASTERINTEGER grel_idx ) const {
         _descriptor->updateValuePointer();
         return ( *_descriptor )[2 + grel_idx];
     }
 
-    ASTERINTEGER getNumberOfComponents( const ASTERINTEGER grel_idx ) const {
+    ASTERINTEGER getNumberOfComponentsOfGroupOfElements( const ASTERINTEGER grel_idx ) const {
 
-        const auto mode_id = getLocalModeId( grel_idx );
+        const auto mode_id = getLocalModeIdOfGroupOfElements( grel_idx );
         ASTERINTEGER nbCmp = -1;
         CALL_DIGDEL_WRAP( &mode_id, &nbCmp );
         return nbCmp;

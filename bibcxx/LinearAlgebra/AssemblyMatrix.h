@@ -750,8 +750,8 @@ AssemblyMatrix< ValueType, PhysicalQuantity >::extractSubMatrix(
         const auto grelIdx = iG + 1;
         const auto grel = ( *liel )[grelIdx];
         grel->updateValuePointer();
-        const auto nbElements = fed->getNumberOfElements( iG );
-        const auto nbCmp = elemterm->getNumberOfComponents( iG );
+        const auto nbElements = fed->getNumberOfElementsOfGroupOfElements( iG );
+        const auto nbCmp = elemterm->getNumberOfComponentsOfGroupOfElements( iG );
 
         const auto nbValues = nbElements * nbCmp;
         newVal->allocateObject( grelIdx, nbValues );
