@@ -3983,6 +3983,9 @@ phen.add(
             (MT.TE4TR7, EL.CN_TE4TR7_HHO1),
             (MT.T10TR7, EL.CN_T10TR7_HHO1),
             (MT.T20TR7, EL.CN_T20TR7_HHO1),
+            (MT.HE8TR7, EL.CN_HE8TR7_HHO1),
+            (MT.H20TR7, EL.CN_H20TR7_HHO1),
+            (MT.H27TR7, EL.CN_H27TR7_HHO1),
         ),
     ),
 )
@@ -4002,6 +4005,9 @@ phen.add(
             (MT.TE4TR7, EL.CN_TE4TR7_HHO2),
             (MT.T10TR7, EL.CN_T10TR7_HHO2),
             (MT.T20TR7, EL.CN_T20TR7_HHO2),
+            (MT.HE8TR7, EL.CN_HE8TR7_HHO2),
+            (MT.H20TR7, EL.CN_H20TR7_HHO2),
+            (MT.H27TR7, EL.CN_H27TR7_HHO2),
         ),
     ),
 )

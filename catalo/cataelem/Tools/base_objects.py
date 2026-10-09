@@ -116,7 +116,7 @@ class MeshType(BaseCataEntity):
         """Initialisation"""
         super(MeshType, self).__init__()
         a_creer_seulement_dans(self, ["mesh_types"])
-        assert type(nbno) is int and 0 < nbno <= 27, nbno
+        assert type(nbno) is int and 0 < nbno <= 34, nbno
         self._nbno = nbno
         assert type(dim) is int and dim in (0, 1, 2, 3), dim
         self._dim = dim
@@ -274,7 +274,7 @@ class SetOfNodes(BaseCataEntity):
         self._name = nom
         self._nodes = check_type(force_tuple(nodes), int)
         for node in nodes:
-            assert node > 0 and node <= 27, node
+            assert node > 0 and node <= 34, node
         assert noduplicates(nodes), "SetOfNodes: duplicated node id"
 
     def __getNodes(self):

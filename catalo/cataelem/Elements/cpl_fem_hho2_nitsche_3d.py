@@ -160,3 +160,82 @@ class CN_T20TR7_HHO2(CN_TE4TR7_HHO2):
         SetOfNodes("EN2", (21, 22, 23, 24, 25, 26)),
         SetOfNodes("EN3", (27,)),
     )
+
+
+# ------------------------------------------------------------
+class CN_HE8TR7_HHO2(CN_TE4TR7_HHO2):
+    """
+    CN_T10TR7_HHO2 DERIVED FROM THE CN_TE4TR7_HHO2 CLASS ELEMENT : SEG3/SEG2
+    LIAISON_MASSIF / NITSCHE / SEGMENT-TO-SEGMENT
+        Coupling FEM/HHO Element in 3D : elementary treatments
+    """
+
+    meshType = MT.HE8TR7
+    nodes = (
+        SetOfNodes("EN1", (1, 2, 3, 4, 5, 6, 7, 8)),
+        SetOfNodes("EN2", (9, 10, 11, 12, 13, 14)),
+        SetOfNodes("EN3", (15,)),
+    )
+
+
+# ------------------------------------------------------------
+class CN_H20TR7_HHO2(CN_TE4TR7_HHO2):
+    """
+    CN_T10TR7_HHO2 DERIVED FROM THE CN_TE4TR7_HHO2 CLASS ELEMENT : SEG3/SEG2
+    LIAISON_MASSIF / NITSCHE / SEGMENT-TO-SEGMENT
+        Coupling FEM/HHO Element in 3D : elementary treatments
+    """
+
+    meshType = MT.H20TR7
+    nodes = (
+        SetOfNodes("EN1", (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20)),
+        SetOfNodes("EN2", (21, 22, 23, 24, 25, 26)),
+        SetOfNodes("EN3", (27,)),
+    )
+
+
+# ------------------------------------------------------------
+class CN_H27TR7_HHO2(CN_TE4TR7_HHO2):
+    """
+    CN_T10TR7_HHO2 DERIVED FROM THE CN_TE4TR7_HHO2 CLASS ELEMENT : SEG3/SEG2
+    LIAISON_MASSIF / NITSCHE / SEGMENT-TO-SEGMENT
+        Coupling FEM/HHO Element in 3D : elementary treatments
+    """
+
+    meshType = MT.H27TR7
+    nodes = (
+        SetOfNodes(
+            "EN1",
+            (
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+                25,
+                26,
+                27,
+            ),
+        ),
+        SetOfNodes("EN2", (28, 29, 30, 31, 32, 33)),
+        SetOfNodes("EN3", (34,)),
+    )

@@ -210,6 +210,12 @@ contains
             this%typemas = "T10"
         case ("T27")
             this%typemas = "T20"
+        case ("H18")
+            this%typemas = "HE8"
+        case ("H26")
+            this%typemas = "H20"
+        case ("H34")
+            this%typemas = "H27"
         case default
             this%typemas = typ
         end select

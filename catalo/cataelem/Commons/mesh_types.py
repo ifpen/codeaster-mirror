@@ -829,6 +829,13 @@ T10TR7 = MeshType(nbno=17, dim=2, code="T17")
 
 T20TR7 = MeshType(nbno=27, dim=2, code="T27")
 
+HE8TR7 = MeshType(nbno=15, dim=2, code="H15")
+
+H20TR7 = MeshType(nbno=27, dim=2, code="H26")
+
+H27TR7 = MeshType(nbno=34, dim=2, code="H34")
+
+
 # For Nitsche 2D
 
 # ------------------------------------------------------------

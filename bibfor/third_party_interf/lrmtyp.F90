@@ -103,7 +103,8 @@ subroutine lrmtyp(nbtyp, nomtyp, nnotyp, typgeo, renumd, &
                                                          'TR3TR7  ', 'TR6TR7  ', 'TRIA10  ', &
                                                          'QUAD12  ', 'TETRA20 ', 'SEG44   ', &
                                                          'SEG43   ', 'TE4TR7  ', 'T10TR7  ', &
-                                                         'T20TR7  ', 'Q12SE3  ', 'T10SE3  '/)
+                                                         'T20TR7  ', 'HE8TR7  ', 'H20TR7  ', &
+                                                         'H27TR7  ', 'Q12SE3  ', 'T10SE3  '/)
     integer(kind=8), parameter :: nummed(MT_NTYMAX) = (/ &
                                   MED_POINT1, MED_SEG2, MED_UNDEF_GEOTYPE, &
                                   MED_SEG3, MED_UNDEF_GEOTYPE, MED_SEG4, &
@@ -114,6 +115,7 @@ subroutine lrmtyp(nbtyp, nomtyp, nnotyp, typgeo, renumd, &
                                   MED_TETRA10, MED_PENTA6, MED_PENTA15, &
                                   MED_PENTA18, MED_PYRA5, MED_PYRA13, &
                                   MED_HEXA8, MED_HEXA20, MED_HEXA27, &
+                                  MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE, &
                                   MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE, &
                                   MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE, &
                                   MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE, &

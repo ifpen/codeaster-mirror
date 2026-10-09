@@ -51,9 +51,15 @@ const std::map< std::pair< std::string, std::string >, std::string > cplCellNits
     { { "MECA_TETRA4", "MECA3DTR7_HHO1_F" }, "CN_TE4TR7_HHO1" },
     { { "MECA_TETRA10", "MECA3DTR7_HHO1_F" }, "CN_T10TR7_HHO1" },
     { { "MECA_TETRA20", "MECA3DTR7_HHO1_F" }, "CN_T20TR7_HHO1" },
+    { { "MECA_HEXA8", "MECA3DTR7_HHO1_F" }, "CN_HE8TR7_HHO1" },
+    { { "MECA_HEXA20", "MECA3DTR7_HHO1_F" }, "CN_H20TR7_HHO1" },
+    { { "MECA_HEXA27", "MECA3DTR7_HHO1_F" }, "CN_H27TR7_HHO1" },
     { { "MECA_TETRA4", "MECA3DTR7_HHO2_F" }, "CN_TE4TR7_HHO2" },
     { { "MECA_TETRA10", "MECA3DTR7_HHO2_F" }, "CN_T10TR7_HHO2" },
     { { "MECA_TETRA20", "MECA3DTR7_HHO2_F" }, "CN_T20TR7_HHO2" },
+    { { "MECA_HEXA8", "MECA3DTR7_HHO2_F" }, "CN_HE8TR7_HHO2" },
+    { { "MECA_HEXA20", "MECA3DTR7_HHO2_F" }, "CN_H20TR7_HHO2" },
+    { { "MECA_HEXA27", "MECA3DTR7_HHO2_F" }, "CN_H27TR7_HHO2" },
 };
 
 const std::map< std::pair< std::string, std::string >, std::string > cplCellPena {
@@ -648,6 +654,8 @@ FieldOnCellsRealPtr CouplingPairing::getPairingField() const {
                     auto slav_volu_con = ( *meshConnex )[slavVoluNume + 1]->toVector();
 
                     auto mapLoc = mapping( slav_surf_con, slav_volu_con );
+                    AS_ASSERT( Offset::NODE_IDX_FACE + mapLoc.size() - 1 <= Offset::SIZE );
+
                     // Number of nodes
                     ( *data )[shift + Offset::NB_NODES_NITSCHE] = ASTERDOUBLE( mapLoc.size() );
 
