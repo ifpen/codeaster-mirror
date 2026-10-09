@@ -43,6 +43,16 @@ Returns:
     FieldOnCellsReal: contact data
         )",
               py::arg( "pairing" ), py::arg( "material" ), py::arg( "initial_contact" ) )
+        .def( "hasVirtualCells", &ContactComputation::hasVirtualCells, R"(
+Detect if virtual cells has been created
+
+Arguments:
+    pairing (ContactPairing): pairing object
+
+Returns:
+    bool: surfaces have been paired
+        )",
+              py::arg( "pairing" ) )
         .def( "setVerbosity", &ContactComputation::setVerbosity, R"(
 Set level of verbosity
 0- without

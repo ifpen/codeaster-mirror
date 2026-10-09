@@ -515,24 +515,27 @@ class ExtendedDiscreteComputation:
         """
 
         if contact_manager:
-            if contact_manager.defi.isParallel():
-                cMesh = contact_manager.defi.getConnectionModel().getMesh()
-                U_t = phys_state.U_t.transfertToConnectionMesh(cMesh)
-                deltaU = phys_state.deltaU.transfertToConnectionMesh(cMesh)
+            if contact_manager.isEnabled and contact_manager.isPaired:
+                if contact_manager.defi.isParallel():
+                    cMesh = contact_manager.defi.getConnectionModel().getMesh()
+                    U_t = phys_state.U_t.transfertToConnectionMesh(cMesh)
+                    deltaU = phys_state.deltaU.transfertToConnectionMesh(cMesh)
+                else:
+                    U_t = phys_state.U_t
+                    deltaU = phys_state.deltaU
+                # Compute contact forces
+                contact_forces = self.getContactForces(
+                    contact_manager.getPairingCoordinates(),
+                    U_t,
+                    deltaU,
+                    phys_state.time_prev,
+                    phys_state.time_step,
+                    contact_manager.data(),
+                    contact_manager.coef_cont,
+                    contact_manager.coef_frot,
+                )
             else:
-                U_t = phys_state.U_t
-                deltaU = phys_state.deltaU
-            # Compute contact forces
-            contact_forces = self.getContactForces(
-                contact_manager.getPairingCoordinates(),
-                U_t,
-                deltaU,
-                phys_state.time_prev,
-                phys_state.time_step,
-                contact_manager.data(),
-                contact_manager.coef_cont,
-                contact_manager.coef_frot,
-            )
+                contact_forces = phys_state.createPrimal(self.getPhysicalProblem(), 0.0)
         else:
             contact_forces = phys_state.createPrimal(self.getPhysicalProblem(), 0.0)
 
@@ -662,25 +665,26 @@ class ExtendedDiscreteComputation:
            ElementaryMatrixDisplacementReal: Contact matrix.
         """
         if contact_manager:
-            if contact_manager.defi.isParallel():
-                cMesh = contact_manager.defi.getConnectionModel().getMesh()
-                U_t = phys_state.U_t.transfertToConnectionMesh(cMesh)
-                deltaU = phys_state.deltaU.transfertToConnectionMesh(cMesh)
-            else:
-                U_t = phys_state.U_t
-                deltaU = phys_state.deltaU
-            matr_elem_cont = self.getContactMatrix(
-                contact_manager.getPairingCoordinates(),
-                U_t,
-                deltaU,
-                phys_state.time_prev,
-                phys_state.time_step,
-                contact_manager.data(),
-                contact_manager.coef_cont,
-                contact_manager.coef_frot,
-            )
+            if contact_manager.isEnabled and contact_manager.isPaired:
+                if contact_manager.defi.isParallel():
+                    cMesh = contact_manager.defi.getConnectionModel().getMesh()
+                    U_t = phys_state.U_t.transfertToConnectionMesh(cMesh)
+                    deltaU = phys_state.deltaU.transfertToConnectionMesh(cMesh)
+                else:
+                    U_t = phys_state.U_t
+                    deltaU = phys_state.deltaU
+                matr_elem_cont = self.getContactMatrix(
+                    contact_manager.getPairingCoordinates(),
+                    U_t,
+                    deltaU,
+                    phys_state.time_prev,
+                    phys_state.time_step,
+                    contact_manager.data(),
+                    contact_manager.coef_cont,
+                    contact_manager.coef_frot,
+                )
 
-            return matr_elem_cont
+                return matr_elem_cont
 
         return None
 

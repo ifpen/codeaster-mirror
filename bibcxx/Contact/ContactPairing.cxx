@@ -28,6 +28,8 @@ ContactPairing::ContactPairing( const std::string name, const ContactNewPtr cont
     : DataStructure( name, 8, "PAIRING_SD" ),
       _contDefi( contDefi ),
       _mesh( contDefi->getMesh() ),
+      _fed( nullptr ),
+      _fedCreated( false ),
       _verbosity( 1 ) {
     if ( !_mesh )
         raiseAsterError( "Mesh is empty" );
@@ -426,10 +428,6 @@ void ContactPairing::createVirtualElemForOrphelanNodes(
         auto contAlgo = zone->getContactParameter()->getAlgorithm();
         auto lFric = zone->getFrictionParameter()->hasFriction();
 
-        // Get pairing for this zone
-        auto listOfPairsZone = this->getListOfPairs( iZone );
-        auto nbPairsZone = this->getNumberOfPairs( iZone );
-
         // Get slave cells on this zone
         auto slaveCells = zone->getSlaveCells();
 
@@ -574,78 +572,84 @@ void ContactPairing::buildFiniteElementDescriptor() {
                                        listContElem, listContType, slaveNodePaired,
                                        slaveCellPaired );
 
-    // Create finite element descriptor for virtual contact elements
-    _fed = std::make_shared< FiniteElementDescriptor >( mesh );
+    if ( listContElem.size() != 0 ) {
+        // Create finite element descriptor for virtual contact elements
+        _fed = std::make_shared< FiniteElementDescriptor >( mesh );
 
-    // Create list of virtual nodes (none !)
-    _fed->setNumberOfVirtualNodes( 0 );
+        // Create list of virtual nodes (none !)
+        _fed->setNumberOfVirtualNodes( 0 );
 
-    // Create list of virtual elements (NEMA object)
-    auto ContactResFEDNema = _fed->getVirtualCellsDescriptor();
-    ContactResFEDNema->allocate( listContElem );
+        // Create list of virtual elements (NEMA object)
+        auto ContactResFEDNema = _fed->getVirtualCellsDescriptor();
+        ContactResFEDNema->allocate( listContElem );
 
-    // Number of groups of elements and length of FED for contact element
-    ASTERINTEGER nbGrel = 0, lielLont = 0;
-    for ( auto &[type, size] : contactElemType ) {
-        lielLont += size;
-        nbGrel += 1;
-    }
-    lielLont += nbGrel;
+        // Number of groups of elements and length of FED for contact element
+        ASTERINTEGER nbGrel = 0, lielLont = 0;
+        for ( auto &[type, size] : contactElemType ) {
+            lielLont += size;
+            nbGrel += 1;
+        }
+        lielLont += nbGrel;
 
-    // Create list of elements (LIEL object)
-    auto ContactResFEDLiel = _fed->getListOfGroupsOfElements();
-    ContactResFEDLiel->allocate( nbGrel, lielLont, Variable );
+        // Create list of elements (LIEL object)
+        auto ContactResFEDLiel = _fed->getListOfGroupsOfElements();
+        ContactResFEDLiel->allocate( nbGrel, lielLont, Variable );
 
-    // Add virtual elements for each GREL
-    for ( auto &[type, size] : contactElemType ) {
-        VectorLong virtualCells;
-        virtualCells.reserve( size );
+        // Add virtual elements for each GREL
+        for ( auto &[type, size] : contactElemType ) {
+            VectorLong virtualCells;
+            virtualCells.reserve( size );
 
-        // ASTERINTEGER iZone = 0;
-        for ( auto &listContTypeZone : listContType ) {
-            for ( auto &[typeElemNume, iContPair] : listContTypeZone ) {
-                if ( typeElemNume == type ) {
-                    // Virtual cells = index of cells is negative
-                    virtualCells.push_back( -iContPair );
+            // ASTERINTEGER iZone = 0;
+            for ( auto &listContTypeZone : listContType ) {
+                for ( auto &[typeElemNume, iContPair] : listContTypeZone ) {
+                    if ( typeElemNume == type ) {
+                        // Virtual cells = index of cells is negative
+                        virtualCells.push_back( -iContPair );
+                    }
                 }
             }
+            virtualCells.push_back( type );
+            ContactResFEDLiel->push_back( virtualCells );
         }
-        virtualCells.push_back( type );
-        ContactResFEDLiel->push_back( virtualCells );
-    }
 
-    // Map between index of global pair and index of local pair in zone
-    _globPairToLocaPair.clear();
-    for ( ASTERINTEGER indexZone = 0; indexZone < nbZoneCont; indexZone++ ) {
-        if ( indexZone == 0 ) {
-            _globPairToLocaPair[indexZone] = 0;
-        } else {
-            auto zone = _contDefi->getContactZone( indexZone - 1 );
-            ASTERINTEGER nbPairs = zone->getMeshPairing()->getNumberOfPairs();
-            _globPairToLocaPair[indexZone] = _globPairToLocaPair[indexZone - 1] + nbPairs;
+        // Map between index of global pair and index of local pair in zone
+        _globPairToLocaPair.clear();
+        for ( ASTERINTEGER indexZone = 0; indexZone < nbZoneCont; indexZone++ ) {
+            if ( indexZone == 0 ) {
+                _globPairToLocaPair[indexZone] = 0;
+            } else {
+                auto zone = _contDefi->getContactZone( indexZone - 1 );
+                ASTERINTEGER nbPairs = zone->getMeshPairing()->getNumberOfPairs();
+                _globPairToLocaPair[indexZone] = _globPairToLocaPair[indexZone - 1] + nbPairs;
+            }
         }
+
+        // Get parameters from standard model
+        auto paramToCopy = model->getFiniteElementDescriptor()->getParameters();
+        paramToCopy->updateValuePointer();
+        auto docu = paramToCopy->getInformationParameter();
+
+        // Create LGRF object
+        auto parameters = _fed->getParameters();
+        parameters->allocate( 3 );
+        ( *parameters )[0] = mesh->getName();
+        ( *parameters )[1] = model->getName();
+        ( *parameters )[2] = ( *paramToCopy )[2];
+        parameters->setInformationParameter( docu );
+
+        // Adapt FED
+        CALLO_ADALIG_WRAP( _fed->getName() );
+        bool l_calc_rigi = false;
+        CALLO_INITEL( _fed->getName(), (ASTERLOGICAL *)&l_calc_rigi );
+
+        // Final building
+        _fed->build();
+        _fedCreated = true;
+
+    } else {
+        _fedCreated = false;
     }
-
-    // Get parameters from standard model
-    auto paramToCopy = model->getFiniteElementDescriptor()->getParameters();
-    paramToCopy->updateValuePointer();
-    auto docu = paramToCopy->getInformationParameter();
-
-    // Create LGRF object
-    auto parameters = _fed->getParameters();
-    parameters->allocate( 3 );
-    ( *parameters )[0] = mesh->getName();
-    ( *parameters )[1] = model->getName();
-    ( *parameters )[2] = ( *paramToCopy )[2];
-    parameters->setInformationParameter( docu );
-
-    // Adapt FED
-    CALLO_ADALIG_WRAP( _fed->getName() );
-    bool l_calc_rigi = false;
-    CALLO_INITEL( _fed->getName(), (ASTERLOGICAL *)&l_calc_rigi );
-
-    // Final building
-    _fed->build();
 
     // Clean
     listContElem.clear();

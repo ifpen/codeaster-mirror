@@ -143,6 +143,7 @@ class ContactPairing : public DataStructure {
 
     /** @brief Finite element descriptor for virtual elements of contact */
     FiniteElementDescriptorPtr _fed;
+    ASTERBOOL _fedCreated;
 
     /** @brief Level of verbosity */
     ASTERINTEGER _verbosity;
@@ -270,6 +271,9 @@ class ContactPairing : public DataStructure {
 
     /** @brief Get verbosity */
     ASTERINTEGER getVerbosity() const { return _verbosity; }
+
+    /** @brief Detect virtual cells */
+    ASTERBOOL hasVirtualCells() const { return _fedCreated; };
 };
 
 using ContactPairingPtr = std::shared_ptr< ContactPairing >;
