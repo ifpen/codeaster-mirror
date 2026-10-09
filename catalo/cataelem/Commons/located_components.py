@@ -615,7 +615,7 @@ CONDPLA = LocatedComponents(phys=PHY.NEUT_K8, type="ELEM", components=("Z[2]",))
 
 CONDPLR = LocatedComponents(phys=PHY.NEUT_R, type="ELEM", components=("X[10]",))
 
-CPAIRR = LocatedComponents(phys=PHY.N120_R, type="ELEM", components=("X[27]",))
+CPAIRR = LocatedComponents(phys=PHY.N120_R, type="ELEM", components=("X[28]",))
 
 CPESANR = LocatedComponents(phys=PHY.PESA_R, type="ELEM", components=("G", "AG", "BG", "CG"))
 

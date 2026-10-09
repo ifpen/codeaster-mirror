@@ -152,7 +152,7 @@ enum Offset {
     COOR_PTS_Y = 10,
     NB_NODES_NITSCHE = 18,
     NODE_IDX_FACE = 19,
-    SIZE = 27,
+    SIZE = 28,
 };
 } // namespace
 
@@ -572,6 +572,10 @@ FieldOnCellsRealPtr CouplingPairing::getPairingField() const {
     // Field for intersection points and other thing ...
     auto data = FieldOnCellsPtrBuilder< ASTERDOUBLE >( _fed, "RIGI_ELAS_CPL", "PPAIRR" );
 
+    // CALL_JEDEMA();
+
+    // return data;
+
     // Get pairing
     const ASTERINTEGER nbPairs = this->getNumberOfPairs();
 
@@ -654,7 +658,7 @@ FieldOnCellsRealPtr CouplingPairing::getPairingField() const {
                     auto slav_volu_con = ( *meshConnex )[slavVoluNume + 1]->toVector();
 
                     auto mapLoc = mapping( slav_surf_con, slav_volu_con );
-                    AS_ASSERT( Offset::NODE_IDX_FACE + mapLoc.size() - 1 <= Offset::SIZE );
+                    AS_ASSERT( Offset::NODE_IDX_FACE + mapLoc.size() - 1 < Offset::SIZE );
 
                     // Number of nodes
                     ( *data )[shift + Offset::NB_NODES_NITSCHE] = ASTERDOUBLE( mapLoc.size() );

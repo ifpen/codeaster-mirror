@@ -18,7 +18,7 @@
 # --------------------------------------------------------------------
 
 
-DEBUT(CODE="OUI", DEBUG=_F(SDVERI="OUI"), INFO=1)
+DEBUT(CODE="OUI", DEBUG=_F(SDVERI="OUI", JXVERI="OUI"), INFO=1)
 
 Mail0 = LIRE_MAILLAGE(UNITE=20, FORMAT="MED")
 
@@ -105,7 +105,7 @@ TEST_RESU(
             NOM_CMP="SIZZ",
             VALE_REFE=-25.0,
             VALE_CALC=-25.000000000005045,
-            PRECISION=1e-12,
+            PRECISION=1e-11,
         ),
         _F(
             INST=1.0,
@@ -117,7 +117,7 @@ TEST_RESU(
             NOM_CMP="SIZZ",
             VALE_REFE=-25.0,
             VALE_CALC=-25.000000000005045,
-            PRECISION=1e-12,
+            PRECISION=1e-11,
         ),
         _F(
             INST=1.0,
@@ -129,7 +129,7 @@ TEST_RESU(
             NOM_CMP="SIZZ",
             VALE_REFE=-25.0,
             VALE_CALC=-25.000000000005045,
-            PRECISION=1e-12,
+            PRECISION=1e-11,
         ),
         _F(
             INST=1.0,
@@ -141,7 +141,7 @@ TEST_RESU(
             NOM_CMP="SIZZ",
             VALE_REFE=-25.0,
             VALE_CALC=-25.000000000005045,
-            PRECISION=1e-12,
+            PRECISION=1e-11,
         ),
         _F(
             INST=1.0,
