@@ -125,13 +125,13 @@ subroutine zjma(metaSteelPara, &
         else if (tempPgCurr .gt. tempTempering) then
             if (cyclTherPrev .eq. 2) then
 ! ------------- Bainite
-                tau_0_bain = (-1.0*log(1-ZBainRevePrev)/bainCoefB)**(1.0/bainCoefN)
+                tau_0_bain = (-1.0*log(1-ZTildeBainPrev)/bainCoefB)**(1.0/bainCoefN)
                 Pa = 1.0/(1.0/(tempPgCurr+kelvin)-C0*log(deltaTime12))
                 deltaTimeEqui = exp((1.0/C0)*((1.0/(tempHold+kelvin))-(1.0/Pa)))
                 ZTildeBainCurr = &
                     1.0-exp(-1.0*bainCoefB*(tau_0_bain+deltaTimeEqui)**bainCoefN)
 ! ------------- Martensite
-                tau_0_mart = (-1.0*log(1-ZMartRevePrev)/martCoefB)**(1.0/martCoefN)
+                tau_0_mart = (-1.0*log(1-ZTildeMartPrev)/martCoefB)**(1.0/martCoefN)
                 Pa = 1.0/(1.0/(tempPgCurr+kelvin)-C0*log(deltaTime12))
                 deltaTimeEqui = exp((1.0/C0)*((1.0/(tempHold+kelvin))-(1.0/Pa)))
                 ZTildeMartCurr = &
