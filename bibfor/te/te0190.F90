@@ -29,6 +29,7 @@ subroutine te0190(option, nomte)
 #include "asterfort/elrefe_info.h"
 #include "asterfort/jevech.h"
 #include "asterfort/nbsigm.h"
+#include "FE_module.h"
 #include "jeveux.h"
 !
     character(len=16), intent(in) :: option, nomte
@@ -46,7 +47,7 @@ subroutine te0190(option, nomte)
     character(len=8), parameter :: fami = 'RIGI'
     integer(kind=8) :: i, kpg, jvGeom, jvHarmon, jvMaterc, imatuu, j
     integer(kind=8) :: k, nbinco, nbsig
-    real(kind=8) :: b(486), btdb(81, 81), d(36), jacgau
+    real(kind=8) :: b(6*MAX_BV_CG), btdb(81, 81), d(36), jacgau
     real(kind=8) :: time, nharm
     integer(kind=8) :: ndim, nno, npg, ipoids, ivf, idfde, dimmod
     type(Material_Para) :: materPara

@@ -32,6 +32,7 @@ subroutine sigvmc(materPara, &
 #include "asterfort/sigmmc.h"
 #include "asterfort/sigtmc.h"
 #include "jeveux.h"
+#include "FE_module.h"
 #include "MeshTypes_type.h"
 !
     type(Material_Para), intent(inout) :: materPara

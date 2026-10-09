@@ -68,6 +68,7 @@ subroutine te0222(option, nomte)
 #include "asterfort/tecach.h"
 #include "asterfort/thetapdg.h"
 #include "asterfort/utmess.h"
+#include "MeshTypes_type.h"
 #include "jeveux.h"
 !
 ! =====================================================================

@@ -38,6 +38,7 @@ subroutine te0565(option, nomte)
 #include "asterfort/reeref.h"
 #include "asterfort/teattr.h"
 #include "asterfort/tecach.h"
+#include "MeshTypes_type.h"
 #include "jeveux.h"
 !
     character(len=16), intent(in) :: nomte, option
@@ -91,7 +92,7 @@ subroutine te0565(option, nomte)
     integer(kind=8) :: jpintt, jpmilt, jcnset, jlonch
     integer(kind=8) :: nse, nnop
     character(len=8) :: elrefp, enr
-    real(kind=8) :: coorse(81), xg(3), xe(3), ff(27)
+    real(kind=8) :: coorse(3*MT_NNOMAX3D), xg(3), xe(3), ff(MT_NNOMAX3D)
     real(kind=8) :: jac
     integer(kind=8) :: irese, idecpg, idebs, idebv
     integer(kind=8) :: j, in, ino, ise, kpg, n

@@ -53,6 +53,7 @@ subroutine te0579(option, nomte)
 #include "asterfort/xcalc_heav.h"
 #include "asterfort/xhmddl.h"
 #include "asterfort/xlinhm.h"
+#include "MeshTypes_type.h"
 !
     character(len=8) :: noma, elrefp, enr, elref
     character(len=16) :: nomte, option
@@ -63,7 +64,7 @@ subroutine te0579(option, nomte)
     integer(kind=8) :: nfh, nse, ise, iret, pos, ndime, nddl, ifh
     integer(kind=8) :: in, ino, iadzi, iazk24, jstno, itemps, jlsn, jheavn, ncompn, jheavs
     integer(kind=8) :: iflux, idec, nddls, nddlm, nnopm, ifluxf
-    real(kind=8) :: ff(27), dfdi(27, 3)
+    real(kind=8) :: ff(MT_NNOMAX3D), dfdi(MT_NNOMAX3D, 3)
     real(kind=8) :: rb1(1), rb2, nbid(3), rb3, rb4, rbid(3)
     real(kind=8) :: poids, valpar(4), xg(3)
     real(kind=8) :: deltat, coorse(18), flux, tplus

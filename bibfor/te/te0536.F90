@@ -29,6 +29,7 @@ subroutine te0536(option, nomte)
 #include "asterfort/xrigel.h"
 #include "asterfort/xteddl.h"
 #include "asterfort/xteini.h"
+#include "MeshTypes_type.h"
     character(len=16) :: option, nomte
 !
 !
@@ -46,7 +47,7 @@ subroutine te0536(option, nomte)
     integer(kind=8) :: nnos
     integer(kind=8) :: jpintt, jcnset, jheavt, jlonch, jbaslo, jlsn, jlst, jstno, jpmilt
     integer(kind=8) :: nfh, ddlc, nddl, nnom, nfe, ibid, ddls, ddlm, nfiss, jfisno
-    integer(kind=8) :: jheavn, ncompn, heavn(27, 5), jtab(7), iret, ifh, ino, imate
+    integer(kind=8) :: jheavn, ncompn, heavn(MT_NNOMAX3D, 5), jtab(7), iret, ifh, ino, imate
 !
 !
 ! - FONCTIONS DE FORMES ET POINTS DE GAUSS

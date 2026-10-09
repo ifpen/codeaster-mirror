@@ -22,8 +22,8 @@ subroutine oriintpou(mesh, listCellNume, nbCell, norien, vxorie)
 !
     implicit none
 !
-#include "asterf_types.h"
 #include "jeveux.h"
+#include "asterf_types.h"
 #include "asterfort/as_allocate.h"
 #include "asterfort/as_deallocate.h"
 #include "asterfort/elrfno.h"
@@ -58,7 +58,7 @@ subroutine oriintpou(mesh, listCellNume, nbCell, norien, vxorie)
     integer(kind=8) :: iCell, cellNume
     integer(kind=8) :: jcoor, p1, p2, ifm, niv
     integer(kind=8) :: jdesm1
-    integer(kind=8), parameter :: nbnds = MT_NNOMAX3D
+    integer(kind=8), parameter :: nbnds = 27
     aster_logical :: hasVolume, hasVoluNotHexaBiQ, onlyHexaBiQuad
     character(len=8), pointer :: ori5(:) => null()
     integer(kind=8), pointer :: typmail(:) => null()
@@ -67,7 +67,7 @@ subroutine oriintpou(mesh, listCellNume, nbCell, norien, vxorie)
     integer(kind=8) :: i, ii, ic, ideb
     real(dp) :: vec(3), projs(3), vx(3), vy(3), vz(3)
     real(dp) :: vxn(3), vyn(3), vzn(3), nvxn, nvyn, nvzn, nvec
-    real(dp) :: ni(3, 2), rot_mat(3, 3), ml(3, nbnds), ff(nbnds)
+    real(dp) :: ni(3, 2), rot_mat(3, 3), ml(3, MT_NNOMAX3D), ff(nbnds)
     real(dp) :: coorn(3)
     integer(kind=8) :: connn(nbnds), nrange(nbnds), couples(2, 3)
     integer(kind=8) :: imax, psign, cxn(2), ndnum, ndpos

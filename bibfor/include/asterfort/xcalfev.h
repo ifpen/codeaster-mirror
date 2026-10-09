@@ -18,6 +18,7 @@
 
 !
 #include "asterf_types.h"
+#include "MeshTypes_type.h"
 !
 interface
     subroutine xcalfev(elrefp, ndim, nnop, basloc, stano, he,&
@@ -33,8 +34,8 @@ interface
         real(kind=8) :: basloc(*)
         real(kind=8) :: kappa
         real(kind=8) :: mu
-        real(kind=8) :: fk(27,3,3)
-        real(kind=8), optional :: dkdgl(27,3,3,3)
+        real(kind=8) :: fk(MT_NNOMAX,3,3)
+        real(kind=8), optional :: dkdgl(MT_NNOMAX,3,3,3)
         real(kind=8), optional :: dfdi(nnop,ndim)
         character(len=4), optional :: face
         real(kind=8) :: geom(*)

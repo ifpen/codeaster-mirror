@@ -20,10 +20,9 @@ subroutine te0441(option, nomte)
 !
 !
     implicit none
-#include "asterf_types.h"
 #include "jeveux.h"
+#include "asterf_types.h"
 #include "asterfort/assert.h"
-#include "asterfort/tecach.h"
 #include "asterfort/elref1.h"
 #include "asterfort/elrefe_info.h"
 #include "asterfort/iselli.h"
@@ -31,9 +30,11 @@ subroutine te0441(option, nomte)
 #include "asterfort/rccoma.h"
 #include "asterfort/rcvalb.h"
 #include "asterfort/teattr.h"
+#include "asterfort/tecach.h"
 #include "asterfort/xpesro.h"
 #include "asterfort/xteddl.h"
 #include "asterfort/xteini.h"
+#include "MeshTypes_type.h"
     character(len=16) :: option, nomte
 !......................................................................
 !
@@ -54,7 +55,7 @@ subroutine te0441(option, nomte)
     integer(kind=8) :: ivectu, igeom, irota, ipesa, imate
     integer(kind=8) :: jbaslo
     integer(kind=8) :: irese, nfiss, jfisno, kpg, spt
-    integer(kind=8) :: ncompn, ncomp, heavn(27, 5), iret, jtab(7), ig
+    integer(kind=8) :: ncompn, ncomp, heavn(MT_NNOMAX3D, 5), iret, jtab(7), ig
     real(kind=8) :: fno(81), rho(1), om, omo, coorse(81)
     integer(kind=8) :: icodre(3)
     character(len=8) :: elrefp, elrese(6), fami(6), enr, lag, famil, poum

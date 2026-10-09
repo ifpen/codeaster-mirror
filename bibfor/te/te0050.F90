@@ -32,6 +32,7 @@ subroutine te0050(option, nomte)
 #include "asterfort/pmfmats.h"
 #include "asterfort/rcvalb.h"
 #include "asterfort/tecach.h"
+#include "FE_module.h"
 #include "jeveux.h"
 !
     character(len=16), intent(in) :: option, nomte
@@ -56,7 +57,7 @@ subroutine te0050(option, nomte)
     integer(kind=8) :: i, kpg, jvMaterc, imatuu, j, iret, jvRigiReal(2), rigi
     integer(kind=8) :: k, nbinco, nbsig, ndim, nno, npg
     integer(kind=8) :: jvGeom, ipoids, ivf, idfde, nbval
-    real(kind=8) :: b(486), jacgau
+    real(kind=8) :: b(6*MAX_BV_CG), jacgau
     real(kind=8) :: btdbi(81, 81), di(36), eta
     real(kind=8) :: time, coorBary(3)
     character(len=8) :: materParaKpg

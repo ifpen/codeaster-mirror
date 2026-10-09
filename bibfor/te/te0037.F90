@@ -18,8 +18,8 @@
 !
 subroutine te0037(option, nomte)
     implicit none
-#include "asterf_types.h"
 #include "jeveux.h"
+#include "asterf_types.h"
 #include "asterc/r8prem.h"
 #include "asterfort/assert.h"
 #include "asterfort/elref1.h"
@@ -46,6 +46,7 @@ subroutine te0037(option, nomte)
 #include "asterfort/xteddl.h"
 #include "asterfort/xteini.h"
 #include "asterfort/xxmmvd.h"
+#include "MeshTypes_type.h"
 !
     character(len=16) :: option, nomte
 !
@@ -76,12 +77,12 @@ subroutine te0037(option, nomte)
     integer(kind=8) :: imate, jlsn, jbaslo
     integer(kind=8) :: alp
     integer(kind=8) :: nnof, npgf, ipoidf, ivff, idfdef, ipgf, pos, zxain, nptf, ifh
-    real(kind=8) :: pres, cisa, forrep(3, 2), ff(27), jac, nd(3), he(2), mat(1)
-    real(kind=8) :: xg(4), dfbid(27, 3), r27bid(27), r3bid(3), r
+    real(kind=8) :: pres, cisa, forrep(3, 2), ff(MT_NNOMAX3D), jac, nd(3), he(2), mat(1)
+    real(kind=8) :: xg(4), dfbid(MT_NNOMAX3D, 3), r27bid(MT_NNOMAX3D), r3bid(3), r
     aster_logical :: pre1, axi
     integer(kind=8) :: compt, nddlm, nddls, nddlp, iret, jheafa, ncomph, ncompb
     real(kind=8) :: thet
-    real(kind=8) :: fk(27, 3, 3), ka, mu
+    real(kind=8) :: fk(MT_NNOMAX3D, 3, 3), ka, mu
     data he/-1.d0, 1.d0/
 !
     call jemarq()
@@ -453,17 +454,16 @@ subroutine te0037(option, nomte)
 !
 !     SUPPRESSION DES DDLS SUPERFLUS
     if (pre1) then
-        call xhmddl(ndim, nfh, nddls, nddl, nno, &
-                    nnos, zi(jstno), .false._1, option, nomte, &
-                    mat, zr(ires), nddlm, nfiss, jfisno, &
-                    .false._1, contac)
+        call xhmddl(ndim, nfh, nddls, nddl, nno, nnos, zi(jstno), &
+                    ASTER_FALSE, option, nomte, &
+                    mat, zr(ires), nddlm, nfiss, jfisno, ASTER_FALSE, contac)
     else
         call teattr('C', 'XLAG', lag, ibid)
         if (ibid .eq. 0 .and. lag .eq. 'ARETE') then
             nno = nnos
         end if
         call xteddl(ndim, nfh, nfe, ddls, nddl, &
-                    nno, nnos, zi(jstno), .false._1, .false._1, &
+                    nno, nnos, zi(jstno), ASTER_FALSE, ASTER_FALSE, &
                     option, nomte, ddlm, nfiss, jfisno, &
                     vect=zr(ires))
     end if

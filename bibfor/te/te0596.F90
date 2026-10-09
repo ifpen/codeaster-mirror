@@ -36,6 +36,7 @@ subroutine te0596(option, nomte)
 #include "asterfort/nufnpd.h"
 #include "asterfort/teattr.h"
 #include "asterfort/utmess.h"
+#include "MeshTypes_type.h"
 #include "jeveux.h"
 !
     character(len=16) :: option, nomte
@@ -56,7 +57,7 @@ subroutine te0596(option, nomte)
     aster_logical :: mini
     integer(kind=8) :: ndim, nno1, nno2, nnos, npg, jgn, ntrou
     integer(kind=8) :: iw, ivf1, ivf2, idf1, idf2
-    integer(kind=8) :: vu(3, 27), vg(27), vp(27), vpi(3, 27)
+    integer(kind=8) :: vu(3, MT_NNOMAX3D), vg(MT_NNOMAX3D), vp(MT_NNOMAX3D), vpi(3, MT_NNOMAX3D)
     integer(kind=8) :: igeom, jvSief, jvDisp, jvMaterc, ivectu
     integer(kind=8) :: ibid
     character(len=16), pointer :: compor(:) => null()

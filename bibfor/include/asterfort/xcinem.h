@@ -19,6 +19,7 @@
 !
 !
 #include "asterf_types.h"
+#include "MeshTypes_type.h"
 !
 interface
     subroutine xcinem(axi, igeom, nnop, nnos, idepl, ndim, he,&
@@ -36,8 +37,8 @@ interface
         integer(kind=8), intent(in) :: nfe
         integer(kind=8), intent(in) :: ddls
         integer(kind=8), intent(in) :: ddlm
-        real(kind=8), intent(in)::  fk(27,3,3)
-        real(kind=8), intent(in)::  dkdgl(27,3,3,3)
+        real(kind=8), intent(in)::  fk(MT_NNOMAX,3,3)
+        real(kind=8), intent(in)::  dkdgl(MT_NNOMAX,3,3,3)
         real(kind=8), intent(in) :: ff(nnop)
         real(kind=8), intent(in) :: dfdi(nnop, ndim)
         real(kind=8), intent(out) :: f(3, 3)

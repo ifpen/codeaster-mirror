@@ -36,8 +36,8 @@ subroutine te0036(option, nomte)
 !              ---> NOMTE  : NOM DU TYPE ELEMENT
 !.......................................................................
 !
-#include "asterf_types.h"
 #include "jeveux.h"
+#include "asterf_types.h"
 #include "asterfort/assert.h"
 #include "asterfort/dfdm1d.h"
 #include "asterfort/dfdm2b.h"
@@ -54,12 +54,13 @@ subroutine te0036(option, nomte)
 #include "asterfort/tecach.h"
 #include "asterfort/tecael.h"
 #include "asterfort/tefrep.h"
-#include "asterfort/xkamat.h"
-#include "asterfort/xcalfev_wrap.h"
-#include "asterfort/xnormv.h"
-#include "asterfort/xhmddl.h"
-#include "asterfort/xteddl.h"
 #include "asterfort/xcalc_heav.h"
+#include "asterfort/xcalfev_wrap.h"
+#include "asterfort/xhmddl.h"
+#include "asterfort/xkamat.h"
+#include "asterfort/xnormv.h"
+#include "asterfort/xteddl.h"
+#include "MeshTypes_type.h"
 !
     character(len=16), intent(in) :: option, nomte
 !
@@ -75,10 +76,10 @@ subroutine te0036(option, nomte)
     integer(kind=8) :: in, ino, iadzi, iazk24, jstno
     integer(kind=8) :: iforc, iret, ig, pos, ndime, nddl, ddls, contac
     real(kind=8) :: xg(4), r
-    real(kind=8) :: pres, ff(27), coorse(18), cosa, sina
+    real(kind=8) :: pres, ff(MT_NNOMAX3D), coorse(18), cosa, sina
     real(kind=8) :: nd(3), norme, rb1(3), rb2(3), cisa
     real(kind=8) :: poids, forrep(3), vf, td(3), rbid(1)
-    real(kind=8) :: fk(27, 3, 3), ka, mu
+    real(kind=8) :: fk(MT_NNOMAX3D, 3, 3), ka, mu
     aster_logical :: lbid, axi, pre1
     integer(kind=8) :: kk, ddlm, nnopm
     data elrese/'SE2', 'TR3', 'SE3', 'TR6'/

@@ -33,6 +33,7 @@ subroutine te0598(option, nomte)
 #include "asterfort/nurfpd.h"
 #include "asterfort/utmess.h"
 #include "asterfort/Behaviour_type.h"
+#include "MeshTypes_type.h"
 !
     character(len=16) :: option, nomte
 ! ----------------------------------------------------------------------
@@ -47,7 +48,7 @@ subroutine te0598(option, nomte)
 !
     integer(kind=8) :: ndim, nno1, nno2, nnos, npg, jgn, ntrou
     integer(kind=8) :: iw, ivf1, ivf2, idf1, idf2
-    integer(kind=8) :: vu(3, 27), vg(27), vp(27), vpi(3, 27)
+    integer(kind=8) :: vu(3, MT_NNOMAX3D), vg(MT_NNOMAX3D), vp(MT_NNOMAX3D), vpi(3, MT_NNOMAX3D)
     integer(kind=8) :: igeom, ivectu
     real(kind=8) :: sigref, epsref, piref
     character(len=16), pointer :: compor(:) => null()

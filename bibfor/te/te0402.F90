@@ -39,6 +39,7 @@ subroutine te0402(option, nomte)
 #include "asterfort/sigvte.h"
 #include "asterfort/vectan.h"
 #include "asterfort/vectgt.h"
+#include "MeshTypes_type.h"
 #include "jeveux.h"
 !
     character(len=16) :: option, nomte
@@ -56,7 +57,7 @@ subroutine te0402(option, nomte)
     integer(kind=8) :: irig
     integer(kind=8) :: kompt, kpgs
     real(kind=8) :: sigmtd(5), sigmt(3, 3), sigmEner(3, 3), barsig(9, 9)
-    real(kind=8) :: vecni(3), antni(3, 3), veczn(27), antzi(3, 3), rignc(3, 3), vri(2601)
+    real(kind=8) :: vecni(3), antni(3, 3), veczn(MT_NNOMAX3D), antzi(3, 3), rignc(3, 3), vri(2601)
     integer(kind=8) :: jvGeom, icontr, imatuu
     integer(kind=8) :: lzi, lzr
     integer(kind=8) :: nb1, nb2

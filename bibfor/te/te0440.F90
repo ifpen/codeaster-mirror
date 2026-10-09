@@ -20,19 +20,20 @@ subroutine te0440(option, nomte)
 !
     implicit none
 !
-#include "asterf_types.h"
 #include "jeveux.h"
+#include "asterf_types.h"
 #include "asterfort/assert.h"
 #include "asterfort/elref1.h"
 #include "asterfort/elrefe_info.h"
 #include "asterfort/iselli.h"
 #include "asterfort/jevech.h"
 #include "asterfort/teattr.h"
-#include "asterfort/tefrep.h"
 #include "asterfort/tecach.h"
+#include "asterfort/tefrep.h"
 #include "asterfort/xfovol.h"
 #include "asterfort/xteddl.h"
 #include "asterfort/xteini.h"
+#include "MeshTypes_type.h"
 !
     character(len=16), intent(in) :: option, nomte
 !......................................................................
@@ -55,7 +56,7 @@ subroutine te0440(option, nomte)
     integer(kind=8) :: ivectu, iforc, itemps, igeom, jpmilt, irese
     integer(kind=8) :: nfiss, jfisno, jheavn
     integer(kind=8) :: imate, jbaslo
-    integer(kind=8) :: ncompn, heavn(27, 5), iret, jtab(7), ig
+    integer(kind=8) :: ncompn, heavn(MT_NNOMAX3D, 5), iret, jtab(7), ig
     real(kind=8) :: he, coorse(81)
     character(len=8) :: elrefp, elrese(6), fami(6), enr, lag
     aster_logical :: fonc, lbid

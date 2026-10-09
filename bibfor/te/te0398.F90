@@ -24,6 +24,7 @@ subroutine te0398(option, nomte)
 #include "asterfort/dfdm3d.h"
 #include "asterfort/elrefe_info.h"
 #include "asterfort/jevech.h"
+#include "MeshTypes_type.h"
 !
     character(len=16) :: nomte, option
 ! ----------------------------------------------------------------------
@@ -36,7 +37,8 @@ subroutine te0398(option, nomte)
 !.......................................................................
 !
 !
-    real(kind=8) :: dfdx(27), dfdy(27), dfdz(27), jac, gradx, grady, gradz
+    real(kind=8) :: dfdx(MT_NNOMAX3D), dfdy(MT_NNOMAX3D), dfdz(MT_NNOMAX3D)
+    real(kind=8) :: jac, gradx, grady, gradz
 !
     integer(kind=8) :: ndim, nno, nnos, npg
     integer(kind=8) :: ipoids, ivf, idfde, jgano, igeom, ineut, igr
