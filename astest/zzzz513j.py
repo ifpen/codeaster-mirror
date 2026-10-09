@@ -80,26 +80,46 @@ NLEVELS = parameters["number_of_refinements"]
 
 
 def diameter_cell(coor, nodes):
-    nb_nodes = len(nodes)
-    pts = np.array([coor.getNode(node).getValues() for node in nodes])
+    pts = np.array([coor.getNode(node).getValues() for node in nodes], dtype=float)
 
     return max(
-        np.linalg.norm(pts[i] - pts[j]) for i in range(nb_nodes) for j in range(i + 1, nb_nodes)
+        np.linalg.norm(pts[i] - pts[j]) for i in range(len(pts)) for j in range(i + 1, len(pts))
     )
 
 
-def diameter(mesh):
+def mesh_sizes(mesh, groups=GROUP_VOL):
+    """
+    Calcule les diamètres des cellules 2D appartenant aux groupes donnés.
+
+    Retourne :
+    h_max : taille globale EF standard ;
+    h_min : plus petite taille ;
+    h_avg : moyenne arithmétique ;
+    h_rms : moyenne quadratique ;
+    ratio : indicateur de non-uniformité h_max / h_min.
+    """
     mesh_lin = mesh.convertToLinear()
-    nbCells = mesh_lin.getNumberOfCells()
     coor = mesh_lin.getCoordinates()
     connec = mesh_lin.getConnectivity()
 
-    sum = 0.0
-    for c_id in range(nbCells):
-        sum += diameter_cell(coor, connec[c_id])
+    cell_ids = set()
+    for group in groups:
+        cell_ids.update(mesh_lin.getCells(group))
 
-    diam_avg = sum / nbCells
-    return diam_avg
+    if not cell_ids:
+        raise ValueError(f"Aucune cellule trouvée dans les groupes {groups}.")
+
+    diameters = np.array(
+        [diameter_cell(coor, connec[cell_id]) for cell_id in sorted(cell_ids)], dtype=float
+    )
+
+    h_max = float(np.max(diameters))
+    h_min = float(np.min(diameters))
+    h_avg = float(np.mean(diameters))
+    h_rms = float(np.sqrt(np.mean(diameters**2)))
+    ratio = h_max / h_min
+
+    return h_max, h_min, h_avg, h_rms, ratio
 
 
 def local_order(h, e):
@@ -302,7 +322,10 @@ def solve_on_mesh(mesh, order):
     err = sqrt(qVh) if qVh > 0.0 else float("nan")
 
     # Taille caracteristique pour le domaine rectangulaire 2D.
-    h = diameter(mesh)
+    h, h_min, h_avg, h_rms, h_ratio = mesh_sizes(mesh)
+    print(
+        f"MESH_SIZE: h_max={h:.8e}, h_min={h_min:.8e}, h_avg={h_avg:.8e}, h_rms={h_rms:.8e}, h_max/h_min={h_ratio:.6f}"
+    )
     return h, err, qH1, qB
 
 
@@ -314,14 +337,15 @@ for order in ("LINEAIRE", "QUADRATIQUE"):
     if order == "LINEAIRE":
         MESH = MESH.convertToQuadratic()
     else:
-        MESH = MESH.convertToQuadratic()
+        MESH = MESH.convertToCubic()
 
     MESH = CREA_MAILLAGE(MAILLAGE=MESH, MODI_HHO=_F(GROUP_MA=GROUP_HHO))
 
     error[order] = {"h": [], "H1": []}
     hs, errs, qH1s, qBs = [], [], [], []
     for i_reff in range(NLEVELS):
-        print("\nCONVERGENCE_CG_HHO niveau %d" % i_reff)
+        print(f"\nCONVERGENCE_CG_HHO: order={order}, niveau={i_reff}")
+        # MESH.printMedFile(f"/tmp/MESH_{i_reff}.med", mode="w")
         h, err, qH1, qB = solve_on_mesh(MESH, order)
         hs.append(h)
         errs.append(err)
