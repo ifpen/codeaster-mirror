@@ -88,11 +88,11 @@ subroutine zjma(metaSteelPara, &
     ZBainTotaPrev = ZBainRevePrev+ZBainBrut
     ZMartTotaPrev = ZMartRevePrev+ZMartBrut
     ZTildeMartPrev = 0.d0
-    if (abs(ZMartTotaPrev) .ge. r8prem()) then
+    if (abs(ZMartBrut) .ge. r8prem()) then
         ZTildeMartPrev = ZMartRevePrev/ZMartBrut
     end if
     ZTildeBainPrev = 0.d0
-    if (abs(ZBainTotaPrev) .ge. r8prem()) then
+    if (abs(ZBainBrut) .ge. r8prem()) then
         ZTildeBainPrev = ZBainRevePrev/ZBainBrut
     end if
 
