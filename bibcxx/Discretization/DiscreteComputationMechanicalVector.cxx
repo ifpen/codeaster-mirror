@@ -732,23 +732,31 @@ FieldOnNodesRealPtr DiscreteComputation::getContactForces(
     // Computation
     calcul->compute();
     if ( calcul->hasOutputElementaryTerm( "PVECTCR" ) ) {
-        elemVect->addElementaryTerm( calcul->getOutputElementaryTermReal( "PVECTCR" ) );
+#ifdef ASTER_HAVE_MPI
+        if ( pCFED ) {
+            elemVect->addElementaryTerm( transfertToParallelFEDesc(
+                calcul->getOutputElementaryTermReal( "PVECTCR" ), pCFED ) );
+        } else {
+#endif
+            elemVect->addElementaryTerm( calcul->getOutputElementaryTermReal( "PVECTCR" ) );
+#ifdef ASTER_HAVE_MPI
+        }
+#endif
     }
     if ( calcul->hasOutputElementaryTerm( "PVECTFR" ) ) {
-        elemVect->addElementaryTerm( calcul->getOutputElementaryTermReal( "PVECTFR" ) );
+#ifdef ASTER_HAVE_MPI
+        if ( pCFED ) {
+            elemVect->addElementaryTerm( transfertToParallelFEDesc(
+                calcul->getOutputElementaryTermReal( "PVECTFR" ), pCFED ) );
+        } else {
+#endif
+            elemVect->addElementaryTerm( calcul->getOutputElementaryTermReal( "PVECTFR" ) );
+#ifdef ASTER_HAVE_MPI
+        }
+#endif
     }
     elemVect->build();
-#ifdef ASTER_HAVE_MPI
-    if ( pCFED ) {
-        auto resu = transfertToParallelFEDesc( elemVect, pCFED );
-        resu->build();
-        return resu->assemble( _phys_problem->getDOFNumbering() );
-    } else {
-#endif /* ASTER_HAVE_MPI */
-        return elemVect->assemble( _phys_problem->getDOFNumbering() );
-#ifdef ASTER_HAVE_MPI
-    }
-#endif /* ASTER_HAVE_MPI */
+    return elemVect->assemble( _phys_problem->getDOFNumbering() );
 }
 
 /**  @brief Compute nodal forces  */
