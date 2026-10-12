@@ -45,9 +45,9 @@ class PhysicalQuantityManager {
 
     static std::string getPhysicalQuantityName( const std::string, const std::string );
 
-    static ASTERINTEGER getPhysicalQuantityNumber( const std::string );
+    static ASTERINTEGER getPhysicalQuantityId( const std::string );
 
-    static ASTERINTEGER getPhysicalQuantityNumber( const std::string, const std::string );
+    static ASTERINTEGER getPhysicalQuantityId( const std::string, const std::string );
 
     static ASTERINTEGER getNumberOfEncodedInteger( const ASTERINTEGER );
 

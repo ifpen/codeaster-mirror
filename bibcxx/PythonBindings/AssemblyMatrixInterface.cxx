@@ -183,15 +183,15 @@ Arguments:
             },
             R"(
 Return one matrix coefficient.
+
 Only supports Morse storage. A coefficient absent from the profile is zero.
 UpdateValuePointers() has to be called first.
 
 Arguments:
-    i_row [int] Local row DOF index, zero-based.
-    j_col [int] Local column DOF index, zero-based.
+    indices (int, int): Local row and column DOF indices (i_row, j_col), both zero-based.
 
 Returns:
-    [float]: value of the matritx at (i_row, j_col)
+    float: value of the matritx at (i_row, j_col)
         )",
             py::arg( "indices" ) )
         // -----------------------------------------------------------------------------------------
@@ -370,15 +370,15 @@ Arguments:
             },
             R"(
 Return one matrix coefficient.
+
 Only supports Morse storage. A coefficient absent from the profile is zero.
 UpdateValuePointers() has to be called first.
 
 Arguments:
-    i_row [int] Local row DOF index, zero-based.
-    j_col [int] Local column DOF index, zero-based.
+    indices ([int, int]): Local row and column DOF indices (i_row, j_col), both zero-based.
 
 Returns:
-    [cmplx]: value of the matritx at (i_row, j_col)
+    cmplx: value of the matritx at (i_row, j_col)
         )",
             py::arg( "indices" ) )
         // -----------------------------------------------------------------------------------------
@@ -551,15 +551,15 @@ Arguments:
             },
             R"(
 Return one matrix coefficient.
+
 Only supports Morse storage. A coefficient absent from the profile is zero.
 UpdateValuePointers() has to be called first.
 
 Arguments:
-    i_row [int] Local row DOF index, zero-based.
-    j_col [int] Local column DOF index, zero-based.
+    indices (int, int): Local row and column DOF indices (i_row, j_col), both zero-based.
 
 Returns:
-    [float]: value of the matritx at (i_row, j_col)
+    float: value of the matritx at (i_row, j_col)
         )",
             py::arg( "indices" ) )
         // -----------------------------------------------------------------------------------------

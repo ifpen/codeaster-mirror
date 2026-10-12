@@ -717,10 +717,10 @@ AssemblyMatrix< ValueType, PhysicalQuantity >::extractSubMatrix(
     this->updateValuePointers();
 
     if ( !_isBuilt || !_dofNum )
-        AsterErrorCpp( "Assembly matrix is not built." );
+        throw AsterErrorCpp( "Assembly matrix is not built." );
 
     if ( getMesh() != fed->getMesh() )
-        AsterErrorCpp( "Meshes are incompatible." );
+        throw AsterErrorCpp( "Meshes are incompatible." );
 
     const auto &liel = fed->getListOfGroupsOfElements();
     const auto nbGrel = fed->getNumberOfGroupsOfElements();
@@ -738,7 +738,7 @@ AssemblyMatrix< ValueType, PhysicalQuantity >::extractSubMatrix(
     const auto smhc = ms->getDiagonalPositions();
 
     if ( !smdi.exists() || !smhc.exists() )
-        AsterErrorCpp( "extractSubMatrix requires Morse storage." );
+        throw AsterErrorCpp( "extractSubMatrix requires Morse storage." );
 
     const ASTERINTEGER mat_size = _dofNum->getNumberOfDOFs( true );
 
@@ -785,7 +785,7 @@ AssemblyMatrix< ValueType, PhysicalQuantity >::extractSubMatrix(
             // Preserve cell-node order, then DOF-numbering order within each node.
             for ( const auto node : nodes ) {
                 if ( node < 0 ) {
-                    AsterErrorCpp( "Virtual node not implemented" );
+                    throw AsterErrorCpp( "Virtual node not implemented" );
                 }
 
                 const auto nodeDofs = equaNume->getDOFsFromNode( node, true );
@@ -796,8 +796,8 @@ AssemblyMatrix< ValueType, PhysicalQuantity >::extractSubMatrix(
             const ASTERINTEGER expected = matIsSym ? n * ( n + 1 ) / 2 : n * n;
 
             if ( nbCmp != expected ) {
-                AsterErrorCpp( "Incompatible RESU_ELEM local mode: number of values does not "
-                               "match the DOFs and matrix symmetry" );
+                throw AsterErrorCpp( "Incompatible RESU_ELEM local mode: number of values does not "
+                                     "match the DOFs and matrix symmetry" );
             }
 
             ASTERINTEGER k = iElem * nbCmp;

@@ -446,7 +446,7 @@ ASTERINTEGER EquationNumbering::getNodeFromDOF( const ASTERINTEGER dof, const bo
 
 VectorLong EquationNumbering::getDOFsFromNode( const ASTERINTEGER node, const bool local ) const {
 
-    ASTERINTEGER gd = PhysicalQuantityManager::getPhysicalQuantityNumber( getPhysicalQuantity() );
+    ASTERINTEGER gd = PhysicalQuantityManager::getPhysicalQuantityId( getPhysicalQuantity() );
     ASTERINTEGER nec = PhysicalQuantityManager::getNumberOfEncodedInteger( gd );
 
     auto componentsOnNodes = ( *_componentsOnNodes )[1];

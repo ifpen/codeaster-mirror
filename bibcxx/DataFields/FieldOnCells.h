@@ -502,7 +502,7 @@ class FieldOnCells : public DataField {
         return ( *_descriptor )[( *_descriptor )[4 + iGrel] - 1 + 4 + 4 * iElem + 4] - 1;
     }
 
-    std::string getLocalMode() const {
+    std::string getLocatedComponent() const {
         const auto nbGrel = getNumberOfGroupOfElements();
         _descriptor->updateValuePointer();
         const std::string cata = "&CATA.TE.NOMMOLOC";

@@ -7971,7 +7971,9 @@ class CouplingPairing(DataStructure):
         """Get data from pairing - pairing info and HHO projector.
 
         Returns:
-            CouplingPairingData: data.
+        CouplingPairingData: Object containing the pairing field and the HHO
+        projector field. The HHO projector field is None when no HHO
+        elements are present.
         """
 
     def getFiniteElementDescriptor(self):
@@ -8129,15 +8131,15 @@ class AssemblyMatrixDisplacementReal(BaseAssemblyMatrix):
 
     def __getitem__(self, indices):
         """Return one matrix coefficient.
+
         Only supports Morse storage. A coefficient absent from the profile is zero.
         UpdateValuePointers() has to be called first.
 
         Arguments:
-            i_row [int] Local row DOF index, zero-based.
-            j_col [int] Local column DOF index, zero-based.
+            indices (int, int): Local row and column DOF indices (i_row, j_col), both zero-based.
 
         Returns:
-            [float]: value of the matritx at (i_row, j_col)
+            float: value of the matritx at (i_row, j_col)
         """
 
     def __iadd__(self, arg0):
@@ -8348,15 +8350,15 @@ class AssemblyMatrixDisplacementComplex(BaseAssemblyMatrix):
 
     def __getitem__(self, indices):
         """Return one matrix coefficient.
+
         Only supports Morse storage. A coefficient absent from the profile is zero.
         UpdateValuePointers() has to be called first.
 
         Arguments:
-            i_row [int] Local row DOF index, zero-based.
-            j_col [int] Local column DOF index, zero-based.
+            indices ([int, int]): Local row and column DOF indices (i_row, j_col), both zero-based.
 
         Returns:
-            [cmplx]: value of the matritx at (i_row, j_col)
+            cmplx: value of the matritx at (i_row, j_col)
         """
 
     def __imul__(self, arg0):
@@ -8518,15 +8520,15 @@ class AssemblyMatrixTemperatureReal(BaseAssemblyMatrix):
 
     def __getitem__(self, indices):
         """Return one matrix coefficient.
+
         Only supports Morse storage. A coefficient absent from the profile is zero.
         UpdateValuePointers() has to be called first.
 
         Arguments:
-            i_row [int] Local row DOF index, zero-based.
-            j_col [int] Local column DOF index, zero-based.
+            indices (int, int): Local row and column DOF indices (i_row, j_col), both zero-based.
 
         Returns:
-            [float]: value of the matritx at (i_row, j_col)
+            float: value of the matritx at (i_row, j_col)
         """
 
     def __iadd__(self, arg0):
@@ -9083,7 +9085,7 @@ class ElementaryTermReal(DataField):
             FiniteElementDescriptor: finite element descriptor
         """
 
-    def getLocalMode(self):
+    def getLocatedComponent(self):
         """Return the local mode.
 
         Returns:
@@ -9157,7 +9159,7 @@ class ElementaryTermComplex(DataField):
             FiniteElementDescriptor: finite element descriptor
         """
 
-    def getLocalMode(self):
+    def getLocatedComponent(self):
         """Return the local mode.
 
         Returns:

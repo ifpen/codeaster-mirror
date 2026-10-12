@@ -145,7 +145,7 @@ class FieldOnNodes : public DataField, private AllowedFieldType< ValueType > {
     /**
      * @brief Constructor with DOFNumbering
      */
-    FieldOnNodes( const FiniteElementDescriptorPtr fed, const std::string &localMode )
+    FieldOnNodes( const FiniteElementDescriptorPtr fed, const std::string &locatedComponent )
         : FieldOnNodes() {
 
         if ( !fed ) {
@@ -157,14 +157,14 @@ class FieldOnNodes : public DataField, private AllowedFieldType< ValueType > {
         if ( fed->getMesh()->isParallel() ) {
 #ifdef ASTER_HAVE_MPI
             auto dofNume = std::make_shared< ParallelDOFNumbering >();
-            dofNume->computeNumbering( { fed }, localMode, false );
+            dofNume->computeNumbering( { fed }, locatedComponent, false );
 
             _dofDescription = dofNume->getEquationNumbering();
 #endif
         } else {
             auto dofNume = std::make_shared< DOFNumbering >();
 
-            dofNume->computeNumbering( { fed }, localMode, false );
+            dofNume->computeNumbering( { fed }, locatedComponent, false );
 
             _dofDescription = dofNume->getEquationNumbering();
         }

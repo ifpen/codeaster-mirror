@@ -74,15 +74,15 @@ class GenericElementaryVector : public BaseElementaryVector {
     /**
      * @brief Return MODE_LOCAL
      */
-    std::string getLocalMode() const {
+    std::string getLocatedComponent() const {
         if ( _elemTerm.size() == 0 ) {
             return std::string();
         }
 
-        std::string modeName = _elemTerm[0]->getLocalMode();
+        std::string modeName = _elemTerm[0]->getLocatedComponent();
 
         for ( auto &term : _elemTerm ) {
-            auto modeN = term->getLocalMode();
+            auto modeN = term->getLocatedComponent();
             if ( modeName != modeN ) {
                 AS_ABORT( "Multiple names." );
             }
@@ -275,7 +275,7 @@ class GenericElementaryVector : public BaseElementaryVector {
 
         if ( ( !nume ) || !nume->exists() ) {
             nume = std::make_shared< DOFNumbering >();
-            nume->computeNumbering( getFiniteElementDescriptor(), getLocalMode() );
+            nume->computeNumbering( getFiniteElementDescriptor(), getLocatedComponent() );
         }
 
         // Create field

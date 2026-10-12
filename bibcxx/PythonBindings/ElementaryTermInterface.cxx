@@ -48,7 +48,7 @@ void exportElementaryTermToPython( py::module_ &mod ) {
             Returns:
                 BaseMesh: a pointer to the mesh
         )" )
-        .def( "getLocalMode", &ElementaryTermReal::getLocalMode, R"(
+        .def( "getLocatedComponent", &ElementaryTermReal::getLocatedComponent, R"(
             Return the local mode.
 
             Returns:
@@ -95,7 +95,7 @@ void exportElementaryTermToPython( py::module_ &mod ) {
             Returns:
                 BaseMesh: a pointer to the mesh
             )" )
-        .def( "getLocalMode", &ElementaryTermComplex::getLocalMode, R"(
+        .def( "getLocatedComponent", &ElementaryTermComplex::getLocatedComponent, R"(
             Return the local mode.
 
             Returns:

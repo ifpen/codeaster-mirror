@@ -132,7 +132,7 @@ bool BaseDOFNumbering::computeRenumbering( const ModelPtr model, const ListOfLoa
 };
 
 bool BaseDOFNumbering::computeNumbering( const std::vector< FiniteElementDescriptorPtr > &Feds,
-                                         const std::string &localMode, bool verbose ) {
+                                         const std::string &locatedComponent, bool verbose ) {
 
     JeveuxVectorChar24 list_ligrel( "&&LIST_LIGREL" );
     list_ligrel->reserve( Feds.size() );
@@ -144,7 +144,7 @@ bool BaseDOFNumbering::computeNumbering( const std::vector< FiniteElementDescrip
         mesh = fed->getMesh();
     }
 
-    CALLO_NUME_DDL_CHAMELEM( getName(), list_ligrel->getName(), localMode,
+    CALLO_NUME_DDL_CHAMELEM( getName(), list_ligrel->getName(), locatedComponent,
                              (ASTERLOGICAL *)&verbose );
 
     this->build();

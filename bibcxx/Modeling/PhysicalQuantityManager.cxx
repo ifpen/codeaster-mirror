@@ -39,7 +39,7 @@ std::string PhysicalQuantityManager::getPhysicalQuantityName( const ASTERINTEGER
     return strip( _nameOfPhysicalQuantity->getStringFromIndex( quantityNumber ) );
 };
 
-ASTERINTEGER PhysicalQuantityManager::getPhysicalQuantityNumber( const std::string name ) {
+ASTERINTEGER PhysicalQuantityManager::getPhysicalQuantityId( const std::string name ) {
     return _nameOfPhysicalQuantity->getIndexFromString( name );
 };
 
@@ -73,8 +73,8 @@ const VectorString PhysicalQuantityManager::getComponentNames( const ASTERINTEGE
     return result;
 };
 
-ASTERINTEGER PhysicalQuantityManager::getPhysicalQuantityNumber( const std::string option,
-                                                                 const std::string parameter ) {
+ASTERINTEGER PhysicalQuantityManager::getPhysicalQuantityId( const std::string option,
+                                                             const std::string parameter ) {
 
     ASTERINTEGER gd = -1;
     std::string oprionStr = ljust( strip( option ), 16, ' ' );
@@ -88,5 +88,5 @@ ASTERINTEGER PhysicalQuantityManager::getPhysicalQuantityNumber( const std::stri
 std::string PhysicalQuantityManager::getPhysicalQuantityName( const std::string option,
                                                               const std::string parameter ) {
 
-    return getPhysicalQuantityName( getPhysicalQuantityNumber( option, parameter ) );
+    return getPhysicalQuantityName( getPhysicalQuantityId( option, parameter ) );
 }

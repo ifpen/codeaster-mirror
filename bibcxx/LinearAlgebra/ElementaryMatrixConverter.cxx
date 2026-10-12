@@ -42,7 +42,7 @@ ElementaryTermRealPtr transfertToParallelFEDesc( const ElementaryTermRealPtr cur
 
     ElementaryTermRealPtr termToReturn = std::make_shared< ElementaryTermReal >();
     termToReturn->allocate( pFEDesc, curElemT->getOption(), curElemT->getPhysicalQuantityId(),
-                            curElemT->getLocalModeId() );
+                            curElemT->getLocatedComponentId() );
 
     if ( nbGrelP <= 0 ) {
         return termToReturn;

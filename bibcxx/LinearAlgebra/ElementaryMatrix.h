@@ -45,7 +45,7 @@ class ElementaryMatrix : public BaseElementaryMatrix {
         const auto _mesh = getMesh();
         if ( _mesh && mesh ) {
             if ( _mesh != mesh ) {
-                AsterErrorCpp( "Meshes are incompatible." );
+                throw AsterErrorCpp( "Meshes are incompatible." );
             }
         }
     };

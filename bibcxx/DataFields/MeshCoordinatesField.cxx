@@ -32,7 +32,7 @@ void MeshCoordinatesField::assign( const JeveuxVectorReal &values ) {
 
 void MeshCoordinatesField::buildDescriptor() {
     _descriptor->allocate( 3 );
-    ASTERINTEGER idxgeo = PhysicalQuantityManager::getPhysicalQuantityNumber( "GEOM_R" );
+    ASTERINTEGER idxgeo = PhysicalQuantityManager::getPhysicalQuantityId( "GEOM_R" );
     ( *_descriptor )[0] = idxgeo;
     ( *_descriptor )[1] = -3; // X,Y,Z components
     ( *_descriptor )[2] = 14; // means 0b1110 for XYZ (and not W)

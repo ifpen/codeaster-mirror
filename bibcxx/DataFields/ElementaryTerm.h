@@ -64,7 +64,8 @@ class ElementaryTerm : public DataField {
     ElementaryTerm() : ElementaryTerm( DataStructureNaming::getNewName() ) {};
 
     void allocate( const FiniteElementDescriptorPtr fEDesc, const std::string &option,
-                   const ASTERINTEGER &physicalQuantityId, const ASTERINTEGER &localModeId ) {
+                   const ASTERINTEGER &physicalQuantityId,
+                   const ASTERINTEGER &locatedComponentId ) {
         _FEDesc = fEDesc;
         _noli->allocate( 4 );
         ( *_noli )[0] = fEDesc->getName();
@@ -76,26 +77,26 @@ class ElementaryTerm : public DataField {
         ( *_descriptor )[0] = physicalQuantityId;
         ( *_descriptor )[1] = nbGrel;
         for ( int i = 0; i < nbGrel; ++i )
-            ( *_descriptor )[i + 2] = localModeId;
+            ( *_descriptor )[i + 2] = locatedComponentId;
         if ( nbGrel > 0 ) {
             _resl->allocate( nbGrel );
         }
     };
 
     void allocate( const FiniteElementDescriptorPtr fEDesc, const std::string &option,
-                   const std::string &physicalQuantity, const ASTERINTEGER &localModeId ) {
+                   const std::string &physicalQuantity, const ASTERINTEGER &locatedComponentId ) {
 
         const auto physicalQuantityId =
-            PhysicalQuantityManager::getPhysicalQuantityNumber( physicalQuantity );
+            PhysicalQuantityManager::getPhysicalQuantityId( physicalQuantity );
 
-        allocate( fEDesc, option, physicalQuantityId, localModeId );
+        allocate( fEDesc, option, physicalQuantityId, locatedComponentId );
     };
 
     void allocate( const FiniteElementDescriptorPtr fEDesc, const std::string &option,
                    const std::string &parameter ) {
 
         const auto physicalQuantityId =
-            PhysicalQuantityManager::getPhysicalQuantityNumber( option, parameter );
+            PhysicalQuantityManager::getPhysicalQuantityId( option, parameter );
 
         allocate( fEDesc, option, physicalQuantityId, -1 );
 
@@ -176,7 +177,7 @@ class ElementaryTerm : public DataField {
     /**
      * @brief Return MODE_LOCAL
      */
-    std::string getLocalMode() const {
+    std::string getLocatedComponent() const {
         const auto nbGrel = getNumberOfGroupOfCells();
         _descriptor->updateValuePointer();
         const std::string cata = "&CATA.TE.NOMMOLOC";
@@ -205,7 +206,7 @@ class ElementaryTerm : public DataField {
     /**
      * @brief Return MODE_LOCAL
      */
-    ASTERINTEGER getLocalModeId() const {
+    ASTERINTEGER getLocatedComponentId() const {
         const auto nbGrel = getNumberOfGroupOfCells();
         _descriptor->updateValuePointer();
 
@@ -226,14 +227,14 @@ class ElementaryTerm : public DataField {
         return modeId;
     }
 
-    ASTERINTEGER getLocalModeIdOfGroupOfElements( const ASTERINTEGER grel_idx ) const {
+    ASTERINTEGER getLocatedComponentIdOfGroupOfElements( const ASTERINTEGER grel_idx ) const {
         _descriptor->updateValuePointer();
         return ( *_descriptor )[2 + grel_idx];
     }
 
     ASTERINTEGER getNumberOfComponentsOfGroupOfElements( const ASTERINTEGER grel_idx ) const {
 
-        const auto mode_id = getLocalModeIdOfGroupOfElements( grel_idx );
+        const auto mode_id = getLocatedComponentIdOfGroupOfElements( grel_idx );
         ASTERINTEGER nbCmp = -1;
         CALL_DIGDEL_WRAP( &mode_id, &nbCmp );
         return nbCmp;

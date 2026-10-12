@@ -90,8 +90,11 @@ Returns:
 Get data from pairing - pairing info and HHO projector.
 
 Returns:
-    CouplingPairingData: data.
+CouplingPairingData: Object containing the pairing field and the HHO
+projector field. The HHO projector field is None when no HHO
+elements are present.
 )" );
+
     class_.def( "addZone", &CouplingPairing::addZone, R"(
 Add a new zone of coupling;
 

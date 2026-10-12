@@ -37,12 +37,12 @@ void exportPhysicalQuantityManagerToPython( py::module_ &mod ) {
         .def_static( "getPhysicalQuantityName",
                      py::overload_cast< const std::string, const std::string >(
                          &PhysicalQuantityManager::getPhysicalQuantityName ) )
-        .def_static( "getPhysicalQuantityNumber",
+        .def_static( "getPhysicalQuantityId",
                      py::overload_cast< const std::string >(
-                         &PhysicalQuantityManager::getPhysicalQuantityNumber ) )
-        .def_static( "getPhysicalQuantityNumber",
+                         &PhysicalQuantityManager::getPhysicalQuantityId ) )
+        .def_static( "getPhysicalQuantityId",
                      py::overload_cast< const std::string, const std::string >(
-                         &PhysicalQuantityManager::getPhysicalQuantityNumber ) )
+                         &PhysicalQuantityManager::getPhysicalQuantityId ) )
         .def_static( "getAllPhysicalQuantityNames",
                      &PhysicalQuantityManager::getAllPhysicalQuantityNames )
         .def_static( "getComponentNames", &PhysicalQuantityManager::getComponentNames )
