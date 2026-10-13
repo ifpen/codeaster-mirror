@@ -1,0 +1,46 @@
+ ENREGISTREMENT DE TYPE   4
+ NIVEAU  11 NIVEAU ERREUR   0 DIMENSION   2
+ DENSITE 0.00000E+00
+ ENREGISTREMENT DE TYPE   7
+ NOMBRE INFO CASTEM2000   8
+ IFOUR  -1 NIFOUR   0 IFOMOD  -1 IECHO   1 IIMPI   0 IOSPI   0 ISOTYP   1
+ NSDPGE     0
+ ENREGISTREMENT DE TYPE   2
+ PILE NUMERO   1NBRE OBJETS NOMMES       5NBRE OBJETS       5
+ DR1_2    DR2_3    DR3_4    DR1_4    MO      
+       2       3       4       5       1
+      10       0       4       8       1
+       2       3       4       5
+       0
+       1       2       3       4       5       6       7       8
+       3       0       0       3       1
+       0
+       1       2       3
+       3       0       0       3       1
+       0
+       3       4       5
+       3       0       0       3       1
+       0
+       5       6       7
+       3       0       0       3       1
+       0
+       1       8       7
+ ENREGISTREMENT DE TYPE   2
+ PILE NUMERO  32NBRE OBJETS NOMMES       4NBRE OBJETS       8
+ NO1      NO2      NO3      NO4     
+       1       3       5       7
+       8
+       1       2       3       4       5       6       7       8
+ ENREGISTREMENT DE TYPE   2
+ PILE NUMERO  33NBRE OBJETS NOMMES       0NBRE OBJETS       1
+      24
+  0.00000000000000E+00  0.00000000000000E+00  0.00000000000000E+00
+  1.00000000000000E-03  0.00000000000000E+00  2.00000000000000E-03
+  2.00000000000000E-03  0.00000000000000E+00  0.00000000000000E+00
+  2.00000000000000E-03  1.00000000000000E-03  2.00000000000000E-03
+  2.00000000000000E-03  2.00000000000000E-03  0.00000000000000E+00
+  1.00000000000000E-03  2.00000000000000E-03  2.00000000000000E-03
+  0.00000000000000E+00  2.00000000000000E-03  0.00000000000000E+00
+  0.00000000000000E+00  1.00000000000000E-03  2.00000000000000E-03
+ ENREGISTREMENT DE TYPE   5
+LABEL AUTOMATIQUE :   1                                                 
