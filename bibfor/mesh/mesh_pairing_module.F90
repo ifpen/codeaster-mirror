@@ -3123,17 +3123,33 @@ contains
         real(kind=8), intent(in) :: point1(2), point2(2), edgePt1(2), edgePt2(2)
         real(kind=8), intent(out) :: intersection(2)
 ! ----- Local
-        real(kind=8) :: dcx, dcy, dpx, dpy, n1, n2, n3
-        !
+        real(kind=8) :: dcx, dcy, dpx, dpy
+        real(kind=8) :: denom_t, num_t, t
+
+        ! Compute the direction vectors
         dcx = edgePt1(1)-edgePt2(1)
         dcy = edgePt1(2)-edgePt2(2)
-        dpx = point1(1)-point2(1)
-        dpy = point1(2)-point2(2)
-        n1 = edgePt1(1)*edgePt2(2)-edgePt1(2)*edgePt2(1)
-        n2 = point1(1)*point2(2)-point1(2)*point2(1)
-        n3 = 1.0/(dcx*dpy-dcy*dpx)
-        intersection(1) = (n1*dpx-n2*dcx)*n3
-        intersection(2) = (n1*dpy-n2*dcy)*n3
+
+        ! Direction vector for the 'point' segment, consistent with the final formula
+        dpx = point2(1)-point1(1)
+        dpy = point2(2)-point1(2)
+
+        ! Check that the lines are not parallel
+        denom_t = dcy*dpx-dcx*dpy
+        if (abs(denom_t) < 1.0d-12) then
+            t = 0.0
+            !ASSERT(ASTER_FALSE)
+        end if
+
+        num_t = (edgePt1(1)-point1(1))*dcy-(edgePt1(2)-point1(2))*dcx
+        t = num_t/denom_t
+
+        ! Clamp the value to stay on the segment
+        t = min(max(t, 0.d0), 1.d0)
+
+        ! Compute the final intersection point
+        intersection(:) = point1(:)+t*(point2(:)-point1(:))
+
     end subroutine computeIntersectionPoint3D
 
 ! --------------------------------------------------------------------------------------------------
