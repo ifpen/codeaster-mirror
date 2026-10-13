@@ -40,7 +40,7 @@ class ExtendedSimpleFieldOnCellsReal:
     @property
     def _cache(self):
         if self._ptr_cache is None:
-            self._ptr_cache = dict.fromkeys(["readonly", "val", "msk", "idx", "nbpt"])
+            self._ptr_cache = dict.fromkeys(["readonly", "val", "msk", "idx", "nbpt", "cellidx"])
             self._ptr_cache["readonly"] = None
         if self._ptr_cache["val"] is None:
             self._ptr_cache["val"], self._ptr_cache["msk"], addr, _ = self.toNumpy()
@@ -163,19 +163,29 @@ class ExtendedSimpleFieldOnCellsReal:
             ndarray (bool): Mask for the field values.
         """
 
-        istart = sum(
-            [
-                self.getNumberOfPointsOfCell(i) * self.getNumberOfSubPointsOfCell(i)
-                for i in range(idcell)
-            ]
-        )
+        if not 0 <= idcell < self.getMesh().getNumberOfCells():
+            raise ValueError(f"Invalid cell id {idcell} : Out of mesh bounds.")
 
-        iend = istart + self.getNumberOfPointsOfCell(idcell) * self.getNumberOfSubPointsOfCell(
-            idcell
-        )
+        # Cache
+        if self._cache["cellidx"] is None:
+            valid_cells = self.getCellsWithValues()
+            cache = {}
+            current_index = 0
+            for cell_id in valid_cells:
+                num_points = self.getNumberOfPointsOfCell(cell_id)
+                num_sub_points = self.getNumberOfSubPointsOfCell(cell_id)
+                next_index = current_index + num_points * num_sub_points
+                cache[cell_id] = (current_index, next_index)
+                current_index = next_index
+
+            self._cache["cellidx"] = cache
+
+        if idcell not in self._cache["cellidx"]:
+            raise ValueError(f"Invalid cell id {idcell} : Not holding components.")
+
+        istart, iend = self._cache["cellidx"][idcell]
 
         values, mask = self.getValues()
-
         return values[istart:iend], mask[istart:iend]
 
     def transfert(self, mesh, cmps=[]):
