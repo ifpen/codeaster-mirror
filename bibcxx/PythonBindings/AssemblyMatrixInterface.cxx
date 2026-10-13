@@ -175,6 +175,43 @@ Arguments:
         .def( "getUpperValues", &AssemblyMatrixDisplacementReal::getUpperValues )
         .def( "getLowerValues", &AssemblyMatrixDisplacementReal::getLowerValues )
         // -----------------------------------------------------------------------------------------
+        .def(
+            "__getitem__",
+            []( const AssemblyMatrixDisplacementReal &self,
+                const std::pair< ASTERINTEGER, ASTERINTEGER > &indices ) {
+                return self( indices.first, indices.second );
+            },
+            R"(
+Return one matrix coefficient.
+
+Only supports Morse storage. A coefficient absent from the profile is zero.
+UpdateValuePointers() has to be called first.
+
+Arguments:
+    indices (int, int): Local row and column DOF indices (i_row, j_col), both zero-based.
+
+Returns:
+    float: value of the matritx at (i_row, j_col)
+        )",
+            py::arg( "indices" ) )
+        // -----------------------------------------------------------------------------------------
+        .def( "updateValuePointers", &AssemblyMatrixDisplacementReal::updateValuePointers, R"(
+Update pointers.
+        )" )
+        // -----------------------------------------------------------------------------------------
+        .def( "extractSubMatrix", &AssemblyMatrixDisplacementReal::extractSubMatrix, R"(
+Extract a sub-matrix.
+
+Arguments:
+    fed [FiniteElementDescriptor] extract sub-matrix for element of fed.
+    option [str] Option to known which dofs to extract.
+    parameter [str] parameter of the option to known which dofs to extract.
+
+Returns:
+    [ElementaryMatrixReal]: elementary matrix extracted.
+        )",
+              py::arg( "fed" ), py::arg( "option" ), py::arg( "parameter" ) )
+        // -----------------------------------------------------------------------------------------
         .def( float() * py::self )
         .def( py::self *= float() )
         .def( py::self -= py::self )
@@ -323,7 +360,44 @@ Arguments:
         .def( -py::self )
         .def(
             "__mul__", +[]( const AssemblyMatrixDisplacementComplex &M,
-                            const FieldOnNodesComplex &v ) { return M * v; } );
+                            const FieldOnNodesComplex &v ) { return M * v; } )
+        // -----------------------------------------------------------------------------------------
+        .def(
+            "__getitem__",
+            []( const AssemblyMatrixDisplacementComplex &self,
+                const std::pair< ASTERINTEGER, ASTERINTEGER > &indices ) {
+                return self( indices.first, indices.second );
+            },
+            R"(
+Return one matrix coefficient.
+
+Only supports Morse storage. A coefficient absent from the profile is zero.
+UpdateValuePointers() has to be called first.
+
+Arguments:
+    indices ([int, int]): Local row and column DOF indices (i_row, j_col), both zero-based.
+
+Returns:
+    cmplx: value of the matritx at (i_row, j_col)
+        )",
+            py::arg( "indices" ) )
+        // -----------------------------------------------------------------------------------------
+        .def( "updateValuePointers", &AssemblyMatrixDisplacementComplex::updateValuePointers, R"(
+Update pointers.
+        )" )
+        // -----------------------------------------------------------------------------------------
+        .def( "extractSubMatrix", &AssemblyMatrixDisplacementComplex::extractSubMatrix, R"(
+Extract a sub-matrix.
+
+Arguments:
+    fed [FiniteElementDescriptor] extract sub-matrix for element of fed.
+    option [str] Option to known which dofs to extract.
+    parameter [str] parameter of the option to known which dofs to extract.
+
+Returns:
+    [ElementaryMatrixComplex]: elementary matrix extracted.
+        )",
+              py::arg( "fed" ), py::arg( "option" ), py::arg( "parameter" ) );
     // -----------------------------------------------------------------------------------------
 
     py::class_< AssemblyMatrixTemperatureReal, AssemblyMatrixTemperatureRealPtr,
@@ -468,6 +542,43 @@ Arguments:
         // -----------------------------------------------------------------------------------------
         .def( "getUpperValues", &AssemblyMatrixTemperatureReal::getUpperValues )
         .def( "getLowerValues", &AssemblyMatrixTemperatureReal::getLowerValues )
+        // -----------------------------------------------------------------------------------------
+        .def(
+            "__getitem__",
+            []( const AssemblyMatrixTemperatureReal &self,
+                const std::pair< ASTERINTEGER, ASTERINTEGER > &indices ) {
+                return self( indices.first, indices.second );
+            },
+            R"(
+Return one matrix coefficient.
+
+Only supports Morse storage. A coefficient absent from the profile is zero.
+UpdateValuePointers() has to be called first.
+
+Arguments:
+    indices (int, int): Local row and column DOF indices (i_row, j_col), both zero-based.
+
+Returns:
+    float: value of the matritx at (i_row, j_col)
+        )",
+            py::arg( "indices" ) )
+        // -----------------------------------------------------------------------------------------
+        .def( "updateValuePointers", &AssemblyMatrixTemperatureReal::updateValuePointers, R"(
+Update pointers.
+        )" )
+        // -----------------------------------------------------------------------------------------
+        .def( "extractSubMatrix", &AssemblyMatrixTemperatureReal::extractSubMatrix, R"(
+Extract a sub-matrix.
+
+Arguments:
+    fed [FiniteElementDescriptor] extract sub-matrix for element of fed.
+    option [str] Option to known which dofs to extract.
+    parameter [str] parameter of the option to known which dofs to extract.
+
+Returns:
+    [ElementaryMatrixReal]: elementary matrix extracted.
+        )",
+              py::arg( "fed" ), py::arg( "option" ), py::arg( "parameter" ) )
         // -----------------------------------------------------------------------------------------
         .def( float() * py::self )
         .def( py::self *= float() )

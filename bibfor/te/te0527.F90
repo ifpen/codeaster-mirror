@@ -17,8 +17,100 @@
 ! --------------------------------------------------------------------
 
 subroutine te0527(nomopt, nomte)
+!
+    use coupling_computation_module
+    use coupling_penalisation_module
+    use coupling_quadrature_module
+    use coupling_nitsche_module
+    use coupling_type
+    use FE_quadrature_module
+    use FE_topo_module
+    use HHO_matrix_module
+    use HHO_quadrature_module
+    use HHO_type
+!
     implicit none
-#include "asterfort/utmess.h"
+!
+#include "jeveux.h"
+#include "asterf_types.h"
+#include "asterfort/assert.h"
+#include "asterfort/coupling_type.h"
+#include "asterfort/HHO_size_module.h"
+#include "FE_module.h"
+!
     character(len=16) :: nomte, nomopt
-    call utmess('F', 'FERMETUR_8')
+!
+!===================================================================================================
+!
+!  Option: HHO_CALC_PROJ
+!  Coupling FEM/HHO with Nitsche or Penalization
+!  Compute RHS of L2-projector from FEM to HHO
+!
+!===================================================================================================
+!
+    type(FE_Cell):: FECellSl
+    type(FE_Skin):: FEFaceSl
+    type(HHO_Face):: hhoFaceMa
+    type(HHO_Data):: hhoDataMa
+    type(FE_Quadrature) :: FEQuadSl
+    type(HHO_Quadrature) :: hhoQuadMa
+    type(CouplingMap) :: cplMap
+    type(HHO_matrix) :: lhs, projFEM2HHO
+    integer(kind=8) :: iFe, irow, jFE, jcol
+!
+    if (nomte(1:2) == 'CP') then
+!
+! --- Initialize topologie
+!
+        call cplPenaInitTopoFEMHHO(FEFaceSl, hhoFaceMa, hhoDataMa)
+!
+! --- Initialize mapping
+!
+        call cplPenaInitMapFEMHHOVec(FEFaceSl, hhoFaceMa, hhoDataMa, cplMap)
+!
+    elseif (nomte(1:2) == 'CN') then
+!
+! --- Initialize topologie
+!
+        call cplNitsInitTopoFEMHHO(FEFaceSl, FECellSl, hhoFaceMa, hhoDataMa)
+!
+! --- Initialize mapping
+!
+        call cplNitsInitMapFEMHHOVec(FECellSl, hhoFaceMa, hhoDataMa, cplMap)
+!
+    else
+        ASSERT(ASTER_FALSE)
+    end if
+!
+! --- Initialize quadrature
+!
+    call cplGetQuadFEMHHO(FEFaceSl, hhoFaceMa, hhoDataMa, FEQuadSl, hhoQuadMa)
+!
+! ----- Compute RHS of Pi_F^k(phi_i^CG) on the intersection and
+!       the whole HHO face F.
+!
+    call cplCmpProjFEM2HHOFaceResVec(FEFaceSl, hhoFaceMa, hhoDataMa, &
+                                     FEQuadSl, hhoQuadMa, projFEM2HHO)
+!
+    ASSERT(projFEM2HHO%nrows == cplMap%nbDoFshhoFaceMa)
+    ASSERT(projFEM2HHO%ncols == cplMap%nbDoFsFEFaceSl)
+!
+!  Assemble matrix
+!
+    call lhs%initialize(cplMap%nbDoFs, cplMap%nbDoFs, 0.d0)
+!
+    do jFE = 1, cplMap%nbDoFsFEFaceSl
+        jcol = cplMap%mapDoFsFEFaceSl(jFE)
+        do iFE = 1, cplMap%nbDoFshhoFaceMa
+            irow = cplMap%mapDoFshhoFaceMa(iFE)
+            lhs%m(irow, jcol) = projFEM2HHO%m(iFE, jFE)
+        end do
+    end do
+    call projFEM2HHO%free()
+!
+! - Write matrix
+!
+    call lhs%write("PMATUNS", ASTER_FALSE)
+    call lhs%free()
+!
 end subroutine

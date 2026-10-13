@@ -28,8 +28,8 @@ subroutine xpoajd(elrefp, ino, nnop, lsn, lst, &
 ! aslint: disable=W1306,W1504
     implicit none
 !
-#include "asterf_types.h"
 #include "jeveux.h"
+#include "asterf_types.h"
 #include "asterc/r8maem.h"
 #include "asterc/r8prem.h"
 #include "asterfort/assert.h"
@@ -45,6 +45,7 @@ subroutine xpoajd(elrefp, ino, nnop, lsn, lst, &
 #include "asterfort/xmoffc.h"
 #include "asterfort/xmofhm.h"
 #include "asterfort/xpoffo.h"
+#include "MeshTypes_type.h"
 !
     integer(kind=8) :: ino, nnop, igeom, ndim, ndime, ddlc, jdirno
     integer(kind=8) :: nbcmp, cmp(*), nfe, ima, jconx1, jconx2, jcnsv1, heavno(20, 3)
@@ -108,7 +109,7 @@ subroutine xpoajd(elrefp, ino, nnop, lsn, lst, &
     real(kind=8) :: ff(nnop), ffc(16), fe(4), crilsn, minlsn
     real(kind=8) :: r, theta, chpri(3), lagrs(9), laghm(3), lagrc(3*ndim)
     real(kind=8) :: ff2(8), press
-    real(kind=8) :: fk(27, 3, 3)
+    real(kind=8) :: fk(MT_NNOMAX3D, 3, 3)
     integer(kind=8) :: i, j, iad, ipos, ig, ino2, ndimc, idecv2, idecl2
     integer(kind=8) :: nnol, ngl(8), ibid, ifiss, fiss, npr(8), nlag
     integer(kind=8) :: lact(8), nlact, hea_se, alp

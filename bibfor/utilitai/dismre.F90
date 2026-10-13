@@ -92,6 +92,10 @@ subroutine dismre(questi, nomobz, repi, repkz, ierd)
         call jeveuo(nomob//'.NOLI', 'L', jnoli)
         call dismlg(questi, zk24(jnoli), repi, repk, ierd)
 !
+    else if (questi .eq. 'PHENOMENE') then
+        call jeveuo(nomob//'.NOLI', 'L', jnoli)
+        call dismlg(questi, zk24(jnoli), repi, repk, ierd)
+!
     else if (questl(1:6) .eq. 'NUM_GD') then
         repi = gd
 !

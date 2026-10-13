@@ -227,6 +227,12 @@ contains
             nbnodes_post = 3
             node_init = 7
             elem_dim = 1
+        elseif (typma == 'TS7') then
+            typma = 'SEG2'
+            nbnodes = 2
+            nbnodes_post = 3
+            node_init = 11
+            elem_dim = 1
         elseif (typma == 'QS2') then
             typma = 'SEG2'
             nbnodes = 2
@@ -244,6 +250,12 @@ contains
             nbnodes = 2
             nbnodes_post = 3
             node_init = 10
+            elem_dim = 1
+        elseif (typma == 'QS7') then
+            typma = 'SEG2'
+            nbnodes = 2
+            nbnodes_post = 3
+            node_init = 13
             elem_dim = 1
         elseif (typma == 'S23') then
             typma = 'SEG2'
@@ -322,6 +334,42 @@ contains
             nbnodes = 3
             nbnodes_post = 7
             node_init = 7
+            elem_dim = 2
+        elseif (typma == 'T11') then
+            typma = 'TRIA3'
+            nbnodes = 3
+            nbnodes_post = 7
+            node_init = 5
+            elem_dim = 2
+        elseif (typma == 'T17') then
+            typma = 'TRIA3'
+            nbnodes = 3
+            nbnodes_post = 7
+            node_init = 11
+            elem_dim = 2
+        elseif (typma == 'T27') then
+            typma = 'TRIA3'
+            nbnodes = 3
+            nbnodes_post = 7
+            node_init = 21
+            elem_dim = 2
+        elseif (typma == 'H15') then
+            typma = 'TRIA3'
+            nbnodes = 3
+            nbnodes_post = 7
+            node_init = 9
+            elem_dim = 2
+        elseif (typma == 'H26') then
+            typma = 'TRIA3'
+            nbnodes = 3
+            nbnodes_post = 7
+            node_init = 21
+            elem_dim = 2
+        elseif (typma == 'H34') then
+            typma = 'TRIA3'
+            nbnodes = 3
+            nbnodes_post = 7
+            node_init = 28
             elem_dim = 2
         else
             print *, typma

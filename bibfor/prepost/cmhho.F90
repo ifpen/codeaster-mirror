@@ -54,17 +54,25 @@ subroutine cmhho(mesh_in, mesh_out, nb_list_elem, list_elem)
 !
     conv_type = ["SEG2", "SEG3"]
     call mesh_hho%converter%add_conversion(conv_type(1), conv_type(2))
+    conv_type = ["SEG4", "SEG3"]
+    call mesh_hho%converter%add_conversion(conv_type(1), conv_type(2))
     conv_type = ["TRIA3", "TRIA7"]
     call mesh_hho%converter%add_conversion(conv_type(1), conv_type(2))
     conv_type = ["TRIA6", "TRIA7"]
+    call mesh_hho%converter%add_conversion(conv_type(1), conv_type(2))
+    conv_type = ["TRIA10", "TRIA7 "]
     call mesh_hho%converter%add_conversion(conv_type(1), conv_type(2))
     conv_type = ["QUAD4", "QUAD9"]
     call mesh_hho%converter%add_conversion(conv_type(1), conv_type(2))
     conv_type = ["QUAD8", "QUAD9"]
     call mesh_hho%converter%add_conversion(conv_type(1), conv_type(2))
+    conv_type = ["QUAD12", "QUAD9 "]
+    call mesh_hho%converter%add_conversion(conv_type(1), conv_type(2))
     conv_type = ["TETRA4 ", "TETRA15"]
     call mesh_hho%converter%add_conversion(conv_type(1), conv_type(2))
     conv_type = ["TETRA10", "TETRA15"]
+    call mesh_hho%converter%add_conversion(conv_type(1), conv_type(2))
+    conv_type = ["TETRA20", "TETRA15"]
     call mesh_hho%converter%add_conversion(conv_type(1), conv_type(2))
     conv_type = ["HEXA8 ", "HEXA27"]
     call mesh_hho%converter%add_conversion(conv_type(1), conv_type(2))

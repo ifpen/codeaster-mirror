@@ -282,20 +282,21 @@ contains
 !===================================================================================================
 !
 !===================================================================================================
-    integer(ip) function search_in_list(name, nb_grp, list_name)
+    function search_in_list(name, nb_grp, list_name) result(id)
 !
         implicit none
 !
         integer(kind=8), intent(in) :: nb_grp
         character(len=24), intent(in) :: name, list_name(*)
+        integer(ip) :: id
 !
         integer(kind=8) :: i_name
 !
-        search_in_list = -one_ip
+        id = -one_ip
 !
         do i_name = 1, nb_grp
             if (name .eq. list_name(i_name)) then
-                search_in_list = int(i_name, kind=ip)
+                id = int(i_name, kind=ip)
                 exit
             end if
         end do
@@ -2239,6 +2240,7 @@ contains
             print *, "- Owner: ", this%owner_cell(three_ip, this%edges(edge_id)%nodes)
             print *, "- Nodes: ", this%edges(edge_id)%nodes(1:nno)
             print *, "- NNOS: ", this%edges(edge_id)%nno_sort(1:nno)
+            print *, "- Isub: ", this%edges(edge_id)%isub
             if (mult_elem(nno, this%edges(edge_id)%nodes)) then
                 ASSERT(ASTER_FALSE)
             end if
@@ -2993,7 +2995,7 @@ contains
                 if (this%edges(edge_id)%isub == one_ip) then
                     coor_ref = [-2.d0/3.d0, 0.d0, 0.d0]
                 else
-                    coor_ref = [1.d0/3.d0, 0.d0, 0.d0]
+                    coor_ref = [+2.d0/3.d0, 0.d0, 0.d0]
                 end if
                 ASSERT(this%edges(edge_id)%parent > zero_ip)
                 edge_type_parent = this%edges(this%edges(edge_id)%parent)%type
@@ -3019,7 +3021,7 @@ contains
                 if (this%edges(edge_id)%isub == one_ip) then
                     coor_ref = [-1.d0/3.d0, 0.d0, 0.d0]
                 else
-                    coor_ref = [+2.d0/3.d0, 0.d0, 0.d0]
+                    coor_ref = [+1.d0/3.d0, 0.d0, 0.d0]
                 end if
                 ASSERT(this%edges(edge_id)%parent > zero_ip)
                 edge_type_parent = this%edges(this%edges(edge_id)%parent)%type
@@ -3414,11 +3416,18 @@ contains
                 ASSERT(ASTER_FALSE)
             end if
 !
-            if (type == MT_TRIA13) then
-                stype = this%converter%short_name(MT_TRIA7)
-            else if (type == MT_QUAD17) then
+            if (type == MT_TRIA10 .or. type == MT_TRIA13) then
+                ! During conversion to TRIA13, nodes 1:3 are the vertices
+                ! and nodes 4:6 are the reconstructed edge midpoints.
+                ! Node 7 is the barycenter currently being created.
+                stype = this%converter%short_name(MT_TRIA6)
+            else if (type == MT_QUAD12 .or. type == MT_QUAD17) then
+                ! During conversion to QUAD17, nodes 1:4 are the vertices
+                ! and nodes 5:8 are the reconstructed edge midpoints.
+                ! Node 9 is the barycenter currently being created.
                 stype = this%converter%short_name(MT_QUAD8)
             end if
+!
             call elrfvf(stype, coor_ref, basis, nbnode)
             do i_node = one_ip, int(nbnode, ip)
                 node = this%faces(face_id)%nodes(i_node)
@@ -3505,7 +3514,10 @@ contains
                 ASSERT(ASTER_FALSE)
             end if
             stype = this%converter%short_name(type)
-            if (type == MT_TETRA15 .or. type == MT_TETRA27) then
+            if (type == MT_TETRA15 .or. type == MT_TETRA20 .or. &
+                type == MT_TETRA27) then
+                ! Nodes 1:4 are vertices and nodes 5:10 are edge midpoints.
+                ! Use the corresponding TETRA10 geometry to create node 27.
                 stype = this%converter%short_name(MT_TETRA10)
             end if
             call elrfvf(stype, coor_ref, basis, nbnode)

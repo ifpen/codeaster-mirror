@@ -26,6 +26,7 @@ subroutine te0569(option, nomte)
 #include "asterfort/rcvalb.h"
 #include "asterfort/Behaviour_type.h"
 #include "asterfort/assert.h"
+#include "MeshTypes_type.h"
 !
     character(len=16), intent(in) :: option, nomte
 !
@@ -57,8 +58,8 @@ subroutine te0569(option, nomte)
     real(kind=8) :: rhocp, rhocs, l0, usl0
     real(kind=8) :: taux, tauy, tauz
     real(kind=8) :: nux, nuy, nuz, scal, vnx, vny, vnz
-    real(kind=8) :: vituni(3, 3), vect(9, 3, 27)
-    real(kind=8) :: matr(27, 27), depla(27)
+    real(kind=8) :: vituni(3, 3), vect(9, 3, MT_NNOMAX3D)
+    real(kind=8) :: matr(MT_NNOMAX3D, MT_NNOMAX3D), depla(MT_NNOMAX3D)
     real(kind=8) :: vtx, vty, vtz
     integer(kind=8) :: icodre(5), ndim2
     character(len=8) :: fami, poum

@@ -32,6 +32,7 @@ subroutine sigmmc(materPara, &
 #include "asterfort/dbudef.h"
 #include "asterfort/dmatmc.h"
 #include "jeveux.h"
+#include "FE_module.h"
 #include "MeshTypes_type.h"
 !
     type(Material_Para), intent(inout) :: materPara
@@ -66,7 +67,7 @@ subroutine sigmmc(materPara, &
 !
     integer(kind=8), parameter :: ksp = 1
     integer(kind=8) :: kpg, nbinco
-    real(kind=8) :: b(486), d(36), jacgau
+    real(kind=8) :: b(6*MAX_BV_CG), d(36), jacgau
 !
 ! --------------------------------------------------------------------------------------------------
 !

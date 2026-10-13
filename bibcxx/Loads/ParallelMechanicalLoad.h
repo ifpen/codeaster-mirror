@@ -29,6 +29,7 @@
  *   along with Code_Aster.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Coupling/CouplingPairingData.h"
 #include "DataFields/ConstantFieldOnCells.h"
 #include "DataStructures/DataStructure.h"
 #include "Loads/MechanicalLoad.h"
@@ -119,6 +120,10 @@ class ParallelMechanicalLoad : public DataStructure {
         AS_ASSERT( load->getPairingField() && load->getPairingField()->exists() );
         _pairingPts = std::make_shared< FieldOnCellsReal >( getName() + ".CHME.PAIRS",
                                                             *( load->getPairingField() ) );
+        const auto hhoProj = load->getHHOProjector();
+        if ( hhoProj && hhoProj->exists() ) {
+            _hhoProj = std::make_shared< FieldOnCellsReal >( getName() + ".CHME.MPHHO", *hhoProj );
+        }
 
         const auto cMesh =
             std::dynamic_pointer_cast< ConnectionMesh >( load->getModel()->getMesh() );
@@ -158,9 +163,11 @@ class ParallelMechanicalLoad : public DataStructure {
     SyntaxSaverPtr _syntax;
     /** @brief node and cell support groups of ParallelMechnicalLoad */
     VectorString _grpNo, _grpMa;
-    /** @brief Field '.PAIRS' */
+    /** @brief Field '.PAIRS' for LIAISON_MASSIF */
     FieldOnCellsRealPtr _pairingPts;
-    /** @brief For LIAISON_MASSIF */
+    /** @brief Field '.MPHHO' for LIAISON_MASSIF */
+    FieldOnCellsRealPtr _hhoProj;
+    /** @brief LIGREL for LIAISON_MASSIF - Numbering and Compute */
     ParallelContactFEDescriptorPtr _cplFED;
 
   public:
@@ -315,6 +322,7 @@ class ParallelMechanicalLoad : public DataStructure {
     };
 
     auto getPairingField() const { return _pairingPts; }
+    auto getHHOProjector() const { return _hhoProj; }
 
     auto getParallelCouplingFEDescriptor() const { return _cplFED; }
 };

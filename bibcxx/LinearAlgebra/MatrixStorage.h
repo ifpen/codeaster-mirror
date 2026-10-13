@@ -79,6 +79,16 @@ class LigneDeCiel : public MatrixStorage {
           _scib( JeveuxVectorLong( getName() + ".SCIB" ) ),
           _m2lc( JeveuxVectorLong( getName() + ".M2LC" ) ),
           _lc2m( JeveuxVectorLong( getName() + ".LC2M" ) ) {};
+
+    void updateValuePointers() const {
+        _scbl->updateValuePointer();
+        _scdi->updateValuePointer();
+        _scde->updateValuePointer();
+        _schc->updateValuePointer();
+        _scib->updateValuePointer();
+        _m2lc->updateValuePointer();
+        _lc2m->updateValuePointer();
+    };
 };
 
 /**
@@ -114,6 +124,12 @@ class MorseStorage : public MatrixStorage {
     JeveuxVectorLong getRows() const { return _smdi; };
 
     JeveuxVectorShort getDiagonalPositions() const { return _smhc; };
+
+    void updateValuePointers() const {
+        _smdi->updateValuePointer();
+        _smde->updateValuePointer();
+        _smhc->updateValuePointer();
+    };
 };
 
 /**
@@ -148,6 +164,13 @@ class MultFrontStorage : public MatrixStorage {
           _glob( JeveuxVectorShort( getName() + ".GLOB" ) ),
           _locl( JeveuxVectorShort( getName() + ".LOCL" ) ),
           _pnti( JeveuxVectorShort( getName() + ".PNTI" ) ) {};
+
+    void updateValuePointers() const {
+        _adnt->updateValuePointer();
+        _glob->updateValuePointer();
+        _locl->updateValuePointer();
+        _pnti->updateValuePointer();
+    };
 };
 
 /**

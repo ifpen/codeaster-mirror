@@ -124,6 +124,8 @@ class FiniteElementDescriptor : public DataStructure {
 
     ASTERINTEGER getNumberOfGroupsOfElements() const;
 
+    ASTERINTEGER getNumberOfElementsOfGroupOfElements( const ASTERINTEGER grel_idx ) const;
+
     void setNumberOfVirtualNodes( const ASTERINTEGER nbNodes );
 
     JeveuxVectorLong getNumberOfVirtualNodesDescriptor();
@@ -160,19 +162,23 @@ class FiniteElementDescriptor : public DataStructure {
 
     JeveuxVectorLong getFiniteElementType() const;
 
+    ASTERINTEGER getFiniteElementTypeIdOfGroupOfElements( const ASTERINTEGER grel_idx ) const;
+
     SetString getFiniteElementNames() const;
 
     /**
      * @brief Number of super-elements in model
      * @return Number of super elements in model
      */
-    ASTERINTEGER numberOfSuperElement();
+    ASTERINTEGER numberOfSuperElement() const;
 
     /**@brief Has super elements in model ? */
-    bool existsSuperElement();
+    bool existsSuperElement() const;
 
     /** @brief Has finite element in model ? */
-    bool existsFiniteElement();
+    bool existsFiniteElement() const;
+
+    bool existsHHO() const;
 
 #ifdef ASTER_HAVE_MPI
     /** @brief Transert .PRNM from other FiniteElementDescriptor.

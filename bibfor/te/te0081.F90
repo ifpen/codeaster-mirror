@@ -30,6 +30,7 @@ subroutine te0081(option, nomte)
 #include "asterfort/elrefe_info.h"
 #include "asterfort/jevech.h"
 #include "asterfort/nbsigm.h"
+#include "FE_module.h"
 #include "jeveux.h"
 !
     character(len=16), intent(in) :: option, nomte
@@ -49,7 +50,7 @@ subroutine te0081(option, nomte)
     integer(kind=8) :: jvGeom, jvMaterc, imatuu
     integer(kind=8) :: i, j, k, kpg
     integer(kind=8) :: nbinco, nbsig
-    real(kind=8) :: b(486), btdb(81, 81), d(16), jacgau
+    real(kind=8) :: b(6*MAX_BV_CG), btdb(81, 81), d(16), jacgau
     real(kind=8) :: time
     integer(kind=8) :: ndim, nno, npg
     integer(kind=8) :: ipoids, ivf, idfde

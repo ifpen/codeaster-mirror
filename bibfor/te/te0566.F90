@@ -18,8 +18,8 @@
 ! aslint: disable=W0104
 subroutine te0566(nomopt, nomte)
     implicit none
-#include "asterf_types.h"
 #include "jeveux.h"
+#include "asterf_types.h"
 #include "asterfort/assert.h"
 #include "asterfort/elref1.h"
 #include "asterfort/elrefe_info.h"
@@ -27,14 +27,15 @@ subroutine te0566(nomopt, nomte)
 #include "asterfort/indent.h"
 #include "asterfort/iselli.h"
 #include "asterfort/jevech.h"
+#include "asterfort/lteatt.h"
 #include "asterfort/tecach.h"
 #include "asterfort/tecael.h"
-#include "asterfort/xcalc_heav.h"
 #include "asterfort/xcalc_code.h"
+#include "asterfort/xcalc_heav.h"
 #include "asterfort/xcalfev_wrap.h"
 #include "asterfort/xkamat.h"
-#include "asterfort/lteatt.h"
 #include "asterfort/xteini.h"
+#include "MeshTypes_type.h"
 !
 !    - FONCTION REALISEE:  CALCUL DU CHAMP DE DEPLACEMENT RECOMPOSE AUX
 !                          POINTS DE GAUSS DES SOUS-ELEMENTS X-FEM
@@ -51,15 +52,15 @@ subroutine te0566(nomopt, nomte)
     integer(kind=8) :: ndim, nnop, nnops, nspg, irese, nse
     integer(kind=8) :: nfh, nfe, singu, ddlc, nnom, ddls, nddl, ddlm, ddlg
     integer(kind=8) :: nfiss, contac
- integer(kind=8) :: jdeplno, jxpg, jheavt, jlonch, jbaslo, jlsn, jlst, jheavn, jdeplpg, jstno, imate
-    integer(kind=8) :: jtab(7), jtab2(7), iret, ncomp, ncompn
+    integer(kind=8) :: jdeplno, jxpg, jheavt, jlonch, jbaslo, jlsn, jlst, jheavn
+    integer(kind=8) :: jtab(7), jtab2(7), iret, ncomp, ncompn, jdeplpg, jstno, imate
     integer(kind=8) :: ise, kpg, ipg, i, ino, ifiss, ifh, alp, igeom
     integer(kind=8) :: he(nfissmx), dec(nbnomx), heavn(nbnomx, 5)
     integer(kind=8) :: hea_se
     integer(kind=8) :: iadzi, iazk24
     real(kind=8) :: xg(3), ug(3)
     real(kind=8) :: ff(nbnomx)
-    real(kind=8) :: fk(27, 3, 3)
+    real(kind=8) :: fk(MT_NNOMAX3D, 3, 3)
     character(len=8) :: elrese(6), fami(6), elrefp
     real(kind=8) :: ka, mu
     aster_logical :: axi

@@ -18,6 +18,7 @@
 !
 subroutine te0590(option, nomte)
 !
+! aslint: disable=C0110
     use Behaviour_module
     use Behaviour_type
     use MaterialPara_module
@@ -69,7 +70,7 @@ subroutine te0590(option, nomte)
     integer(kind=8) :: icoret, codret, iret
     integer(kind=8) :: iw, ivfd, ivfg, ivfp, idfd, idfg
     integer(kind=8) :: jtab(7), lgpg
-    integer(kind=8) :: vu(3, 27), vg(27), vp(27), vpi(3, 27)
+    integer(kind=8) :: vu(3, MT_NNOMAX3D), vg(MT_NNOMAX3D), vp(MT_NNOMAX3D), vpi(3, MT_NNOMAX3D)
     integer(kind=8) :: jvGeom, jvMaterc, icontm, ivarim, iuse
     integer(kind=8) :: jvInstmr, jvInstpr, jvDeplmr, jvDeplpr, jvCarcri, ivarix
     integer(kind=8) :: ivectu, icontp, ivarip, imatuu
@@ -79,7 +80,7 @@ subroutine te0590(option, nomte)
     character(len=16) :: defoComp, relaComp, typeComp
     aster_logical :: lVect, lMatr, lVari, lSigm, lMatrPred
 !     POUR TGVERI
-    real(kind=8) :: sdepl(135), svect(135), scont(6*27)
+    real(kind=8) :: sdepl(135), svect(135), scont(6*MT_NNOMAX3D)
     real(kind=8) :: epsilo, epsilp, epsilg
     real(kind=8) :: tab_out(3*MT_NNOMAX3D*3*MT_NNOMAX3D)
     real(kind=8), pointer :: varia(:) => null(), smatr(:) => null()

@@ -170,6 +170,11 @@ ASTERINTEGER FiniteElementDescriptor::getNumberOfGroupsOfElements() const {
     return _listOfGroupsOfElements->size();
 };
 
+ASTERINTEGER
+FiniteElementDescriptor::getNumberOfElementsOfGroupOfElements( const ASTERINTEGER grel_idx ) const {
+    return ( *_listOfGroupsOfElements )[grel_idx + 1]->size() - 1;
+};
+
 void FiniteElementDescriptor::setNumberOfVirtualNodes( const ASTERINTEGER nbNodes ) {
 
     if ( !_numberOfDelayedNumberedConstraintNodes.exists() ) {
@@ -197,6 +202,15 @@ const JeveuxVectorLong &FiniteElementDescriptor::getListOfGroupsOfElementsbyElem
 };
 
 JeveuxVectorLong FiniteElementDescriptor::getFiniteElementType() const { return _typeOfCells; }
+
+ASTERINTEGER
+FiniteElementDescriptor::getFiniteElementTypeIdOfGroupOfElements(
+    const ASTERINTEGER grel_idx ) const {
+    const auto grel = ( *_listOfGroupsOfElements )[grel_idx + 1];
+    grel->updateValuePointer();
+    const auto size = grel->size();
+    return ( *grel )[size - 1];
+};
 
 ASTERINTEGER FiniteElementDescriptor::getNumberOfCells() const {
     _groupsOfCellsNumberByElement->updateValuePointer();
@@ -233,7 +247,7 @@ int FiniteElementDescriptor::getPhysics( void ) const {
     return -1;
 };
 
-ASTERINTEGER FiniteElementDescriptor::numberOfSuperElement() {
+ASTERINTEGER FiniteElementDescriptor::numberOfSuperElement() const {
     const std::string typeco( "LIGREL" );
     ASTERINTEGER repi = 0, ier = 0;
     JeveuxChar32 repk( " " );
@@ -245,7 +259,7 @@ ASTERINTEGER FiniteElementDescriptor::numberOfSuperElement() {
     return repi;
 };
 
-bool FiniteElementDescriptor::existsFiniteElement() {
+bool FiniteElementDescriptor::existsFiniteElement() const {
     const std::string typeco( "LIGREL" );
     ASTERINTEGER repi = 0, ier = 0;
     JeveuxChar32 repk( " " );
@@ -259,7 +273,21 @@ bool FiniteElementDescriptor::existsFiniteElement() {
     return false;
 };
 
-bool FiniteElementDescriptor::existsSuperElement() { return ( numberOfSuperElement() > 0 ); }
+bool FiniteElementDescriptor::existsHHO() const {
+    const std::string typeco( "LIGREL" );
+    ASTERINTEGER repi = 0, ier = 0;
+    JeveuxChar32 repk( " " );
+    const std::string arret( "C" );
+    const std::string questi( "EXI_HHO" );
+
+    CALLO_DISMOI( questi, getName(), typeco, &repi, repk, arret, &ier );
+    auto retour = strip( repk.toString() );
+    if ( retour == "OUI" )
+        return true;
+    return false;
+};
+
+bool FiniteElementDescriptor::existsSuperElement() const { return ( numberOfSuperElement() > 0 ); }
 
 bool FiniteElementDescriptor::exists() const {
     if ( _parameters.exists() && _numberOfDelayedNumberedConstraintNodes.exists() )

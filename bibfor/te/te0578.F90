@@ -27,6 +27,7 @@ subroutine te0578(option, nomte)
 #include "asterfort/tecach.h"
 #include "asterfort/xtelga.h"
 #include "asterfort/xthini.h"
+#include "MeshTypes_type.h"
     character(len=16) :: option, nomte
 !
 !-----------------------------------------------------------------------
@@ -41,7 +42,7 @@ subroutine te0578(option, nomte)
 !
     integer(kind=8) :: ndim, nfh, nfe, itempn, igeom, nnop, itempg, jpintt
     integer(kind=8) :: jcnset, jheavt, jlonch, jbaslo, jlsn, jlst
-    integer(kind=8) :: heavn(27, 5), ino, ig, jheavn, ncompn, jtab(7), iret
+    integer(kind=8) :: heavn(MT_NNOMAX3D, 5), ino, ig, jheavn, ncompn, jtab(7), iret
     character(len=8) :: elrefp
 !
 ! ----------------------------------------------------------------------

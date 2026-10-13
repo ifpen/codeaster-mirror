@@ -71,6 +71,8 @@
      - ``char_cont_zone``
    * - :py:class:`~code_aster.Objects.CouplingPairing`
      - 
+   * - :py:class:`~code_aster.Objects.CouplingPairingData`
+     - 
    * - :py:class:`~code_aster.Objects.CouplingZonePairing`
      - 
    * - :py:class:`~code_aster.Objects.Crack`

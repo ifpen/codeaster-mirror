@@ -38,6 +38,7 @@ subroutine te0595(option, nomte)
 #include "asterfort/nufipd.h"
 #include "asterfort/teattr.h"
 #include "asterfort/tecach.h"
+#include "MeshTypes_type.h"
 #include "jeveux.h"
 !
     character(len=16), intent(in) :: option, nomte
@@ -65,7 +66,7 @@ subroutine te0595(option, nomte)
     integer(kind=8) :: icoret, codret, iret
     integer(kind=8) :: iw, ivfd, ivfp, idfd
     integer(kind=8) :: jtab(7), lgpg
-    integer(kind=8) :: vu(3, 27), vg(27), vp(27), vpi(3, 27)
+    integer(kind=8) :: vu(3, MT_NNOMAX3D), vg(MT_NNOMAX3D), vp(MT_NNOMAX3D), vpi(3, MT_NNOMAX3D)
     integer(kind=8) :: jvGeom, jvMaterc, icontm, ivarim
     integer(kind=8) :: jvInstmr, jvInstpr, jvDeplmr, jvDeplpr, jvCarcri
     integer(kind=8) :: ivectu, icontp, ivarip, imatuu

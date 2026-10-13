@@ -26,6 +26,7 @@ subroutine te0522(option, nomte)
 #include "asterfort/jevech.h"
 #include "asterfort/ntfcma.h"
 #include "asterfort/rcfodi.h"
+#include "MeshTypes_type.h"
 !
     character(len=16), intent(in) :: option, nomte
 !
@@ -45,8 +46,8 @@ subroutine te0522(option, nomte)
 ! --------------------------------------------------------------------------------------------------
 !
     integer(kind=8), parameter :: npgmax = 40
-    real(kind=8) :: dfdx(27), dfdy(27), dfdz(27), poids
-    real(kind=8) :: dni(3, 27, npgmax), uloc(3, 27), ul(3, npgmax)
+    real(kind=8) :: dfdx(MT_NNOMAX3D), dfdy(MT_NNOMAX3D), dfdz(MT_NNOMAX3D), poids
+    real(kind=8) :: dni(3, MT_NNOMAX3D, npgmax), uloc(3, MT_NNOMAX3D), ul(3, npgmax)
     real(kind=8) :: jacob(npgmax), umi(3), um, aire, rr, cc
     real(kind=8) :: xr, xrr, xaux, rbid, s, xma, xm, coef, cmin, alfa, aksi
     integer(kind=8) :: nno, kp, npg, i, j, k, ij, itemps, imattt

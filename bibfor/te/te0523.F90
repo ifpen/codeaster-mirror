@@ -57,7 +57,7 @@ subroutine te0523(option, nomte)
 !
 ! --- Initialize mapping
 !
-    call cplLagrInitMapFEMFEM(FEFaceSl, FEFaceMa, FEFaceLagSl, cplLagrMap)
+    call cplLagrInitMapFEMFEMVec(FEFaceSl, FEFaceMa, FEFaceLagSl, cplLagrMap)
 !
 ! --- Initialize quadrature
 !

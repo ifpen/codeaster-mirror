@@ -32,12 +32,6 @@ BaseElementaryMatrix::BaseElementaryMatrix( const ModelPtr model ) : BaseElement
     this->setModel( model );
 };
 
-BaseMeshPtr BaseElementaryMatrix::getMesh( void ) const {
-    if ( _model )
-        return _model->getMesh();
-
-    return nullptr;
-};
 /** @brief  Prepare compute */
 void BaseElementaryMatrix::prepareCompute( const std::string option ) {
     if ( option != "WRAP_FORTRAN" ) {

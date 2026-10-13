@@ -65,6 +65,8 @@ MVECTUR = ArrayOfComponents(phys=PHY.VDEP_R, locatedComponents=DDL_MECA)
 
 MMATUUR = ArrayOfComponents(phys=PHY.MDEP_R, locatedComponents=DDL_MECA)
 
+MMATUNS = ArrayOfComponents(phys=PHY.MDNS_R, locatedComponents=DDL_MECA)
+
 
 # ------------------------------------------------------------
 class CN_T3S3_HHO2(Element):
@@ -77,6 +79,20 @@ class CN_T3S3_HHO2(Element):
     meshType = MT.TR3SE3
     nodes = (SetOfNodes("EN1", (1, 2, 3)), SetOfNodes("EN2", (4, 5)), SetOfNodes("EN3", (6,)))
     calculs = (
+        OP.HHO_CALC_PROJ(
+            te=527,
+            para_in=(
+                (SP.PGEOMER, LC.EGEOM2D),
+                (SP.PPAIRR, LC.CPAIRR),
+                (OP.HHO_CALC_PROJ.PCHHOBS, CHHOBS),
+            ),
+            para_out=((SP.PMATUNS, MMATUNS),),
+        ),
+        OP.HHO_EXTR_PROJ(
+            te=547,
+            para_in=((SP.PGEOMER, LC.EGEOM2D), (SP.PMAELNS1, MMATUNS), (SP.PPAIRR, LC.CPAIRR)),
+            para_out=((OP.HHO_EXTR_PROJ.PMPHHOR, LC.CMPHHOR),),
+        ),
         OP.RIGI_ELAS_CPL(
             te=519,
             para_in=(
@@ -84,6 +100,7 @@ class CN_T3S3_HHO2(Element):
                 (SP.PPAIRR, LC.CPAIRR),
                 (OP.RIGI_ELAS_CPL.PCHHOBS, CHHOBS),
                 (OP.RIGI_ELAS_CPL.PMATERR, LC.ENMATE_R),
+                (OP.RIGI_ELAS_CPL.PMPHHOR, LC.CMPHHOR),
             ),
             para_out=((SP.PMATUUR, MMATUUR),),
         ),
@@ -122,6 +139,22 @@ class CN_T6S3_HHO2(CN_T3S3_HHO2):
         SetOfNodes("EN1", (1, 2, 3, 4, 5, 6)),
         SetOfNodes("EN2", (7, 8)),
         SetOfNodes("EN3", (9,)),
+    )
+
+
+# ------------------------------------------------------------
+class CN_T10S3_HHO2(CN_T3S3_HHO2):
+    """
+    CN_T6S3_HHO1 DERIVED FROM THE CN_T3S3_HHO1 CLASS ELEMENT : SEG3/SEG2
+    LIAISON_MASSIF / NITSCHE / SEGMENT-TO-SEGMENT
+        Coupling FEM/HHO Element in 2D : elementary treatments
+    """
+
+    meshType = MT.T10SE3
+    nodes = (
+        SetOfNodes("EN1", (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)),
+        SetOfNodes("EN2", (11, 12)),
+        SetOfNodes("EN3", (13,)),
     )
 
 
@@ -170,4 +203,19 @@ class CN_Q9S3_HHO2(CN_T3S3_HHO2):
         SetOfNodes("EN1", (1, 2, 3, 4, 5, 6, 7, 8, 9)),
         SetOfNodes("EN2", (10, 11)),
         SetOfNodes("EN3", (12,)),
+    )
+
+
+class CN_Q12S3_HHO2(CN_T3S3_HHO2):
+    """
+    CN_T6S3_HHO1 DERIVED FROM THE CN_T3S3_HHO1 CLASS ELEMENT : SEG3/SEG2
+    LIAISON_MASSIF / NITSCHE / SEGMENT-TO-SEGMENT
+        Coupling FEM/HHO Element in 2D : elementary treatments
+    """
+
+    meshType = MT.Q12SE3
+    nodes = (
+        SetOfNodes("EN1", (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)),
+        SetOfNodes("EN2", (13, 14)),
+        SetOfNodes("EN3", (15,)),
     )

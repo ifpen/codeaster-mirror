@@ -3936,9 +3936,11 @@ phen.add(
         elements=(
             (MT.TR3SE3, EL.CN_T3S3_HHO1),
             (MT.TR6SE3, EL.CN_T6S3_HHO1),
+            (MT.T10SE3, EL.CN_T10S3_HHO1),
             (MT.QU4SE3, EL.CN_Q4S3_HHO1),
             (MT.QU8SE3, EL.CN_Q8S3_HHO1),
             (MT.QU9SE3, EL.CN_Q9S3_HHO1),
+            (MT.Q12SE3, EL.CN_Q12S3_HHO1),
         ),
     ),
 )
@@ -3957,9 +3959,55 @@ phen.add(
         elements=(
             (MT.TR3SE3, EL.CN_T3S3_HHO2),
             (MT.TR6SE3, EL.CN_T6S3_HHO2),
+            (MT.T10SE3, EL.CN_T10S3_HHO2),
             (MT.QU4SE3, EL.CN_Q4S3_HHO2),
             (MT.QU8SE3, EL.CN_Q8S3_HHO2),
             (MT.QU9SE3, EL.CN_Q9S3_HHO2),
+            (MT.Q12SE3, EL.CN_Q12S3_HHO2),
+        ),
+    ),
+)
+
+phen.add(
+    "CPL_NIT_H1_EL_3D",
+    Modelisation(
+        dim=(2, 3),
+        code="HN6",
+        attrs=(
+            (AT.HHO, "OUI"),
+            (AT.FORMULATION, "HHO_LINE"),
+            (AT.TYPMOD2, "HHO"),
+            (AT.RACCORD, "OUI"),
+        ),
+        elements=(
+            (MT.TE4TR7, EL.CN_TE4TR7_HHO1),
+            (MT.T10TR7, EL.CN_T10TR7_HHO1),
+            (MT.T20TR7, EL.CN_T20TR7_HHO1),
+            (MT.HE8TR7, EL.CN_HE8TR7_HHO1),
+            (MT.H20TR7, EL.CN_H20TR7_HHO1),
+            (MT.H27TR7, EL.CN_H27TR7_HHO1),
+        ),
+    ),
+)
+
+phen.add(
+    "CPL_NIT_H2_EL_3D",
+    Modelisation(
+        dim=(2, 3),
+        code="HN7",
+        attrs=(
+            (AT.HHO, "OUI"),
+            (AT.FORMULATION, "HHO_QUAD"),
+            (AT.TYPMOD2, "HHO"),
+            (AT.RACCORD, "OUI"),
+        ),
+        elements=(
+            (MT.TE4TR7, EL.CN_TE4TR7_HHO2),
+            (MT.T10TR7, EL.CN_T10TR7_HHO2),
+            (MT.T20TR7, EL.CN_T20TR7_HHO2),
+            (MT.HE8TR7, EL.CN_HE8TR7_HHO2),
+            (MT.H20TR7, EL.CN_H20TR7_HHO2),
+            (MT.H27TR7, EL.CN_H27TR7_HHO2),
         ),
     ),
 )

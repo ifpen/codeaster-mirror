@@ -306,7 +306,7 @@ class BaseDOFNumbering : public DataStructure {
      * @brief Build the Numbering of DOFs
      */
     virtual bool computeNumbering( const std::vector< FiniteElementDescriptorPtr > &Feds,
-                                   const std::string &localMode, bool verbose = true );
+                                   const std::string &locatedComponent, bool verbose = true );
 
     /**
      * @brief Are Lagrange Multipliers used for BC or MPC

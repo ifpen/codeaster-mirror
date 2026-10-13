@@ -28,6 +28,7 @@ subroutine te0512(option, nomte)
 #include "asterfort/tecach.h"
 #include "asterfort/utmess.h"
 #include "asterfort/Behaviour_type.h"
+#include "MeshTypes_type.h"
 !
     character(len=16) :: option, nomte
 !
@@ -94,8 +95,8 @@ subroutine te0512(option, nomte)
     real(kind=8) :: valres(nbres), valre2(nbres2)
     real(kind=8) :: zero, un, deux, trois, undemi, untier, detier, trdemi
     real(kind=8) :: xnu, coe1, coe2
-    real(kind=8) :: petits(27), expo(27), iexpo(27), resu1, resu2
-    real(kind=8) :: kmoiss, kpluss, ksomm, pdiff, pseuil(27), pplus, vale
+    real(kind=8) :: petits(MT_NNOMAX3D), expo(MT_NNOMAX3D), iexpo(MT_NNOMAX3D), resu1, resu2
+    real(kind=8) :: kmoiss, kpluss, ksomm, pdiff, pseuil(MT_NNOMAX3D), pplus, vale
     real(kind=8) :: dommoi(nbpgmx)
     real(kind=8) :: xvari1(mxcvar), xvari2(mxcvar)
     real(kind=8) :: xes, ts

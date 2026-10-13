@@ -45,10 +45,11 @@ subroutine eps1mc(nno, ndim, nbsig, npg, ipoids, &
 !.========================= DEBUT DES DECLARATIONS ====================
 ! -----  ARGUMENTS
 #include "asterfort/bmatmc.h"
+#include "FE_module.h"
     real(kind=8) :: xyz(1), depl(1), eps1(1)
     real(kind=8) :: nharm
 ! -----  VARIABLES LOCALES
-    real(kind=8) :: b(486), jacgau
+    real(kind=8) :: b(6*MAX_BV_CG), jacgau
 !.========================= DEBUT DU CODE EXECUTABLE ==================
 !
 ! --- INITIALISATIONS :

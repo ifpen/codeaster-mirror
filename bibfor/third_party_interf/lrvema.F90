@@ -112,7 +112,9 @@ subroutine lrvema(nomail, mfich, nochmd)
                                                          'QU4TR7  ', 'QU8TR7  ', 'QU9TR7  ', &
                                                          'TR3TR7  ', 'TR6TR7  ', 'TRIA10  ', &
                                                          'QUAD12  ', 'TETRA20 ', 'SEG44   ', &
-                                                         'SEG43   '/)
+                                                         'SEG43   ', 'TE4TR7  ', 'T10TR7  ', &
+                                                         'T20TR7  ', 'HE8TR7  ', 'H20TR7  ', &
+                                                         'H27TR7  ', 'Q12SE3  ', 'T10SE3  '/)
     integer(kind=8), parameter :: nummed(MT_NTYMAX) = (/ &
                                   MED_POINT1, MED_SEG2, MED_UNDEF_GEOTYPE, &
                                   MED_SEG3, MED_UNDEF_GEOTYPE, MED_SEG4, &
@@ -144,7 +146,9 @@ subroutine lrvema(nomail, mfich, nochmd)
                                   MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE, &
                                   MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE, &
                                   MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE, &
-                                  MED_UNDEF_GEOTYPE/)
+                                  MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE, &
+                                  MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE, &
+                                  MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE, MED_UNDEF_GEOTYPE/)
 !
 ! --------------------------------------------------------------------------------------------------
 !

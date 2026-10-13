@@ -20,30 +20,31 @@ subroutine te0118(option, nomte)
     implicit none
     character(len=16) :: option, nomte
 !
-#include "asterf_types.h"
 #include "jeveux.h"
+#include "asterf_types.h"
 #include "asterc/r8prem.h"
 #include "asterfort/assert.h"
 #include "asterfort/dfdm2d.h"
 #include "asterfort/dismoi.h"
 #include "asterfort/elref1.h"
 #include "asterfort/elrefe_info.h"
+#include "asterfort/indent.h"
 #include "asterfort/iselli.h"
 #include "asterfort/jevecd.h"
 #include "asterfort/jevech.h"
+#include "asterfort/lteatt.h"
 #include "asterfort/provec.h"
 #include "asterfort/reeref.h"
 #include "asterfort/teattr.h"
 #include "asterfort/tecach.h"
 #include "asterfort/tecael.h"
 #include "asterfort/utmess.h"
-#include "asterfort/lteatt.h"
 #include "asterfort/xcalc_code.h"
 #include "asterfort/xcalc_heav.h"
-#include "asterfort/xkamat.h"
 #include "asterfort/xcalfev_wrap.h"
+#include "asterfort/xkamat.h"
 #include "asterfort/xnormv.h"
-#include "asterfort/indent.h"
+#include "MeshTypes_type.h"
 !
 !
 ! Calcul du taux de restitution d'energie elementaire sur les
@@ -78,7 +79,7 @@ subroutine te0118(option, nomte)
     real(kind=8) :: th1, th2, dth1d1, dth2d2, divt, pres, tcla
     real(kind=8) :: r8pre, sum_teth, sum_forc, r8bit2(2)
     real(kind=8) :: poids, norme, vf
-    real(kind=8) :: fk(27, 3, 3), ka, mu
+    real(kind=8) :: fk(MT_NNOMAX3D, 3, 3), ka, mu
     integer(kind=8) :: alp, jstno, imate, jbaslo
     real(kind=8) :: coorse(3*nno_se_max), geoloc(2*nno_par_max)
     real(kind=8) :: td1(3), td2(3), nd(3), xg(3), xg_loc(2), he(1), oprim(3)

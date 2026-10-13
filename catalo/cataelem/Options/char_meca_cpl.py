@@ -25,9 +25,19 @@ import cataelem.Commons.attributes as AT
 
 PCHHOBS = InputParameter(phys=PHY.N3600R, comment=""" HHO - coefficient base locale""")
 
+PMPHHOR = InputParameter(phys=PHY.N480_R, comment=""" HHO projector """)
 
 CHAR_MECA_CPL = Option(
-    para_in=(SP.PPAIRR, SP.PDEPLMR, SP.PDEPLPR, SP.PINSTMR, SP.PINSTPR, SP.PGEOMER, PCHHOBS),
+    para_in=(
+        SP.PPAIRR,
+        SP.PDEPLMR,
+        SP.PDEPLPR,
+        SP.PINSTMR,
+        SP.PINSTPR,
+        SP.PGEOMER,
+        PCHHOBS,
+        PMPHHOR,
+    ),
     para_out=(SP.PVECTUR,),
     condition=(CondCalcul("+", ((AT.RACCORD, "OUI"),)),),
     comment=""" CHAR_MECA_CPL: CALCUL DU SECOND MEMBRE

@@ -80,6 +80,55 @@ class AssemblyMatrix : public BaseAssemblyMatrix {
 
     friend class LinearSolver;
 
+    /**
+     * @brief Return one coefficient of the assembled matrix.
+     * @param i_row Local row DOF index, zero-based.
+     * @param i_col Local column DOF index, zero-based.
+     *
+     * Only supports Morse storage. A coefficient absent from the profile is zero.
+     * UpdateValuePointers has to be called first.
+     */
+    ValueType _getValue( const ASTERINTEGER i_row, const ASTERINTEGER i_col,
+                         const ASTERINTEGER size, const JeveuxVectorLong smdi,
+                         const JeveuxVectorShort smhc, const bool isSyme ) const {
+#ifdef ASTER_DEBUG_CXX
+        if ( !_isBuilt || !_dofNum )
+            throw std::runtime_error( "Assembly matrix is not built" );
+
+        if ( i_row < 0 || i_col < 0 || i_row >= size || i_col >= size )
+            throw std::out_of_range( "DOF index outside local assembly matrix" );
+
+        if ( !smdi.exists() || !smhc.exists() )
+            throw std::runtime_error( "getValue requires Morse storage" );
+#endif
+
+        // The Morse profile stores the upper triangle: row <= column.
+        const ASTERINTEGER row = std::min( i_row, i_col );
+        const ASTERINTEGER col = std::max( i_row, i_col );
+
+        // SMDI contains one-based addresses. For column col, the previous
+        // diagonal marks the end of the preceding column.
+        const ASTERINTEGER first = ( col == 0 ) ? 0 : ( *smdi )[col - 1];
+        const ASTERINTEGER last = ( *smdi )[col] - 1;
+
+        for ( ASTERINTEGER pos = first; pos <= last; ++pos ) {
+            if ( ( *smhc )[pos] != row + 1 )
+                continue;
+
+            if ( i_row <= i_col )
+                return ( *( *_matrixValues )[1] )[pos];
+
+            // The second VALM object contains the lower triangle.
+            // A symmetric matrix may only have the first object.
+            if ( isSyme )
+                return ( *( *_matrixValues )[1] )[pos];
+
+            return ( *( *_matrixValues )[2] )[pos];
+        }
+
+        return ValueType { 0 };
+    };
+
   public:
     /**
      * @typedef AssemblyMatrixPtr
@@ -103,6 +152,8 @@ class AssemblyMatrix : public BaseAssemblyMatrix {
      * @brief Constructeur
      */
     AssemblyMatrix( const PhysicalProblemPtr phys_prob );
+
+    AssemblyMatrix( const BaseDOFNumberingPtr dofNume );
 
     /**
      * @brief Constructeur
@@ -336,6 +387,35 @@ class AssemblyMatrix : public BaseAssemblyMatrix {
         _matrixValues->updateValuePointer();
         return ( *_matrixValues )[2]->toVector();
     };
+
+    void updateValuePointers() const {
+        _matrixValues->build();
+        _matrixValues->updateValuePointer();
+        _dofNum->getMorseStorage()->updateValuePointers();
+    }
+
+    /**
+     * @brief Return one matrix coefficient.
+     * @param i_row Local row DOF index, zero-based.
+     * @param i_col Local column DOF index, zero-based.
+     *
+     * Only supports Morse storage. A coefficient absent from the profile is zero.
+     * UpdateValuePointers has to be called first.
+     */
+    ValueType operator()( const ASTERINTEGER i_row, const ASTERINTEGER i_col ) const {
+
+        const ASTERINTEGER n = _dofNum->getNumberOfDOFs( true );
+
+        const auto ms = _dofNum->getMorseStorage();
+        const auto smdi = ms->getRows();
+        const auto smhc = ms->getDiagonalPositions();
+
+        return _getValue( i_row, i_col, n, smdi, smhc, isSymmetric() );
+    }
+
+    ElementaryMatrixPtr extractSubMatrix( const FiniteElementDescriptorPtr fed,
+                                          const std::string &option,
+                                          const std::string &parameter ) const;
 };
 
 /** @typedef Definition d'une matrice assemblee de double */
@@ -415,10 +495,14 @@ AssemblyMatrix< ValueType, PhysicalQuantity >::AssemblyMatrix( const std::string
       _ccva( JeveuxVector< ValueType >( getName() + ".CCVA" ) ) {};
 
 template < class ValueType, PhysicalQuantityEnum PhysicalQuantity >
-AssemblyMatrix< ValueType, PhysicalQuantity >::AssemblyMatrix( const PhysicalProblemPtr phys_prob )
+AssemblyMatrix< ValueType, PhysicalQuantity >::AssemblyMatrix( const BaseDOFNumberingPtr dofNume )
     : AssemblyMatrix() {
-    setDOFNumbering( phys_prob->getDOFNumbering() );
+    setDOFNumbering( dofNume );
 };
+
+template < class ValueType, PhysicalQuantityEnum PhysicalQuantity >
+AssemblyMatrix< ValueType, PhysicalQuantity >::AssemblyMatrix( const PhysicalProblemPtr phys_prob )
+    : AssemblyMatrix( phys_prob->getDOFNumbering() ) {};
 
 template < class ValueType, PhysicalQuantityEnum PhysicalQuantity >
 AssemblyMatrix< ValueType, PhysicalQuantity >::AssemblyMatrix( const std::string &name,
@@ -623,5 +707,128 @@ void AssemblyMatrix< ValueType, PhysicalQuantity >::assemble(
         CALLO_SDMPIC( type, getName() );
     }
 }
+
+template < class ValueType, PhysicalQuantityEnum PhysicalQuantity >
+AssemblyMatrix< ValueType, PhysicalQuantity >::ElementaryMatrixPtr
+AssemblyMatrix< ValueType, PhysicalQuantity >::extractSubMatrix(
+    const FiniteElementDescriptorPtr fed, const std::string &option,
+    const std::string &parameter ) const {
+
+    this->updateValuePointers();
+
+    if ( !_isBuilt || !_dofNum )
+        throw AsterErrorCpp( "Assembly matrix is not built." );
+
+    if ( getMesh() != fed->getMesh() )
+        throw AsterErrorCpp( "Meshes are incompatible." );
+
+    const auto &liel = fed->getListOfGroupsOfElements();
+    const auto nbGrel = fed->getNumberOfGroupsOfElements();
+
+    const auto &vcExplorer = fed->getVirtualCellsExplorer();
+    const auto &connecExp = getMesh()->getConnectivityExplorer();
+
+    const auto matIsSym = isSymmetric();
+
+    const auto equaNume = _dofNum->getEquationNumbering();
+    equaNume->updateValuePointers();
+
+    const auto ms = _dofNum->getMorseStorage();
+    const auto smdi = ms->getRows();
+    const auto smhc = ms->getDiagonalPositions();
+
+    if ( !smdi.exists() || !smhc.exists() )
+        throw AsterErrorCpp( "extractSubMatrix requires Morse storage." );
+
+    const ASTERINTEGER mat_size = _dofNum->getNumberOfDOFs( true );
+
+    auto elemterm = std::make_shared< ElementaryTerm< ValueType > >();
+    elemterm->allocate( fed, option, parameter );
+    auto &newVal = elemterm->getValues();
+
+    for ( ASTERINTEGER iG = 0; iG < nbGrel; iG++ ) {
+        const auto grelIdx = iG + 1;
+        const auto grel = ( *liel )[grelIdx];
+        grel->updateValuePointer();
+        const auto nbElements = fed->getNumberOfElementsOfGroupOfElements( iG );
+        const auto nbCmp = elemterm->getNumberOfComponentsOfGroupOfElements( iG );
+
+        const auto nbValues = nbElements * nbCmp;
+        newVal->allocateObject( grelIdx, nbValues );
+        auto &grelValues = ( *newVal )[grelIdx];
+        grelValues->updateValuePointer();
+
+        VectorLong nodes;
+
+        // Loop on elements
+        for ( ASTERINTEGER iElem = 0; iElem < nbElements; iElem++ ) {
+            // Get mesh cell index - one-based
+            auto elemNume = ( *grel )[iElem];
+
+            if ( elemNume < 0 ) {
+                elemNume = -elemNume;
+                // zero-based
+                const auto curElem = vcExplorer[elemNume - 1];
+                // one-based
+                nodes = curElem.getNodes();
+                // zero-based
+                std::for_each( nodes.begin(), nodes.end(), []( ASTERINTEGER &d ) { d -= 1; } );
+            } else {
+                // zero-based
+                const auto curElem = connecExp[elemNume - 1];
+                // zero-based
+                nodes = curElem.getNodes();
+            }
+
+            VectorLong dofs;
+
+            // Preserve cell-node order, then DOF-numbering order within each node.
+            for ( const auto node : nodes ) {
+                if ( node < 0 ) {
+                    throw AsterErrorCpp( "Virtual node not implemented" );
+                }
+
+                const auto nodeDofs = equaNume->getDOFsFromNode( node, true );
+                dofs.insert( dofs.end(), nodeDofs.begin(), nodeDofs.end() );
+            }
+
+            const ASTERINTEGER n = dofs.size();
+            const ASTERINTEGER expected = matIsSym ? n * ( n + 1 ) / 2 : n * n;
+
+            if ( nbCmp != expected ) {
+                throw AsterErrorCpp( "Incompatible RESU_ELEM local mode: number of values does not "
+                                     "match the DOFs and matrix symmetry" );
+            }
+
+            ASTERINTEGER k = iElem * nbCmp;
+
+            // see ordering in D4.06.05
+            if ( matIsSym ) {
+                // Packed upper triangle, row by row.
+                for ( ASTERINTEGER j = 0; j < n; ++j ) {
+                    for ( ASTERINTEGER i = 0; i <= j; ++i ) {
+                        ( *grelValues )[k++] =
+                            _getValue( dofs[i], dofs[j], mat_size, smdi, smhc, matIsSym );
+                    }
+                }
+            } else {
+                // Full matrix, row by row.
+                for ( ASTERINTEGER i = 0; i < n; ++i ) {
+                    for ( ASTERINTEGER j = 0; j < n; ++j ) {
+                        ( *grelValues )[k++] =
+                            _getValue( dofs[i], dofs[j], mat_size, smdi, smhc, matIsSym );
+                    }
+                }
+            }
+        }
+    }
+
+    auto elemMatr =
+        std::make_shared< ElementaryMatrix< ValueType, PhysicalQuantity > >( nullptr, option );
+    elemMatr->addElementaryTerm( elemterm );
+    elemMatr->build();
+
+    return elemMatr;
+};
 
 #endif /* ASSEMBLYMATRIX_H_ */

@@ -28,6 +28,7 @@ subroutine te0525(option, nomte)
 #include "asterfort/projet.h"
 #include "asterfort/rcfode.h"
 #include "asterfort/rcfodi.h"
+#include "MeshTypes_type.h"
 !
     character(len=16) :: nomte, option
 ! ----------------------------------------------------------------------
@@ -44,7 +45,8 @@ subroutine te0525(option, nomte)
 !
 !
     real(kind=8) :: uloc(3, 50), ul(3, 50), jacob(50), rbid, rr, tpg
-    real(kind=8) :: dfdx(27), dfdy(27), dfdz(27), poids, xkpt, xkptt(50)
+    real(kind=8) :: dfdx(MT_NNOMAX3D), dfdy(MT_NNOMAX3D), dfdz(MT_NNOMAX3D)
+    real(kind=8) :: poids, xkpt, xkptt(50)
     real(kind=8) :: dtpgdx(50), dtpgdy(50), dtpgdz(50), vect(50)
     real(kind=8) :: dbpgdx(50), dbpgdy(50), dbpgdz(50), dupgdz(50)
     real(kind=8) :: betaa, tpn, betai, dupgdx(50), dupgdy(50), res(50)

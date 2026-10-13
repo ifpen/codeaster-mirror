@@ -19,9 +19,10 @@
 !
 !
 interface
-    subroutine terefe(refe_name, type_elem, refe_vale)
-        character(len=*), intent(in) :: refe_name
-        character(len=*), intent(in) :: type_elem
-        real(kind=8), intent(out) :: refe_vale
-    end subroutine terefe
+   subroutine get_local_mode(option, nompar, typef, modeloc)
+      character(len=16), intent(in) :: option
+      character(len=8), intent(in) ::  nompar
+      integer(kind=8), intent(in) :: typef
+      integer(kind=8), intent(out) :: modeloc
+   end subroutine get_local_mode
 end interface

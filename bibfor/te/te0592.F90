@@ -29,6 +29,7 @@ subroutine te0592(option, nomte)
 #include "asterfort/lteatt.h"
 #include "asterfort/niinit.h"
 #include "asterfort/nirmtd.h"
+#include "MeshTypes_type.h"
 #include "jeveux.h"
 !
     character(len=16) :: option, nomte
@@ -49,7 +50,7 @@ subroutine te0592(option, nomte)
     character(len=8), parameter :: fami = 'RIGI'
     integer(kind=8) :: ndim, nno1, nno2, nno3, npg, ntrou
     integer(kind=8) :: iw, ivf1, ivf2, ivf3, idf1, idf2, idf3
-    integer(kind=8) :: vu(3, 27), vg(27), vp(27), vpi(3, 27)
+    integer(kind=8) :: vu(3, MT_NNOMAX3D), vg(MT_NNOMAX3D), vp(MT_NNOMAX3D), vpi(3, MT_NNOMAX3D)
     integer(kind=8) :: jvGeom, jvMaterc, jvMatr
     character(len=8) :: lielrf(10), typmod(2)
     type(Material_Para) :: materPara

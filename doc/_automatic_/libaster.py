@@ -7894,11 +7894,53 @@ class CouplingZonePairing(DataStructure):
         """
 
 
+# class CouplingPairingData in libaster
+
+
+class CouplingPairingData(DataStructure):
+    """Object to store coupling pairing."""
+
+    # Method resolution order:
+    #     CouplingPairingData
+    #     DataStructure
+    #     pybind11_builtins.pybind11_object
+    #     builtins.object
+
+    # Methods defined here:
+
+    def __init__(self, arg0, arg1):
+        pass
+
+    def getFiniteElementDescriptor(self):
+        """Return Finite Element Descriptor for virtual cells from pairing.
+
+        Returns:
+            FiniteElementDescriptor: finite element for virtual cells
+        """
+
+    def getHHOProjector(self):
+        """Get HHO L2-projector
+
+        Argument:
+            pairing [FieldOnCellsReal]: pairing.
+
+        Returns:
+            FieldOnCellsRealPtr: L2-projector.
+        """
+
+    def getPairingField(self):
+        """Get intersection points
+
+        Returns:
+            FieldOnCellsReal: intersection points.
+        """
+
+
 # class CouplingPairing in libaster
 
 
 class CouplingPairing(DataStructure):
-    """Object to create contact pairing."""
+    """Object to create coupling pairing."""
 
     # Method resolution order:
     #     CouplingPairing
@@ -7925,6 +7967,15 @@ class CouplingPairing(DataStructure):
             bool: True if the pairing quantities are updated appropriately
         """
 
+    def getData(self):
+        """Get data from pairing - pairing info and HHO projector.
+
+        Returns:
+        CouplingPairingData: Object containing the pairing field and the HHO
+        projector field. The HHO projector field is None when no HHO
+        elements are present.
+        """
+
     def getFiniteElementDescriptor(self):
         """Return Finite Element Descriptor for virtual cells from pairing.
 
@@ -7944,13 +7995,6 @@ class CouplingPairing(DataStructure):
 
         Returns:
             int: number of pairs
-        """
-
-    def getPairingField(self):
-        """Get intersection points
-
-        Returns:
-            FieldOnCellsReal: intersection points.
         """
 
 
@@ -8085,6 +8129,19 @@ class AssemblyMatrixDisplacementReal(BaseAssemblyMatrix):
     def __add__(self, arg0):
         pass
 
+    def __getitem__(self, indices):
+        """Return one matrix coefficient.
+
+        Only supports Morse storage. A coefficient absent from the profile is zero.
+        UpdateValuePointers() has to be called first.
+
+        Arguments:
+            indices (int, int): Local row and column DOF indices (i_row, j_col), both zero-based.
+
+        Returns:
+            float: value of the matritx at (i_row, j_col)
+        """
+
     def __iadd__(self, arg0):
         pass
 
@@ -8201,6 +8258,18 @@ class AssemblyMatrixDisplacementReal(BaseAssemblyMatrix):
     def defineSolver(self):
         pass
 
+    def extractSubMatrix(self, fed, option, parameter):
+        """Extract a sub-matrix.
+
+        Arguments:
+            fed [FiniteElementDescriptor] extract sub-matrix for element of fed.
+            option [str] Option to known which dofs to extract.
+            parameter [str] parameter of the option to known which dofs to extract.
+
+        Returns:
+            [ElementaryMatrixReal]: elementary matrix extracted.
+        """
+
     def getLowerValues(self):
         pass
 
@@ -8234,6 +8303,9 @@ class AssemblyMatrixDisplacementReal(BaseAssemblyMatrix):
         Arguments:
             local (bool) local or global size
         """
+
+    def updateValuePointers(self):
+        """Update pointers."""
 
 
 # class AssemblyMatrixEliminatedReal in libaster
@@ -8275,6 +8347,19 @@ class AssemblyMatrixDisplacementComplex(BaseAssemblyMatrix):
     #     builtins.object
 
     # Methods defined here:
+
+    def __getitem__(self, indices):
+        """Return one matrix coefficient.
+
+        Only supports Morse storage. A coefficient absent from the profile is zero.
+        UpdateValuePointers() has to be called first.
+
+        Arguments:
+            indices ([int, int]): Local row and column DOF indices (i_row, j_col), both zero-based.
+
+        Returns:
+            cmplx: value of the matritx at (i_row, j_col)
+        """
 
     def __imul__(self, arg0):
         pass
@@ -8377,6 +8462,18 @@ class AssemblyMatrixDisplacementComplex(BaseAssemblyMatrix):
     def defineSolver(self):
         pass
 
+    def extractSubMatrix(self, fed, option, parameter):
+        """Extract a sub-matrix.
+
+        Arguments:
+            fed [FiniteElementDescriptor] extract sub-matrix for element of fed.
+            option [str] Option to known which dofs to extract.
+            parameter [str] parameter of the option to known which dofs to extract.
+
+        Returns:
+            [ElementaryMatrixComplex]: elementary matrix extracted.
+        """
+
     def getLowerValues(self):
         pass
 
@@ -8399,6 +8496,9 @@ class AssemblyMatrixDisplacementComplex(BaseAssemblyMatrix):
     def transposeConjugate(self):
         pass
 
+    def updateValuePointers(self):
+        """Update pointers."""
+
 
 # class AssemblyMatrixTemperatureReal in libaster
 
@@ -8417,6 +8517,19 @@ class AssemblyMatrixTemperatureReal(BaseAssemblyMatrix):
 
     def __add__(self, arg0):
         pass
+
+    def __getitem__(self, indices):
+        """Return one matrix coefficient.
+
+        Only supports Morse storage. A coefficient absent from the profile is zero.
+        UpdateValuePointers() has to be called first.
+
+        Arguments:
+            indices (int, int): Local row and column DOF indices (i_row, j_col), both zero-based.
+
+        Returns:
+            float: value of the matritx at (i_row, j_col)
+        """
 
     def __iadd__(self, arg0):
         pass
@@ -8532,6 +8645,18 @@ class AssemblyMatrixTemperatureReal(BaseAssemblyMatrix):
     def defineSolver(self):
         pass
 
+    def extractSubMatrix(self, fed, option, parameter):
+        """Extract a sub-matrix.
+
+        Arguments:
+            fed [FiniteElementDescriptor] extract sub-matrix for element of fed.
+            option [str] Option to known which dofs to extract.
+            parameter [str] parameter of the option to known which dofs to extract.
+
+        Returns:
+            [ElementaryMatrixReal]: elementary matrix extracted.
+        """
+
     def getLowerValues(self):
         pass
 
@@ -8565,6 +8690,9 @@ class AssemblyMatrixTemperatureReal(BaseAssemblyMatrix):
         Arguments:
             local (bool) local or global size
         """
+
+    def updateValuePointers(self):
+        """Update pointers."""
 
 
 # class AssemblyMatrixTemperatureComplex in libaster
@@ -8957,7 +9085,7 @@ class ElementaryTermReal(DataField):
             FiniteElementDescriptor: finite element descriptor
         """
 
-    def getLocalMode(self):
+    def getLocatedComponent(self):
         """Return the local mode.
 
         Returns:
@@ -9031,7 +9159,7 @@ class ElementaryTermComplex(DataField):
             FiniteElementDescriptor: finite element descriptor
         """
 
-    def getLocalMode(self):
+    def getLocatedComponent(self):
         """Return the local mode.
 
         Returns:
@@ -9076,9 +9204,6 @@ class BaseElementaryMatrix(DataStructure):
 
     def __init__(self, /, *args, **kwargs):
         """Initialize self.  See help(type(self)) for accurate signature."""
-
-    def getMesh(self):
-        pass
 
     def getModel(self):
         pass
@@ -9132,6 +9257,9 @@ class ElementaryMatrixDisplacementReal(BaseElementaryMatrix):
     def getFiniteElementDescriptors(self):
         pass
 
+    def getMesh(self):
+        pass
+
     def getNumberOfElementaryTerms(self):
         pass
 
@@ -9179,6 +9307,9 @@ class ElementaryMatrixDisplacementComplex(BaseElementaryMatrix):
         pass
 
     def getFiniteElementDescriptors(self):
+        pass
+
+    def getMesh(self):
         pass
 
     def getNumberOfElementaryTerms(self):
@@ -9233,6 +9364,9 @@ class ElementaryMatrixTemperatureReal(BaseElementaryMatrix):
     def getFiniteElementDescriptors(self):
         pass
 
+    def getMesh(self):
+        pass
+
     def getNumberOfElementaryTerms(self):
         pass
 
@@ -9280,6 +9414,9 @@ class ElementaryMatrixPressureComplex(BaseElementaryMatrix):
         pass
 
     def getFiniteElementDescriptors(self):
+        pass
+
+    def getMesh(self):
         pass
 
     def getNumberOfElementaryTerms(self):
@@ -10544,11 +10681,11 @@ class MechanicalLoadReal(DSWithCppPickling, DataStructure):
     def hasLoadField(self, arg0):
         pass
 
-    def setPairingField(self, pairs):
-        """Set pairing intersection.
+    def setPairingData(self, data):
+        """Set pairing data.
 
         Arguments:
-            pairs (FieldOnCellsReal): pairing intersection.
+            data (CouplingPairingData): pairing data.
         """
 
     def updateValuePointers(self):

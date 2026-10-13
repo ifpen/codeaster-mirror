@@ -918,25 +918,32 @@ ElementaryMatrixDisplacementRealPtr DiscreteComputation::getContactMatrix(
     // Computation
     calcul->compute();
     if ( calcul->hasOutputElementaryTerm( "PMATUUR" ) ) {
-        elemMatr->addElementaryTerm( calcul->getOutputElementaryTermReal( "PMATUUR" ) );
+#ifdef ASTER_HAVE_MPI
+        if ( pCFED ) {
+            elemMatr->addElementaryTerm( transfertToParallelFEDesc(
+                calcul->getOutputElementaryTermReal( "PMATUUR" ), pCFED ) );
+        } else {
+#endif
+            elemMatr->addElementaryTerm( calcul->getOutputElementaryTermReal( "PMATUUR" ) );
+#ifdef ASTER_HAVE_MPI
+        }
+#endif
     }
     if ( calcul->hasOutputElementaryTerm( "PMATUNS" ) ) {
-        elemMatr->addElementaryTerm( calcul->getOutputElementaryTermReal( "PMATUNS" ) );
+#ifdef ASTER_HAVE_MPI
+        if ( pCFED ) {
+            elemMatr->addElementaryTerm( transfertToParallelFEDesc(
+                calcul->getOutputElementaryTermReal( "PMATUNS" ), pCFED ) );
+        } else {
+#endif
+            elemMatr->addElementaryTerm( calcul->getOutputElementaryTermReal( "PMATUNS" ) );
+#ifdef ASTER_HAVE_MPI
+        }
+#endif
     }
+
     elemMatr->build();
-#ifdef ASTER_HAVE_MPI
-    if ( pCFED ) {
-        auto resu = transfertToParallelFEDesc( elemMatr, pCFED );
-        resu->setModel( _phys_problem->getModel() );
-        resu->prepareCompute( option );
-        resu->build();
-        return resu;
-    } else {
-#endif /* ASTER_HAVE_MPI */
-        return elemMatr;
-#ifdef ASTER_HAVE_MPI
-    }
-#endif /* ASTER_HAVE_MPI */
+    return elemMatr;
 }
 
 ElementaryMatrixDisplacementRealPtr
@@ -1314,6 +1321,7 @@ ElementaryMatrixDisplacementRealPtr DiscreteComputation::getMechanicalCouplingMa
                 calcul->addInputField( "PDEPLMR", transfertField( load, displ_prev ) );
                 calcul->addInputField( "PDEPLPR", transfertField( load, displ_step ) );
                 calcul->addInputField( "PPAIRR", pairing );
+                calcul->addInputField( "PMPHHOR", load->getHHOProjector() );
                 calcul->addHHOField( model );
 
                 // Add time fields
@@ -1402,6 +1410,7 @@ ElementaryMatrixDisplacementRealPtr DiscreteComputation::getMechanicalLinearCoup
                 // Set input field
                 calcul->addInputField( "PGEOMER", fed->getMesh()->getCoordinates() );
                 calcul->addInputField( "PPAIRR", pairing );
+                calcul->addInputField( "PMPHHOR", load->getHHOProjector() );
                 calcul->addHHOField( model );
 
                 // Check if MATE_ELGA has to computed

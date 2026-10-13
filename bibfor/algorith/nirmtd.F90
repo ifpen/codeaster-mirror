@@ -32,6 +32,7 @@ subroutine nirmtd(ndim, nno1, nno2, nno3, npg, &
 #include "asterfort/nbsigm.h"
 #include "blas/dscal.h"
 #include "jeveux.h"
+#include "FE_module.h"
 #include "MeshTypes_type.h"
 !
     integer(kind=8) :: ndim, nno1, nno2, nno3, npg, iw, idff1
@@ -75,7 +76,7 @@ subroutine nirmtd(ndim, nno1, nno2, nno3, npg, &
     integer(kind=8) :: nbsig
     real(kind=8) :: w
     real(kind=8) :: dsidep(2*ndim, 2*ndim)
-    real(kind=8) :: b(2*ndim, 81), def(2*ndim, nno1, ndim), deftr(nno1, ndim)
+    real(kind=8) :: b(2*ndim, MAX_BV_CG), def(2*ndim, nno1, ndim), deftr(nno1, ndim)
     real(kind=8) :: ddev(2*ndim, 2*ndim), devd(2*ndim, 2*ndim)
     real(kind=8) :: dddev(2*ndim, 2*ndim)
     real(kind=8) :: iddid, devdi(2*ndim), iddev(2*ndim)

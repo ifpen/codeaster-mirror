@@ -25,9 +25,10 @@
 #include "aster_fort_ds.h"
 
 #include "DataFields/FieldOnCellsBuilder.h"
+#include "Discretization/Calcul.h"
+#include "LinearAlgebra/AssemblyMatrix.h"
 #include "Messages/Messages.h"
 #include "Supervis/Exceptions.h"
-#include "Utilities/Tools.h"
 
 namespace {
 // Description of a virtual coupling cell
@@ -47,6 +48,18 @@ const std::map< std::pair< std::string, std::string >, std::string > cplCellNits
     { { "MEDPQU8", "MECA_2D_HHO2_F" }, "CN_Q8S3_HHO2" },
     { { "MEDPQU9", "MECA_2D_HHO2_F" }, "CN_Q9S3_HHO2" },
     { { "MEDPQU12", "MECA_2D_HHO2_F" }, "CN_Q12S3_HHO2" },
+    { { "MECA_TETRA4", "MECA3DTR7_HHO1_F" }, "CN_TE4TR7_HHO1" },
+    { { "MECA_TETRA10", "MECA3DTR7_HHO1_F" }, "CN_T10TR7_HHO1" },
+    { { "MECA_TETRA20", "MECA3DTR7_HHO1_F" }, "CN_T20TR7_HHO1" },
+    { { "MECA_HEXA8", "MECA3DTR7_HHO1_F" }, "CN_HE8TR7_HHO1" },
+    { { "MECA_HEXA20", "MECA3DTR7_HHO1_F" }, "CN_H20TR7_HHO1" },
+    { { "MECA_HEXA27", "MECA3DTR7_HHO1_F" }, "CN_H27TR7_HHO1" },
+    { { "MECA_TETRA4", "MECA3DTR7_HHO2_F" }, "CN_TE4TR7_HHO2" },
+    { { "MECA_TETRA10", "MECA3DTR7_HHO2_F" }, "CN_T10TR7_HHO2" },
+    { { "MECA_TETRA20", "MECA3DTR7_HHO2_F" }, "CN_T20TR7_HHO2" },
+    { { "MECA_HEXA8", "MECA3DTR7_HHO2_F" }, "CN_HE8TR7_HHO2" },
+    { { "MECA_HEXA20", "MECA3DTR7_HHO2_F" }, "CN_H20TR7_HHO2" },
+    { { "MECA_HEXA27", "MECA3DTR7_HHO2_F" }, "CN_H27TR7_HHO2" },
 };
 
 const std::map< std::pair< std::string, std::string >, std::string > cplCellPena {
@@ -139,7 +152,7 @@ enum Offset {
     COOR_PTS_Y = 10,
     NB_NODES_NITSCHE = 18,
     NODE_IDX_FACE = 19,
-    SIZE = 27,
+    SIZE = 28,
 };
 } // namespace
 
@@ -559,6 +572,10 @@ FieldOnCellsRealPtr CouplingPairing::getPairingField() const {
     // Field for intersection points and other thing ...
     auto data = FieldOnCellsPtrBuilder< ASTERDOUBLE >( _fed, "RIGI_ELAS_CPL", "PPAIRR" );
 
+    // CALL_JEDEMA();
+
+    // return data;
+
     // Get pairing
     const ASTERINTEGER nbPairs = this->getNumberOfPairs();
 
@@ -641,6 +658,8 @@ FieldOnCellsRealPtr CouplingPairing::getPairingField() const {
                     auto slav_volu_con = ( *meshConnex )[slavVoluNume + 1]->toVector();
 
                     auto mapLoc = mapping( slav_surf_con, slav_volu_con );
+                    AS_ASSERT( Offset::NODE_IDX_FACE + mapLoc.size() - 1 < Offset::SIZE );
+
                     // Number of nodes
                     ( *data )[shift + Offset::NB_NODES_NITSCHE] = ASTERDOUBLE( mapLoc.size() );
 
@@ -661,6 +680,68 @@ FieldOnCellsRealPtr CouplingPairing::getPairingField() const {
     return data;
 };
 
+ElementaryMatrixDisplacementRealPtr
+CouplingPairing::getHHOProjector( const FieldOnCellsRealPtr pairing ) const {
+    AS_ASSERT( _fed && _fed->exists() );
+
+    if ( _fed->existsHHO() ) {
+
+        const std::string option( "HHO_CALC_PROJ" );
+
+        auto elemMatr = std::make_shared< ElementaryMatrixDisplacementReal >( _model, option );
+
+        auto calcul = std::make_unique< Calcul >( option );
+        calcul->setFiniteElementDescriptor( _fed );
+
+        calcul->addInputField( "PGEOMER", _fed->getMesh()->getCoordinates() );
+        calcul->addInputField( "PPAIRR", pairing );
+        calcul->addHHOField( _model );
+
+        // Add output elementary
+        calcul->addOutputElementaryTerm( "PMATUNS", std::make_shared< ElementaryTermReal >() );
+
+        // Computation
+        calcul->compute();
+        if ( calcul->hasOutputElementaryTerm( "PMATUNS" ) ) {
+            elemMatr->addElementaryTerm( calcul->getOutputElementaryTermReal( "PMATUNS" ) );
+        }
+
+        return elemMatr;
+    }
+
+    return nullptr;
+};
+
+FieldOnCellsRealPtr
+CouplingPairing::getHHOProjectorField( const FieldOnCellsRealPtr pairing,
+                                       const ElementaryMatrixDisplacementRealPtr matr_elem ) const {
+
+    if ( matr_elem ) {
+        const std::string option( "HHO_EXTR_PROJ" );
+
+        auto calcul = std::make_unique< Calcul >( option );
+        calcul->setFiniteElementDescriptor( _fed );
+
+        calcul->addInputField( "PGEOMER", _fed->getMesh()->getCoordinates() );
+        calcul->addInputField( "PPAIRR", pairing );
+
+        const auto &elemTerms = matr_elem->getElementaryTerms();
+        AS_ASSERT( elemTerms.size() == 1 );
+        calcul->addInputElementaryTerm( "PMAELNS1", elemTerms[0] );
+
+        auto exitField = std::make_shared< FieldOnCellsReal >( _fed );
+        calcul->addOutputField( "PMPHHOR", exitField );
+
+        // Computation
+        calcul->compute();
+        exitField->build();
+
+        return exitField;
+    }
+
+    return nullptr;
+};
+
 ASTERINTEGER CouplingPairing::getNumberOfPairs() const {
     ASTERINTEGER nbPair = 0;
 
@@ -678,3 +759,11 @@ void CouplingPairing::setVerbosity( const ASTERINTEGER verbosity ) {
         zone->setVerbosity( _verbosity );
     }
 };
+
+CouplingPairingDataPtr CouplingPairing::getData() const {
+    const auto pairing = getPairingField();
+    const auto hhoProj = getHHOProjector( pairing );
+    const auto hhoProjField = getHHOProjectorField( pairing, hhoProj );
+
+    return std::make_shared< CouplingPairingData >( pairing, hhoProjField );
+}

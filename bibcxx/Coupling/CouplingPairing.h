@@ -21,9 +21,11 @@
 
 #pragma once
 
+#include "Coupling/CouplingPairingData.h"
 #include "Coupling/CouplingZonePairing.h"
 #include "DataFields/FieldOnCells.h"
 #include "DataStructures/DataStructure.h"
+#include "LinearAlgebra/ElementaryMatrix.h"
 #include "Meshes/MeshEnum.h"
 #include "Meshes/MeshPairing.h"
 #include "Modeling/Model.h"
@@ -60,6 +62,14 @@ class CouplingPairing : public DataStructure {
     /** @brief Get index of coupling cell */
     ASTERINTEGER getCplCellType( const CouplingMethod algo, const std::string &slavCellTypeName,
                                  const std::string &mastCellTypeName ) const;
+
+    FieldOnCellsRealPtr getPairingField() const;
+
+    ElementaryMatrixDisplacementRealPtr getHHOProjector( const FieldOnCellsRealPtr pairing ) const;
+
+    FieldOnCellsRealPtr
+    getHHOProjectorField( const FieldOnCellsRealPtr pairing,
+                          const ElementaryMatrixDisplacementRealPtr matr_elem ) const;
 
     /* Check mesh */
     void check() const;
@@ -98,7 +108,7 @@ class CouplingPairing : public DataStructure {
 
     VectorPairLong getListOfPairs() const;
 
-    FieldOnCellsRealPtr getPairingField() const;
+    CouplingPairingDataPtr getData() const;
 
     void setVerbosity( const ASTERINTEGER verbosity );
 

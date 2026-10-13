@@ -31,7 +31,18 @@ void exportPhysicalQuantityManagerToPython( py::module_ &mod ) {
     py::class_< PhysicalQuantityManager, std::shared_ptr< PhysicalQuantityManager > >(
         mod, "PhysicalQuantityManager" )
         .def_static( "hasQuantityOfName", &PhysicalQuantityManager::hasQuantityOfName )
-        .def_static( "getPhysicalQuantityName", &PhysicalQuantityManager::getPhysicalQuantityName )
+        .def_static(
+            "getPhysicalQuantityName",
+            py::overload_cast< ASTERINTEGER >( &PhysicalQuantityManager::getPhysicalQuantityName ) )
+        .def_static( "getPhysicalQuantityName",
+                     py::overload_cast< const std::string, const std::string >(
+                         &PhysicalQuantityManager::getPhysicalQuantityName ) )
+        .def_static( "getPhysicalQuantityId",
+                     py::overload_cast< const std::string >(
+                         &PhysicalQuantityManager::getPhysicalQuantityId ) )
+        .def_static( "getPhysicalQuantityId",
+                     py::overload_cast< const std::string, const std::string >(
+                         &PhysicalQuantityManager::getPhysicalQuantityId ) )
         .def_static( "getAllPhysicalQuantityNames",
                      &PhysicalQuantityManager::getAllPhysicalQuantityNames )
         .def_static( "getComponentNames", &PhysicalQuantityManager::getComponentNames )

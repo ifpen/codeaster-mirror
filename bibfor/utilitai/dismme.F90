@@ -49,7 +49,7 @@ subroutine dismme(questi, nomobz, repi, repkz, ierd)
 !     ------------------
     character(len=7) :: typmat, kmpic, zero
     integer(kind=8) :: iret, i, i1, ialire, nbresu, iexi, size
-    character(len=8) :: mo
+    character(len=8) :: mo, mesh, pheno
     character(len=19) :: partit
     character(len=24), pointer :: rerr(:) => null()
 !
@@ -130,22 +130,64 @@ subroutine dismme(questi, nomobz, repi, repkz, ierd)
             if (nbresu .gt. 0) call jeveuo(nomob//'.RELR', 'L', ialire)
             do i = 1, nbresu
                 call jeexin(zk24(ialire-1+i) (1:19)//'.NOLI', iexi)
-                if (iexi .eq. 0) goto 3
+                if (iexi .eq. 0) goto 21
                 call dismre(questi, zk24(ialire-1+i), repi, kmpic, i1)
                 if (i .eq. 1) then
                     repk = kmpic
                 else
                     ASSERT(repk .eq. kmpic)
                 end if
-3               continue
+21              continue
             end do
         end if
 !
     else if (questi .eq. 'NOM_MAILLA') then
-        call dismmo(questi, mo, repi, repk, ierd)
+        repk = ' '
+        call jeexin(nomob//'.RELR', iret)
+        if (iret .gt. 0) then
+            call jelira(nomob//'.RELR', 'LONUTI', nbresu)
+            if (nbresu .gt. 0) call jeveuo(nomob//'.RELR', 'L', ialire)
+            do i = 1, nbresu
+                call jeexin(zk24(ialire-1+i) (1:19)//'.NOLI', iexi)
+                if (iexi .eq. 0) goto 22
+                call dismre(questi, zk24(ialire-1+i), repi, mesh, i1)
+                if (mesh .ne. ' ' .and. repk .eq. ' ') then
+                    repk = mesh
+                end if
+                if (mesh .ne. ' ') then
+                    ASSERT(repk .eq. mesh)
+                end if
+22              continue
+            end do
+        end if
+        if (repk .eq. ' ') then
+! On aurait du le trouver avant
+            call dismmo(questi, mo, repi, repk, ierd)
+        end if
 !
     else if (questi .eq. 'PHENOMENE') then
-        call dismmo(questi, mo, repi, repk, ierd)
+        repk = ' '
+        call jeexin(nomob//'.RELR', iret)
+        if (iret .gt. 0) then
+            call jelira(nomob//'.RELR', 'LONUTI', nbresu)
+            if (nbresu .gt. 0) call jeveuo(nomob//'.RELR', 'L', ialire)
+            do i = 1, nbresu
+                call jeexin(zk24(ialire-1+i) (1:19)//'.NOLI', iexi)
+                if (iexi .eq. 0) goto 23
+                call dismre(questi, zk24(ialire-1+i), repi, pheno, i1)
+                if (pheno .ne. ' ' .and. repk .eq. ' ') then
+                    repk = pheno
+                end if
+                if (pheno .ne. ' ') then
+                    ASSERT(repk .eq. pheno)
+                end if
+23              continue
+            end do
+        end if
+        if (repk .eq. ' ') then
+            ! On aurait du le trouver avant
+            call dismmo(questi, mo, repi, repk, ierd)
+        end if
 !
     else if (questi .eq. 'SUR_OPTION') then
         ASSERT(size == 3)

@@ -25,6 +25,7 @@
 
 #include "astercxx.h"
 
+#include "Coupling/CouplingPairingData.h"
 #include "DataFields/ConstantFieldOnCells.h"
 #include "DataFields/FieldOnCells.h"
 #include "DataStructures/DataStructure.h"
@@ -120,8 +121,10 @@ class MechanicalLoadDescription : public DataStructure {
     ConstantFieldOnCellsTypePtr _ondpr;
     /** @brief Carte '.ONDE' */
     ConstantFieldOnCellsTypePtr _onde;
-    /** @brief Field '.PAIRS' */
+    /** @brief Field '.PAIRS' for LIAISON_MASSIF */
     FieldOnCellsRealPtr _pairingPts;
+    /** @brief Field '.MPHHO' for LIAISON_MASSIF */
+    FieldOnCellsRealPtr _hhoProj;
 
   public:
     MechanicalLoadDescription( void ) = delete;
@@ -161,6 +164,7 @@ class MechanicalLoadDescription : public DataStructure {
         _forno = std::make_shared< ConstantFieldOnCellsType >( getName() + ".FORNO", _FEDesc );
         _imped = std::make_shared< ConstantFieldOnCellsType >( getName() + ".IMPED", _FEDesc );
         _pairingPts = std::make_shared< FieldOnCellsReal >( getName() + ".PAIRS" );
+        _hhoProj = std::make_shared< FieldOnCellsReal >( getName() + ".MPHHO" );
         _pesan = std::make_shared< ConstantFieldOnCellsType >( getName() + ".PESAN", _FEDesc );
         _preff = std::make_shared< ConstantFieldOnCellsType >( getName() + ".PREFF", _FEDesc );
         _press = std::make_shared< ConstantFieldOnCellsType >( getName() + ".PRESS", _FEDesc );
@@ -244,6 +248,8 @@ class MechanicalLoadDescription : public DataStructure {
             return ( _ondpr && _ondpr->exists() );
         } else if ( load_name == "PAIRS" ) {
             return ( _pairingPts && _pairingPts->exists() );
+        } else if ( load_name == "MPHHO" ) {
+            return ( _hhoProj && _hhoProj->exists() );
         } else {
             AS_ABORT( "Unknown option " + load_name );
         }
@@ -322,11 +328,19 @@ class MechanicalLoadDescription : public DataStructure {
     }
 
     FieldOnCellsRealPtr getPairingField() const { return _pairingPts; }
+    FieldOnCellsRealPtr getHHOProjector() const { return _hhoProj; }
 
-    void setPairingField( const FieldOnCellsRealPtr &pair ) {
-        _FEDesc->addVirtualCells( *( pair->getDescription() ) );
+    void setPairingData( const CouplingPairingDataPtr data ) {
+        const auto pair = data->getPairingField();
         *_pairingPts = *pair;
-    };
+        const auto hhoProj = data->getHHOProjector();
+        if ( hhoProj && hhoProj->exists() ) {
+            *_hhoProj = *hhoProj;
+        }
+
+        // Add virtual cells
+        _FEDesc->addVirtualCells( *( pair->getDescription() ) );
+    }
 
     bool hasLoadResult() const { return _evolChar->exists(); }
 
@@ -377,6 +391,7 @@ class MechanicalLoadDescription : public DataStructure {
         _ondpl->updateValuePointers();
         _ondpr->updateValuePointers();
         _pairingPts->updateValuePointers();
+        _hhoProj->updateValuePointers();
     };
 
     bool build() {

@@ -24,12 +24,14 @@
  *   along with Code_Aster.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "aster_fort_calcul.h"
 #include "aster_fort_utils.h"
 
 #include "DataStructures/DataStructure.h"
 #include "MemoryManager/JeveuxCollection.h"
 #include "MemoryManager/JeveuxVector.h"
 #include "Modeling/FiniteElementDescriptor.h"
+#include "Modeling/PhysicalQuantityManager.h"
 #include "Supervis/Exceptions.h"
 
 /**
@@ -62,7 +64,8 @@ class ElementaryTerm : public DataField {
     ElementaryTerm() : ElementaryTerm( DataStructureNaming::getNewName() ) {};
 
     void allocate( const FiniteElementDescriptorPtr fEDesc, const std::string &option,
-                   const ASTERINTEGER &physicalQuantityId, const ASTERINTEGER &localModeId ) {
+                   const ASTERINTEGER &physicalQuantityId,
+                   const ASTERINTEGER &locatedComponentId ) {
         _FEDesc = fEDesc;
         _noli->allocate( 4 );
         ( *_noli )[0] = fEDesc->getName();
@@ -70,12 +73,44 @@ class ElementaryTerm : public DataField {
         ( *_noli )[2] = "MPI_COMPLET";
         const auto &nbGrel = fEDesc->getListOfGroupsOfElements()->size();
         _descriptor->allocate( 2 + nbGrel );
+        _descriptor->setInformationParameter( "RESL" );
         ( *_descriptor )[0] = physicalQuantityId;
         ( *_descriptor )[1] = nbGrel;
         for ( int i = 0; i < nbGrel; ++i )
-            ( *_descriptor )[i + 2] = localModeId;
+            ( *_descriptor )[i + 2] = locatedComponentId;
         if ( nbGrel > 0 ) {
             _resl->allocate( nbGrel );
+        }
+    };
+
+    void allocate( const FiniteElementDescriptorPtr fEDesc, const std::string &option,
+                   const std::string &physicalQuantity, const ASTERINTEGER &locatedComponentId ) {
+
+        const auto physicalQuantityId =
+            PhysicalQuantityManager::getPhysicalQuantityId( physicalQuantity );
+
+        allocate( fEDesc, option, physicalQuantityId, locatedComponentId );
+    };
+
+    void allocate( const FiniteElementDescriptorPtr fEDesc, const std::string &option,
+                   const std::string &parameter ) {
+
+        const auto physicalQuantityId =
+            PhysicalQuantityManager::getPhysicalQuantityId( option, parameter );
+
+        allocate( fEDesc, option, physicalQuantityId, -1 );
+
+        const auto &nbGrel = fEDesc->getListOfGroupsOfElements()->size();
+
+        ASTERINTEGER modloc = -1;
+        std::string optionStr = ljust( strip( option ), 16, ' ' );
+        std::string parameterStr = ljust( strip( parameter ), 8, ' ' );
+
+        for ( int i = 0; i < nbGrel; ++i ) {
+            const auto typeFE = fEDesc->getFiniteElementTypeIdOfGroupOfElements( i );
+
+            CALL_GET_LOCAL_MODE( optionStr, parameterStr, &typeFE, &modloc );
+            ( *_descriptor )[i + 2] = modloc;
         }
     };
 
@@ -142,7 +177,7 @@ class ElementaryTerm : public DataField {
     /**
      * @brief Return MODE_LOCAL
      */
-    std::string getLocalMode() const {
+    std::string getLocatedComponent() const {
         const auto nbGrel = getNumberOfGroupOfCells();
         _descriptor->updateValuePointer();
         const std::string cata = "&CATA.TE.NOMMOLOC";
@@ -171,7 +206,7 @@ class ElementaryTerm : public DataField {
     /**
      * @brief Return MODE_LOCAL
      */
-    ASTERINTEGER getLocalModeId() const {
+    ASTERINTEGER getLocatedComponentId() const {
         const auto nbGrel = getNumberOfGroupOfCells();
         _descriptor->updateValuePointer();
 
@@ -190,6 +225,19 @@ class ElementaryTerm : public DataField {
         }
 
         return modeId;
+    }
+
+    ASTERINTEGER getLocatedComponentIdOfGroupOfElements( const ASTERINTEGER grel_idx ) const {
+        _descriptor->updateValuePointer();
+        return ( *_descriptor )[2 + grel_idx];
+    }
+
+    ASTERINTEGER getNumberOfComponentsOfGroupOfElements( const ASTERINTEGER grel_idx ) const {
+
+        const auto mode_id = getLocatedComponentIdOfGroupOfElements( grel_idx );
+        ASTERINTEGER nbCmp = -1;
+        CALL_DIGDEL_WRAP( &mode_id, &nbCmp );
+        return nbCmp;
     }
 
     bool isMPIFull() {

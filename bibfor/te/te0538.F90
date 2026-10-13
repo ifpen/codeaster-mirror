@@ -20,15 +20,16 @@ subroutine te0538(option, nomte)
     implicit none
 #include "jeveux.h"
 #include "asterfort/assert.h"
+#include "asterfort/elref1.h"
 #include "asterfort/elrefe_info.h"
+#include "asterfort/iselli.h"
 #include "asterfort/jevech.h"
 #include "asterfort/teattr.h"
 #include "asterfort/tecach.h"
 #include "asterfort/xmasel.h"
 #include "asterfort/xteddl.h"
 #include "asterfort/xteini.h"
-#include "asterfort/elref1.h"
-#include "asterfort/iselli.h"
+#include "MeshTypes_type.h"
     character(len=16) :: option, nomte
 !
 !
@@ -44,9 +45,9 @@ subroutine te0538(option, nomte)
     integer(kind=8) :: jgano, nno, npg, imatuu, ndim
     integer(kind=8) :: ipoids, ivf, idfde, igeom, imate
     integer(kind=8) :: jpintt, jcnset, jheavt, jlonch, jbaslo, jlsn, jlst, jstno
-    integer(kind=8) :: nnos, nfiss, jfisno, jheavn, ncompn, heavn(27, 5), jtab(7), ino, ig, iret
+    integer(kind=8) :: nnos, nfiss, jfisno, jheavn, ncompn, jtab(7), ino, ig, iret
     integer(kind=8) :: nfh, ddlc, nddl, nnom, nfe, ibid, ddls, ddlm
-    integer(kind=8) :: jpmilt
+    integer(kind=8) :: jpmilt, heavn(MT_NNOMAX3D, 5)
 !
 !
 !

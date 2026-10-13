@@ -27,9 +27,11 @@ PCHHOBS = InputParameter(phys=PHY.N3600R, comment=""" HHO - coefficient base loc
 
 PMATERR = InputParameter(phys=PHY.MATE_R, comment=""" MATE_ELNO """)
 
+PMPHHOR = InputParameter(phys=PHY.N480_R, comment=""" HHO projector """)
+
 
 RIGI_ELAS_CPL = Option(
-    para_in=(SP.PPAIRR, SP.PGEOMER, PCHHOBS, PMATERR),
+    para_in=(SP.PPAIRR, SP.PGEOMER, PCHHOBS, PMATERR, PMPHHOR),
     para_out=(SP.PMATUUR,),
     condition=(CondCalcul("+", ((AT.RACCORD, "OUI"),)),),
     comment=""" RIGI_CPL: CALCUL DE LA MATRICE ELASTIQUE

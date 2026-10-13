@@ -94,6 +94,10 @@ matrAsse.setDOFNumbering(numeDDL)
 matrAsse.assemble(matr_elem, charCine)
 matrAsse.debugPrint(rank + 30)
 
+matrAsse.updateValuePointers()
+val = matrAsse[4, 6]
+subMat = matrAsse.extractSubMatrix(model.getFiniteElementDescriptor(), "RIGI_MECA", "PMATUUR")
+
 ccid = matrAsse.getDirichletBCDOFs()
 bcNb = {0: 142, 1: 148, 2: 0, 3: 0}
 test.assertEqual(sum(ccid), bcNb[rank])

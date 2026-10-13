@@ -33,6 +33,7 @@ subroutine te0593(option, nomte)
 #include "asterfort/nirfgd.h"
 #include "asterfort/nirfpd.h"
 #include "asterfort/utmess.h"
+#include "MeshTypes_type.h"
 #include "jeveux.h"
 !
 !
@@ -55,7 +56,7 @@ subroutine te0593(option, nomte)
 !
     integer(kind=8) :: ndim, nno1, nno2, nno3, nnos, npg, jgn, ntrou
     integer(kind=8) :: iw, ivf1, ivf2, ivf3, idf1, idf2, idf3
-    integer(kind=8) :: vu(3, 27), vg(27), vp(27), vpi(3, 27)
+    integer(kind=8) :: vu(3, MT_NNOMAX3D), vg(MT_NNOMAX3D), vp(MT_NNOMAX3D), vpi(3, MT_NNOMAX3D)
     integer(kind=8) :: igeom, ivectu
     real(kind=8) :: sigref, epsref
     character(len=8) :: lielrf(10), typmod(2)

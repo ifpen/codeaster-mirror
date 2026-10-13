@@ -276,6 +276,17 @@ void DEFSSSSPSPSSPPPSS( ME2MME_EVOL, me2mme_evol, const char *, STRING_SIZE, con
 void DEFSSSSP( HASBEHAVIOURFEATURE, hasbehaviourfeature, const char *, STRING_SIZE, const char *,
                STRING_SIZE, const char *, STRING_SIZE, const char *, STRING_SIZE, ASTERLOGICAL * );
 
+#define CALL_GRANDEURID( a, b, c ) CALLOOP( GRANDEURID, grandeurid, a, b, c )
+void DEFSSP( GRANDEURID, grandeurid, const char *, STRING_SIZE, const char *, STRING_SIZE,
+             ASTERINTEGER * );
+
+#define CALL_GET_LOCAL_MODE( a, b, c, d ) CALLOOPP( GET_LOCAL_MODE, get_local_mode, a, b, c, d )
+void DEFSSPP( GET_LOCAL_MODE, get_local_mode, const char *, STRING_SIZE, const char *, STRING_SIZE,
+              const ASTERINTEGER *, ASTERINTEGER * );
+
+#define CALL_DIGDEL_WRAP( a, b ) CALLPP( DIGDEL_WRAP, digdel_wrap, a, b )
+void DEFPP( DIGDEL_WRAP, digdel_wrap, const ASTERINTEGER *, ASTERINTEGER * );
+
 #define CALL_CHCKVARI( a, b, c, d ) CALLOOOO( CHCKVARI, chckvari, a, b, c, d )
 void DEFSSSS( CHCKAVRI, chckvari, const char *, STRING_SIZE, const char *, STRING_SIZE,
               const char *, STRING_SIZE, const char *, STRING_SIZE );

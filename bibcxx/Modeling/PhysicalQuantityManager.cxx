@@ -23,6 +23,7 @@
 
 #include "Modeling/PhysicalQuantityManager.h"
 
+#include "aster_fort_calcul.h"
 #include "aster_fort_utils.h"
 
 NamesMapChar8 PhysicalQuantityManager::_nameOfPhysicalQuantity( "&CATA.GD.NOMGD" );
@@ -38,7 +39,7 @@ std::string PhysicalQuantityManager::getPhysicalQuantityName( const ASTERINTEGER
     return strip( _nameOfPhysicalQuantity->getStringFromIndex( quantityNumber ) );
 };
 
-ASTERINTEGER PhysicalQuantityManager::getPhysicalQuantityNumber( const std::string name ) {
+ASTERINTEGER PhysicalQuantityManager::getPhysicalQuantityId( const std::string name ) {
     return _nameOfPhysicalQuantity->getIndexFromString( name );
 };
 
@@ -71,3 +72,21 @@ const VectorString PhysicalQuantityManager::getComponentNames( const ASTERINTEGE
         result.push_back( vc[i].toString() );
     return result;
 };
+
+ASTERINTEGER PhysicalQuantityManager::getPhysicalQuantityId( const std::string option,
+                                                             const std::string parameter ) {
+
+    ASTERINTEGER gd = -1;
+    std::string oprionStr = ljust( strip( option ), 16, ' ' );
+    std::string parameterStr = ljust( strip( parameter ), 8, ' ' );
+
+    CALL_GRANDEURID( oprionStr, parameterStr, &gd );
+
+    return gd;
+}
+
+std::string PhysicalQuantityManager::getPhysicalQuantityName( const std::string option,
+                                                              const std::string parameter ) {
+
+    return getPhysicalQuantityName( getPhysicalQuantityId( option, parameter ) );
+}

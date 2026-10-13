@@ -41,6 +41,15 @@ class ElementaryMatrix : public BaseElementaryMatrix {
     /** @brief Vectors of RESUELEM */
     std::vector< std::shared_ptr< ElementaryTerm< ValueType > > > _elemTerm;
 
+    void checkMesh( const BaseMeshPtr mesh ) const {
+        const auto _mesh = getMesh();
+        if ( _mesh && mesh ) {
+            if ( _mesh != mesh ) {
+                throw AsterErrorCpp( "Meshes are incompatible." );
+            }
+        }
+    };
+
   public:
     /** @typedef ElementaryMatrixPtr */
     typedef std::shared_ptr< ElementaryMatrix< ValueType, PhysicalQuantity > > ElementaryMatrixPtr;
@@ -61,6 +70,20 @@ class ElementaryMatrix : public BaseElementaryMatrix {
     ElementaryMatrix( const ModelPtr model, const std::string option ) : ElementaryMatrix() {
         this->setModel( model );
         this->prepareCompute( option );
+    };
+
+    /** @brief Get the mesh */
+    BaseMeshPtr getMesh( void ) const {
+        if ( _model )
+            return _model->getMesh();
+
+        for ( const auto &elemTerm : _elemTerm ) {
+            if ( elemTerm->getMesh() ) {
+                return elemTerm->getMesh();
+            }
+        }
+
+        return nullptr;
     };
 
     /**
@@ -124,6 +147,7 @@ class ElementaryMatrix : public BaseElementaryMatrix {
      * @brief Add elementary term
      */
     void addElementaryTerm( const std::shared_ptr< ElementaryTerm< ValueType > > &elemTerm ) {
+        this->checkMesh( elemTerm->getMesh() );
         _elemComp->addElementaryTerm( elemTerm->getName() );
         _elemTerm.push_back( elemTerm );
     };

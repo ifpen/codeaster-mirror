@@ -62,7 +62,7 @@ subroutine te0520(option, nomte)
 !
 ! --- Initialize mapping
 !
-    call cplPenaInitMapFEMHHO(FEFaceSl, hhoFaceMa, hhoDataMa, cplPenaMap)
+    call cplPenaInitMapFEMHHOVec(FEFaceSl, hhoFaceMa, hhoDataMa, cplPenaMap)
 !
 ! --- Initialize quadrature
 !
