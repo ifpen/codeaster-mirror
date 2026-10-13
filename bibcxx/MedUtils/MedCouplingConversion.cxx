@@ -39,28 +39,31 @@ struct MedCouplingTypeInfo {
 py::object getMedCouplingConversionData( const BaseMeshPtr &mesh ) {
 
     // Table de correspondance entre les types de mailles MED et leurs propriétés MEDCoupling.
-    static const std::unordered_map< int, MedCouplingTypeInfo > med_to_mc = {
-        { 1, { 0, 0, 1 } },     // POINT1
-        { 102, { 1, 1, 2 } },   // SEG2
-        { 103, { 2, 1, 3 } },   // SEG3
-        { 104, { 10, 1, 4 } },  // SEG4
-        { 203, { 3, 2, 3 } },   // TRI3
-        { 206, { 6, 2, 6 } },   // TRI6
-        { 207, { 7, 2, 7 } },   // TRI7
-        { 204, { 4, 2, 4 } },   // QUAD4
-        { 208, { 8, 2, 8 } },   // QUAD8
-        { 209, { 9, 2, 9 } },   // QUAD9
-        { 304, { 14, 3, 4 } },  // TETRA4
-        { 310, { 20, 3, 10 } }, // TETRA10
-        { 306, { 16, 3, 6 } },  // PENTA6
-        { 315, { 25, 3, 15 } }, // PENTA15
-        { 318, { 28, 3, 18 } }, // PENTA18
-        { 305, { 15, 3, 5 } },  // PYRA5
-        { 313, { 23, 3, 13 } }, // PYRA13
-        { 308, { 18, 3, 8 } },  // HEXA8
-        { 320, { 30, 3, 20 } }, // HEXA20
-        { 327, { 27, 3, 27 } }  // HEXA27
-    };
+    static const std::array< MedCouplingTypeInfo, 400 > med_to_mc = []() {
+        std::array< MedCouplingTypeInfo, 400 > lut;
+        lut.fill( { -1, -1, -1 } ); // Initialisation par défaut (invalide)
+        lut[1] = { 0, 0, 1 };       // POINT1
+        lut[102] = { 1, 1, 2 };     // SEG2
+        lut[103] = { 2, 1, 3 };     // SEG3
+        lut[104] = { 10, 1, 4 };    // SEG4
+        lut[203] = { 3, 2, 3 };     // TRI3
+        lut[206] = { 6, 2, 6 };     // TRI6
+        lut[207] = { 7, 2, 7 };     // TRI7
+        lut[204] = { 4, 2, 4 };     // QUAD4
+        lut[208] = { 8, 2, 8 };     // QUAD8
+        lut[209] = { 9, 2, 9 };     // QUAD9
+        lut[304] = { 14, 3, 4 };    // TETRA4
+        lut[310] = { 20, 3, 10 };   // TETRA10
+        lut[306] = { 16, 3, 6 };    // PENTA6
+        lut[315] = { 25, 3, 15 };   // PENTA15
+        lut[318] = { 28, 3, 18 };   // PENTA18
+        lut[305] = { 15, 3, 5 };    // PYRA5
+        lut[313] = { 23, 3, 13 };   // PYRA13
+        lut[308] = { 18, 3, 8 };    // HEXA8
+        lut[320] = { 30, 3, 20 };   // HEXA20
+        lut[327] = { 27, 3, 27 };   // HEXA27
+        return lut;
+    }();
 
     // Structures de données pour stocker les informations du maillage triées par dimension.
     std::array< VectorLong, 4 > connectivity;
@@ -73,87 +76,125 @@ py::object getMedCouplingConversionData( const BaseMeshPtr &mesh ) {
     cells_types->updateValuePointer();
     const auto num_cells = cells_types->size();
 
+    auto med_connectivity = mesh->getMedConnectivity();
+    if ( !med_connectivity->isContiguous() ) {
+        throw std::runtime_error( "MED connectivity collection is not contiguous" );
+    }
+    AS_ASSERT( med_connectivity->isContiguous() );
+    med_connectivity->build();
+
     // Première passe sur les mailles pour collecter des informations globales.
     VectorInt cell_dim( num_cells );
     std::array< ASTERINTEGER, 4 > cells_per_dim_count = { 0, 0, 0, 0 };
     std::array< ASTERINTEGER, 4 > connectivity_total_size = { 0, 0, 0, 0 };
 
+    ASTERINTEGER expected_total_nodes = 0;
     for ( ASTERINTEGER i = 0; i < num_cells; ++i ) {
+
         const auto type_med = ( *cells_types )[i];
-        if ( type_med == 0 ) {
-            throw std::runtime_error( "Mesh contains non-med types and cannot be converted" );
+
+        if ( type_med <= 0 || type_med >= 328 || med_to_mc[type_med].dim == -1 ) {
+            throw std::runtime_error( "Unsupported or invalid MED cell type: " +
+                                      std::to_string( type_med ) );
         }
-        const auto &type_info = med_to_mc.at( type_med );
+
+        const auto &type_info = med_to_mc[type_med];
         cell_dim[i] = type_info.dim;
         cells_per_dim_count[type_info.dim]++;
         connectivity_total_size[type_info.dim] += ( 1 + type_info.nb_nodes );
+        expected_total_nodes += type_info.nb_nodes;
+    }
+
+    const auto total_cells = med_connectivity->capacity();
+    if ( num_cells != total_cells ) {
+        throw std::runtime_error( "MED connectivity number of cells mismatch: expected " +
+                                  std::to_string( num_cells ) + ", got " +
+                                  std::to_string( total_cells ) );
+    }
+
+    const auto total_nodes = med_connectivity->totalSize();
+    if ( expected_total_nodes != total_nodes ) {
+        throw std::runtime_error( "MED connectivity size mismatch: expected " +
+                                  std::to_string( expected_total_nodes ) + ", got " +
+                                  std::to_string( total_nodes ) );
     }
 
     for ( int dim = 0; dim < 4; ++dim ) {
-        connectivity[dim].reserve( connectivity_total_size[dim] );
-        cells_renum[dim].reserve( cells_per_dim_count[dim] );
-        connectivity_index[dim].reserve( cells_per_dim_count[dim] + 1 );
+        connectivity[dim].resize( connectivity_total_size[dim] );
+        cells_renum[dim].resize( cells_per_dim_count[dim] );
+        connectivity_index[dim].resize( cells_per_dim_count[dim] + 1 );
         // Premier element alloué ici
-        connectivity_index[dim].push_back( 0 );
+        connectivity_index[dim][0] = 0;
     }
 
     // Table pour mapper l'indice global d'une maille à son nouvel indice par dimension.
     VectorLong original_to_new_cell_idx( num_cells );
     std::array< ASTERINTEGER, 4 > current_cell_count_per_dim = { 0, 0, 0, 0 };
 
-    JeveuxCollectionLong med_connectivity = mesh->getMedConnectivity();
-    med_connectivity->build();
+    ASTERINTEGER offset = 0;
+    const auto med_values = med_connectivity->startPointer();
+
+    std::array< ASTERINTEGER, 4 > connectivity_offset = { 0, 0, 0, 0 };
 
     // Seconde passe pour remplir les structures de connectivité.
     for ( ASTERINTEGER i = 0; i < num_cells; ++i ) {
         const auto type_med = ( *cells_types )[i];
-        const auto &type_info = med_to_mc.at( type_med );
+        const auto &type_info = med_to_mc[type_med];
         const int dim = type_info.dim;
+        const ASTERINTEGER cell_idx = current_cell_count_per_dim[dim];
 
         // Ajoute le type de maille MEDCoupling.
-        connectivity[dim].push_back( type_info.mc_type );
+        connectivity[dim][connectivity_offset[dim]] = type_info.mc_type;
+        connectivity_offset[dim]++;
 
         // Ajoute les indices des nœuds (en base 0).
-        auto nodes_med = ( *med_connectivity )[i + 1];
-        nodes_med->updateValuePointer();
-        for ( int j = 0; j < type_info.nb_nodes; ++j ) {
-            connectivity[dim].push_back( ( *nodes_med )[j] - 1 );
+        for ( ASTERINTEGER j = 0; j < type_info.nb_nodes; ++j ) {
+            connectivity[dim][connectivity_offset[dim] + j] = med_values[offset + j] - 1;
         }
 
+        // Offset maille suivante
+        offset += type_info.nb_nodes;
+
+        connectivity_offset[dim] += type_info.nb_nodes;
+
         // Calcule l'index de début de la maille suivante dans le tableau de connectivité.
-        connectivity_index[dim].push_back( connectivity_index[dim].back() + 1 +
-                                           type_info.nb_nodes );
+        connectivity_index[dim][cell_idx + 1] = connectivity_offset[dim];
 
         // Enregistre le nouvel indice de la maille dans la table de correspondance.
         original_to_new_cell_idx[i] = current_cell_count_per_dim[dim]++;
 
-        cells_renum[dim].push_back( i + 1 );
+        cells_renum[dim][cell_idx] = i + 1;
     }
 
     // Traitement des groupes de mailles.
     for ( const auto &group_name : mesh->getGroupsOfCells() ) {
         const auto &cells_in_group = mesh->getCells( group_name );
+        std::array< VectorLong *, 4 > group_vecs = { nullptr, nullptr, nullptr, nullptr };
+
         for ( const auto &cell_idx : cells_in_group ) {
             if ( cell_idx < 0 ) {
-                throw std::runtime_error(
-                    "Mesh contains non-med group id (negative) and cannot be converted" );
+                continue;
             }
             const int dim = cell_dim[cell_idx];
+            if ( !group_vecs[dim] ) {
+                group_vecs[dim] = &groups_c[dim][group_name];
+                group_vecs[dim]->reserve( cells_in_group.size() );
+            }
             const ASTERINTEGER new_idx = original_to_new_cell_idx[cell_idx];
-            groups_c[dim][group_name].push_back( new_idx );
+            group_vecs[dim]->push_back( new_idx );
         }
     }
 
     // Traitement des groupes de nœuds.
     for ( const auto &group_name : mesh->getGroupsOfNodes() ) {
         const auto &nodes_in_group = mesh->getNodes( group_name, true );
-        groups_n[group_name].reserve( nodes_in_group.size() );
+        auto &group_vec = groups_n[group_name];
+        group_vec.reserve( nodes_in_group.size() );
         for ( const auto &node_idx : nodes_in_group ) {
             if ( node_idx < 0 ) {
-                throw std::runtime_error(
-                    "Mesh contains non-med group id (negative) and cannot be converted" );
+                continue;
             }
-            groups_n[group_name].push_back( node_idx );
+            group_vec.push_back( node_idx );
         }
     }
 

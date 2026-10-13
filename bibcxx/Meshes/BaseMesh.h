@@ -151,7 +151,7 @@ class BaseMesh : public DataStructure, public ListOfTables {
     /**
      * @brief Return the connectivity with MED numberings
      */
-    const JeveuxCollectionLong getMedConnectivity() const;
+    const JeveuxContiguousCollectionLong getMedConnectivity() const;
 
     /**
      * @brief Return the connectivity with MED numberings, node zero based

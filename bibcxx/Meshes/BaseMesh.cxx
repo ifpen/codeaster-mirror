@@ -149,10 +149,10 @@ bool BaseMesh::readMeshFile( const std::filesystem::path &fileName, const std::s
     return build();
 }
 
-const JeveuxCollectionLong BaseMesh::getMedConnectivity() const {
+const JeveuxContiguousCollectionLong BaseMesh::getMedConnectivity() const {
     JeveuxChar24 objv( " " );
     CALLO_GET_MED_CONNECTIVITY( getName(), objv );
-    JeveuxCollectionLong result( objv.toString() );
+    JeveuxContiguousCollectionLong result( objv.toString() );
     return result;
 }
 
