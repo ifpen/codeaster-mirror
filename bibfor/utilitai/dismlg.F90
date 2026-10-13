@@ -154,8 +154,9 @@ subroutine dismlg(questi, nomobz, repi, repkz, ierd)
                     call jelira(jexnum(nomob//'.LIEL', igrel), 'LONMAX', lielSize)
                     elemTypeNume = liel(lielSize)
                     call jenuno(jexnum('&CATA.TE.NOMTE', elemTypeNume), elemTypeName)
-                    if (lteatt('ABSO', 'OUI', typel=elemTypeName) .and. &
-                        lteatt('FLUIDE', 'NON', typel=elemTypeName)) repk = 'OUI'
+                    if (lteatt('ABSO', 'OUI', typel=elemTypeName)) then
+                        repk = 'OUI'
+                    end if
                     if (repk .eq. 'OUI') exit
                 end do
                 if (repk .eq. 'NON') then
