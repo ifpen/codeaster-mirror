@@ -59,6 +59,7 @@ subroutine zjma(metaSteelPara, &
     real(kind=8) :: tau_0_bain, tau_0_mart
     real(kind=8) :: ZBainBrut, ZMartBrut
     real(kind=8) :: ZBainRevePrev, ZMartRevePrev
+    real(kind=8) :: ZBainBasePrev, ZMartBasePrev
     real(kind=8) :: ZBainBaseCurr, ZMartBaseCurr
     real(kind=8) :: ZBainReveCurr, ZMartReveCurr
     real(kind=8) :: ZBainTotaPrev, ZMartTotaPrev
@@ -83,17 +84,19 @@ subroutine zjma(metaSteelPara, &
     cyclTherPrev = nint(infoTemper(2))
     ZBainRevePrev = infoTemper(3)
     ZMartRevePrev = infoTemper(4)
+    ZBainBasePrev = infoTemper(5)
+    ZMartBasePrev = infoTemper(6)
 
 ! - Compute ratio
-    ZBainTotaPrev = ZBainRevePrev+ZBainBrut
-    ZMartTotaPrev = ZMartRevePrev+ZMartBrut
+    ZBainTotaPrev = ZBainRevePrev+ZBainBasePrev
+    ZMartTotaPrev = ZMartRevePrev+ZMartBasePrev
     ZTildeMartPrev = 0.d0
-    if (abs(ZMartBrut) .ge. r8prem()) then
-        ZTildeMartPrev = ZMartRevePrev/ZMartBrut
+    if (abs(ZMartTotaPrev) .ge. r8prem()) then
+        ZTildeMartPrev = ZMartRevePrev/ZMartTotaPrev
     end if
     ZTildeBainPrev = 0.d0
-    if (abs(ZBainBrut) .ge. r8prem()) then
-        ZTildeBainPrev = ZBainRevePrev/ZBainBrut
+    if (abs(ZBainTotaPrev) .ge. r8prem()) then
+        ZTildeBainPrev = ZBainRevePrev/ZBainTotaPrev
     end if
 
 ! - Get material parameters
@@ -110,8 +113,8 @@ subroutine zjma(metaSteelPara, &
 ! - Computes
     cyclTherCurr = cyclTherPrev
     if (abs(deltaTime12) .le. r8prem()) then
-        ZBainBaseCurr = ZBainBrut
-        ZMartBaseCurr = ZMartBrut
+        ZBainBaseCurr = ZBainBasePrev
+        ZMartBaseCurr = ZMartBasePrev
         ZBainReveCurr = ZBainRevePrev
         ZMartReveCurr = ZMartRevePrev
         cyclTherCurr = cyclTherPrev
@@ -141,11 +144,11 @@ subroutine zjma(metaSteelPara, &
             if (cyclTherPrev .eq. 2) then
                 ZTildeMartCurr = 0.d0
                 ZTildeBainCurr = 0.d0
-                if (ZMartBrut .ge. r8prem()) then
-                    ZTildeMartCurr = ZMartRevePrev/ZMartBrut
+                if (ZMartTotaPrev .ge. r8prem()) then
+                    ZTildeMartCurr = ZMartRevePrev/ZMartTotaPrev
                 end if
-                if (ZBainBrut .ge. r8prem()) then
-                    ZTildeBainCurr = ZBainRevePrev/ZBainBrut
+                if (ZBainTotaPrev .ge. r8prem()) then
+                    ZTildeBainCurr = ZBainRevePrev/ZBainTotaPrev
                 end if
                 cyclTherCurr = cyclTherPrev
             elseif (cyclTherPrev .eq. 1) then
