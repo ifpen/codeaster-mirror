@@ -7741,6 +7741,16 @@ class ContactComputation:
             int: level of verbosity
         """
 
+    def hasVirtualCells(self, pairing):
+        """Detect if virtual cells has been created
+
+        Arguments:
+            pairing (ContactPairing): pairing object
+
+        Returns:
+            bool: surfaces have been paired
+        """
+
     def setVerbosity(self, level):
         """Set level of verbosity
         0- without

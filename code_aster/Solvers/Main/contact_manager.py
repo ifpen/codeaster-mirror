@@ -58,7 +58,7 @@ class ContactManager:
     @profile
     def pairing(self):
         """Pairing between contact zones."""
-        if not self.enable:
+        if not self.isEnabled:
             return
         self.pair.compute()
 
@@ -68,15 +68,17 @@ class ContactManager:
             fed_defi = self.defi.getParallelFiniteElementDescriptor()
         else:
             fed_defi = self.defi.getFiniteElementDescriptor()
-        if isinstance(self.pair, ParallelContactPairing):
-            fed_pair = self.pair.getParallelFiniteElementDescriptor()
-        else:
-            fed_pair = self.pair.getFiniteElementDescriptor()
-        phys_pb.setContactSlaveFED(fed_defi)
-        phys_pb.setContactFED(fed_pair)
-        model = phys_pb.getModel()
-        loads = phys_pb.getListOfLoads()
-        phys_pb.getDOFNumbering().computeRenumbering(model, loads, fed_defi, fed_pair)
+
+        if self.isPaired:
+            if isinstance(self.pair, ParallelContactPairing):
+                fed_pair = self.pair.getParallelFiniteElementDescriptor()
+            else:
+                fed_pair = self.pair.getFiniteElementDescriptor()
+            phys_pb.setContactSlaveFED(fed_defi)
+            phys_pb.setContactFED(fed_pair)
+            model = phys_pb.getModel()
+            loads = phys_pb.getListOfLoads()
+            phys_pb.getDOFNumbering().computeRenumbering(model, loads, fed_defi, fed_pair)
 
         self.nb_pairing += 1
 
@@ -87,7 +89,7 @@ class ContactManager:
         Returns:
             MeshCoordinatesField: coordinates of nodes used for pairing
         """
-        if not self.enable:
+        if not self.isEnabled:
             return
         return self.pair.getCoordinates()
 
@@ -98,7 +100,7 @@ class ContactManager:
         Returns:
             coor (MeshCoordinatesField): coordinates of nodes used for pairing
         """
-        if not self.enable:
+        if not self.isEnabled:
             return
         self.pair.setCoordinates(coor)
 
@@ -109,21 +111,34 @@ class ContactManager:
         Returns:
             (FieldOnCellsReal): data
         """
-        if not self.enable:
+        if not self.isEnabled or not self.isPaired:
             return
         return self.comp.contactData(
             self.pair, self.problem.getMaterialField(), self.nb_pairing <= 1
         )
 
     @property
-    def enable(self):
+    def isEnabled(self):
         """Contact is enable or not
 
         Returns:
-         (bool): True if enable else False
+            bool: True if enable else False
         """
         if self.defi is not None:
             return True
+
+        return False
+
+    @property
+    def isPaired(self):
+        """Pairing is done or not
+
+        Returns:
+            bool: True if paired else False
+        """
+        if self.comp.hasVirtualCells(self.pair):
+            return True
+
         return False
 
     def update(self, phys_state):
@@ -132,6 +147,6 @@ class ContactManager:
         Arguments:
             phys_state (PhysicalSate): physical state
         """
-        if not self.enable:
+        if not self.isEnabled:
             return
         self.pair.updateCoordinates(phys_state.U)

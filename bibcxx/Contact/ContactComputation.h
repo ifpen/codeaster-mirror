@@ -66,6 +66,11 @@ class ContactComputation {
 
     /** @brief Get verbosity */
     ASTERINTEGER getVerbosity() const { return _verbosity; }
+
+    /** @brief Get virtual cells */
+    ASTERBOOL hasVirtualCells( const ContactPairingPtr contPairing ) const {
+        return ( contPairing->hasVirtualCells() );
+    }
 };
 
 using ContactComputationPtr = std::shared_ptr< ContactComputation >;
