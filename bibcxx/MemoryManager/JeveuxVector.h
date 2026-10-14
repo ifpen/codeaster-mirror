@@ -189,7 +189,7 @@ class JeveuxVectorClass : public JeveuxObjectClass, private AllowedJeveuxType< V
 #ifdef ASTER_DEBUG_CXX_OBJECTS
         AS_ASSERT( _valuePtr != nullptr );
         AS_ASSERT( !this->hasMoved() );
-        if ( i < 0 && i >= this->size() ) {
+        if ( i < 0 || i >= this->size() ) {
             std::string error = "Out of range of JeveuxVector '" + _name +
                                 "', index = " + std::to_string( i ) +
                                 " ( size = " + std::to_string( this->size() ) + " )";
@@ -208,7 +208,7 @@ class JeveuxVectorClass : public JeveuxObjectClass, private AllowedJeveuxType< V
 #ifdef ASTER_DEBUG_CXX_OBJECTS
         AS_ASSERT( _valuePtr != nullptr );
         AS_ASSERT( !this->hasMoved() );
-        if ( i < 0 && i >= this->size() ) {
+        if ( i < 0 || i >= this->size() ) {
             std::string error = "Out of range of JeveuxVector '" + _name +
                                 "', index = " + std::to_string( i ) +
                                 " ( size = " + std::to_string( this->size() ) + " )";

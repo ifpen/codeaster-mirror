@@ -82,6 +82,7 @@ subroutine op0167()
 #include "asterfort/jexnum.h"
 #include "asterfort/juveca.h"
 #include "asterfort/rdtmai.h"
+#include "asterfort/jeccta.h"
 #include "asterfort/titre.h"
 #include "asterfort/utmess.h"
 #include "asterfort/wkvect.h"
@@ -1262,6 +1263,8 @@ subroutine op0167()
 
 ! - Update parameters for modified mesh (bounding box and dimensions)
     call cargeo(meshOut)
+!     -- RETASSAGE  DE CONNEX (QUI A ETE ALLOUEE TROP GRANDE) :
+    call jeccta(meshOut//'.CONNEX')
 
 ! - Verbose
     call infoma(meshOut)

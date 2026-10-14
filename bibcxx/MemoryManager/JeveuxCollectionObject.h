@@ -45,11 +45,11 @@ class JeveuxCollectionObjectClass : private AllowedJeveuxType< ValueType > {
     /** @brief Position dans la collection */
     ASTERINTEGER _numberInCollection;
     /** @brief Pointeur vers le vecteur Jeveux */
-    ValueType *_valuePtr;
+    mutable ValueType *_valuePtr;
     /** @brief Longueur du vecteur Jeveux */
     ASTERINTEGER _size;
     /** @brief Adresse du vecteur Jeveux */
-    ASTERINTEGER _jeveuxAdress;
+    mutable ASTERINTEGER _jeveuxAdress;
 
     /**
      * @brief Allocation
@@ -219,7 +219,7 @@ class JeveuxCollectionObjectClass : private AllowedJeveuxType< ValueType > {
      */
     void updateValuePointer() const {
         if ( hasMoved() ) {
-            const_cast< JeveuxCollectionObjectClass< ValueType > * >( this )->_valuePtr = NULL;
+            _valuePtr = nullptr;
 
             const std::string read( "L" );
             std::string charJeveuxName = getJeveuxName();
@@ -230,15 +230,14 @@ class JeveuxCollectionObjectClass : private AllowedJeveuxType< ValueType > {
             JeveuxChar8 param( "IADM" );
             std::string charval = std::string( 32, ' ' );
             CALLO_JELIRA( charJeveuxName, param, &valTmp, charval );
-            const_cast< JeveuxCollectionObjectClass< ValueType > * >( this )->_jeveuxAdress =
-                valTmp;
+            _jeveuxAdress = valTmp;
         }
     };
 
     inline const ValueType &operator[]( const ASTERINTEGER &i ) const {
 #ifdef ASTER_DEBUG_CXX_OBJECTS
         AS_ASSERT( _valuePtr != nullptr );
-        if ( i < 0 && i >= this->size() ) {
+        if ( i < 0 || i >= this->size() ) {
             std::string error = "Out of range of JeveuxCollectionObjectClass '" + getStringName() +
                                 "', index = " + std::to_string( i ) +
                                 " ( size = " + std::to_string( this->size() ) + " )";
@@ -252,7 +251,7 @@ class JeveuxCollectionObjectClass : private AllowedJeveuxType< ValueType > {
     inline ValueType &operator[]( const ASTERINTEGER &i ) {
 #ifdef ASTER_DEBUG_CXX_OBJECTS
         AS_ASSERT( _valuePtr != nullptr );
-        if ( i < 0 && i >= this->size() ) {
+        if ( i < 0 || i >= this->size() ) {
             std::string error = "Out of range of JeveuxCollectionObjectClass '" + getStringName() +
                                 "', index = " + std::to_string( i ) +
                                 " ( size = " + std::to_string( this->size() ) + " )";
@@ -282,7 +281,7 @@ class JeveuxCollectionObjectClass : private AllowedJeveuxType< ValueType > {
         CALLO_JELIRA( charJeveuxName, param0, &idummy, usage );
 
         if ( usage[0] == 'X' ) {
-            const_cast< JeveuxCollectionObjectClass< ValueType > * >( this )->_valuePtr = NULL;
+            _valuePtr = nullptr;
             return true;
         }
 
@@ -291,7 +290,7 @@ class JeveuxCollectionObjectClass : private AllowedJeveuxType< ValueType > {
         JeveuxChar32 dummy( " " );
         CALLO_JELIRA( charJeveuxName, param, &valTmp, dummy );
         if ( valTmp != _jeveuxAdress ) {
-            const_cast< JeveuxCollectionObjectClass< ValueType > * >( this )->_valuePtr = NULL;
+            _valuePtr = nullptr;
             return true;
         }
 
@@ -348,12 +347,12 @@ class JeveuxCollectionObjectClass : private AllowedJeveuxType< ValueType > {
         return toReturn;
     };
 
-    bool operator==( JeveuxCollectionObjectClass< ValueType > &toCompar ) const {
+    bool operator==( const JeveuxCollectionObjectClass< ValueType > &toCompar ) const {
         if ( this->size() != toCompar.size() )
             return false;
 
         auto size = this->size();
-        for ( ASTERINTEGER i = 0; i < size; size++ ) {
+        for ( ASTERINTEGER i = 0; i < size; i++ ) {
             if ( this->operator[]( i ) != toCompar[i] )
                 return false;
         }

@@ -141,6 +141,7 @@ class FieldOnCells : public DataField {
         _values = other._values;
         _title = other._title;
         setDescription( other._dofDescription );
+        _DCEL = other._DCEL;
         updateValuePointers();
     }
 
@@ -433,7 +434,7 @@ class FieldOnCells : public DataField {
     }
 
     VectorString getComponents() const {
-        JeveuxVectorChar8 cmp( "&CMP" );
+        JeveuxVectorChar8 cmp( getName() + ".TCMP" );
         ASTERINTEGER ncmp;
         VectorString cmps;
 

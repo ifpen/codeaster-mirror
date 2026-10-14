@@ -38,6 +38,7 @@
 #include "Utilities/Tools.h"
 
 #include <type_traits>
+#include <unordered_map>
 
 /**
  * @enum JeveuxCollectionAccessType
@@ -110,7 +111,7 @@ class JeveuxCollectionClass : public JeveuxObjectClass,
     /** @brief Definition d'un objet de collection du type ValueType */
     typedef JeveuxCollectionObject< ValueType > JeveuxCollObjValType;
     /** @brief std::map associant une chaine a un JeveuxCollObjValType */
-    typedef std::map< std::string, ASTERINTEGER > mapStrInt;
+    typedef std::unordered_map< std::string, ASTERINTEGER > mapStrInt;
 
     /** @brief La collection a-t-elle été construite ? */
     bool _isBuilt;
@@ -172,7 +173,8 @@ class JeveuxCollectionClass : public JeveuxObjectClass,
             CALLO_JEECRA_WRAP( _name, strParam, &taille );
             _totalSize = totalSize;
         }
-        _listObjects = std::vector< JeveuxCollObjValType >( size );
+        _listObjects.clear();
+        _listObjects.resize( size );
 
         return true;
     };
