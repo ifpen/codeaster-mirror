@@ -140,6 +140,15 @@ extern void DEFPPPSSSPPPPPPPPP( UTEREF2, uteref2, ASTERINTEGER *, ASTERINTEGER *
                                 ASTERINTEGER *, ASTERINTEGER *, ASTERDOUBLE *, ASTERDOUBLE *,
                                 ASTERDOUBLE *, ASTERINTEGER * );
 
+#define CALL_GET_MED_MAP( a, b, c ) CALLPPP( GET_MED_MAP, get_med_map, a, b, c )
+#define CALLO_GET_MED_MAP( a, b, c ) CALLPPP( GET_MED_MAP, get_med_map, a, b, c )
+extern void DEFPPP( GET_MED_MAP, get_med_map, ASTERINTEGER *, ASTERINTEGER *, ASTERINTEGER * );
+
+#define CALL_GET_MED_RENUM( a, b, c, d ) CALLPPPP( GET_MED_RENUM, get_med_renum, a, b, c, d )
+#define CALLO_GET_MED_RENUM( a, b, c, d ) CALLPPPP( GET_MED_RENUM, get_med_renum, a, b, c, d )
+extern void DEFPPPP( GET_MED_RENUM, get_med_renum, ASTERINTEGER *, ASTERINTEGER *, ASTERINTEGER *,
+                     ASTERINTEGER * );
+
 /* intrinsics */
 #define CALL_ABORTF() CALL0( ABORTF, abortf )
 extern void DEF0( ABORTF, abortf );

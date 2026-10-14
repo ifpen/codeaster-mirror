@@ -74,5 +74,29 @@ Arguments:
         - 'GAUSS_COOR' (list of float): Gauss point coordinates in global space.
         - 'GAUSS_WEIGHTS' (list of float): Gauss point weights.
         )",
-                 py::arg( "field" ) );
+                 py::arg( "field" ) ),
+        mod.def( "getMedToAsterTypes", &getMedToAsterTypesMap, R"(
+Retrieves the mapping between MED and Code_Aster element types.
+
+Returns:
+    dict[int, int]: TypeA -> TypeB.
+        )" ),
+        mod.def( "getAsterToMedTypes", &getAsterToMedTypesMap, R"(
+Retrieves the mapping between Code_Aster and MED element types.
+
+Returns:
+    dict[int, int]: TypeA -> TypeB.
+        )" ),
+        mod.def( "getMedToAsterConnectivity", &getMedToAsterRenumberingMap, R"(
+Retrieves the node renumbering map from MED to Code_Aster.
+
+Returns:
+    dict[int, list[int]]: TypeMED -> [nodes].
+        )" ),
+        mod.def( "getAsterToMedConnectivity", &getAsterToMedRenumberingMap, R"(
+Retrieves the node renumbering map from MED to Code_Aster.
+
+Returns:
+    dict[int, list[int]]: TypeMED -> [nodes].
+        )" );
 }

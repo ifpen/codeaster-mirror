@@ -1095,6 +1095,50 @@ def getQuadratureDict(field):
     """
 
 
+# built-in function getMedToAsterTypes in libaster
+
+
+def getMedToAsterTypes():
+    """Retrieves the mapping between MED and Code_Aster element types.
+
+    Returns:
+        dict[int, int]: TypeA -> TypeB.
+    """
+
+
+# built-in function getAsterToMedTypes in libaster
+
+
+def getAsterToMedTypes():
+    """Retrieves the mapping between Code_Aster and MED element types.
+
+    Returns:
+        dict[int, int]: TypeA -> TypeB.
+    """
+
+
+# built-in function getMedToAsterConnectivity in libaster
+
+
+def getMedToAsterConnectivity():
+    """Retrieves the node renumbering map from MED to Code_Aster.
+
+    Returns:
+        dict[int, list[int]]: TypeMED -> [nodes].
+    """
+
+
+# built-in function getAsterToMedConnectivity in libaster
+
+
+def getAsterToMedConnectivity():
+    """Retrieves the node renumbering map from MED to Code_Aster.
+
+    Returns:
+        dict[int, list[int]]: TypeMED -> [nodes].
+    """
+
+
 # class DiscreteComputation in libaster
 
 

@@ -21,6 +21,8 @@
  *   along with Code_Aster.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "astercxx.h"
+
 #include "aster_pybind.h"
 
 #include "DataFields/SimpleFieldOnCells.h"
@@ -353,3 +355,87 @@ py::dict toPyDict( const QuadratureMap &cpp_map ) {
 py::dict getQuadratureDict( const SimpleFieldOnCellsRealPtr &aster_field ) {
     return toPyDict( getQuadratureMap( aster_field ) );
 }
+
+VectorLong reverseConnectivity( const VectorLong &nodes ) {
+    VectorLong out;
+    MapLong tmp;
+
+    for ( ASTERINTEGER i = 0; i < nodes.size(); ++i ) {
+        tmp[nodes[i]] = i;
+    }
+
+    out.reserve( tmp.size() );
+
+    for ( const auto &[val, index] : tmp ) {
+        out.push_back( index );
+    }
+
+    return out;
+}
+
+/**
+ * @brief Récupère la correspondance entre les types d'éléments MED et Code_Aster.
+ *
+ * @return MapLong associant [Type Aster] -> [Type MED].
+ */
+MapLong getTypesMap( bool aster ) {
+
+    ASTERINTEGER sz = 0;
+    VectorLong aster_buffer( MAX_BUFFER_ELEMENTS );
+    VectorLong med_buffer( MAX_BUFFER_ELEMENTS );
+
+    CALLO_GET_MED_MAP( &sz, aster_buffer.data(), med_buffer.data() );
+
+    MapLong typesmap;
+    for ( ASTERINTEGER i = 0; i < sz; i++ ) {
+        if ( aster ) {
+            typesmap[aster_buffer[i]] = med_buffer[i];
+        } else {
+            typesmap[med_buffer[i]] = aster_buffer[i];
+        }
+    }
+
+    return typesmap;
+}
+
+MapLong getMedToAsterTypesMap() { return getTypesMap( false ); }
+MapLong getAsterToMedTypesMap() { return getTypesMap( true ); }
+
+/**
+ * @brief Récupère la table de renumérotation des nœuds pour les éléments MED.
+ **
+ * @param aster Si vrai, retourne la renumérotation inverse (Aster vers MED).
+ *                  Si faux, retourne la renumérotation directe (MED vers Aster).
+ * @return MapVectorLong Une map associant [Type MED] -> [Renumérotation].
+ */
+
+MapVectorLong getRenumberingMap( bool aster ) {
+    ASTERINTEGER sz = 0;
+    VectorLong aster_buffer( MAX_BUFFER_ELEMENTS );
+    VectorLong med_buffer( MAX_BUFFER_ELEMENTS );
+
+    CALLO_GET_MED_MAP( &sz, aster_buffer.data(), med_buffer.data() );
+
+    VectorLong numnoa_buffer( MAX_BUFFER_ELEMENTS );
+    VectorLong nuanom_buffer( MAX_BUFFER_ELEMENTS );
+    MapVectorLong renummap;
+
+    for ( ASTERINTEGER i = 0; i < sz; ++i ) {
+        ASTERINTEGER nno = 0;
+        CALLO_GET_MED_RENUM( &aster_buffer[i], &nno, numnoa_buffer.data(), nuanom_buffer.data() );
+
+        VectorLong fdirect( numnoa_buffer.begin(), numnoa_buffer.begin() + nno );
+        VectorLong freverse( nuanom_buffer.begin(), nuanom_buffer.begin() + nno );
+
+        if ( freverse != reverseConnectivity( fdirect ) ) {
+            AS_ABORT( "Fortran connectivity error!" );
+        }
+
+        renummap[med_buffer[i]] = std::move( aster ? freverse : fdirect );
+    }
+
+    return renummap;
+}
+
+MapVectorLong getMedToAsterRenumberingMap() { return getRenumberingMap( false ); }
+MapVectorLong getAsterToMedRenumberingMap() { return getRenumberingMap( true ); }
