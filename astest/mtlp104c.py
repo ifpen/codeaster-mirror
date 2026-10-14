@@ -137,8 +137,6 @@ result = THER_NON_LINE(
     CONVERGENCE=_F(RESI_GLOB_RELA=5.0e-5, ITER_GLOB_MAXI=50),
 )
 
-L_inst0 = result.getAccessParameters()["INST"]
-
 ####################################################################################################
 #
 #### Calcul métallurgique avec revenu
@@ -177,7 +175,7 @@ result = CALC_META(
     ETAT_INIT=_F(META_INIT_ELNO=PHASINIT),
     COMPORTEMENT=_F(RELATION="ACIER", TOUT="OUI", LOI_META="WAECKEL"),
     REVENU=_F(RELATION="ACIER_REVENU", TOUT="OUI", LOI_META="JMA"),
-    OPTION=("META_ELNO", "DURT_ELNO", "META_NOEU"),
+    OPTION=("META_ELNO", "DURT_ELNO"),
 )
 
 
