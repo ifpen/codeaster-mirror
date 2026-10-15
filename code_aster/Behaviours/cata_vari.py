@@ -689,6 +689,7 @@ DICT_NOM_VARI = {
     "TEMP": _("température"),
     "TEPG": _("FLUA_ENDO_PORO variation de volume par fissuration rgi"),
     "TEPS": _("FLUA_ENDO_PORO variation de volume meca total"),
+    "TRBEL": _("Trace of Green(Cauchy (left) B elastic strain tensor"),
     "THXY1": _(
         "Hujeux : normale entrante à la surface de charge du mécanisme père du mécanisme déviatoire du plan 3, composante 1"
     ),

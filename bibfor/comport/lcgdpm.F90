@@ -75,7 +75,6 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
 ! IN  COMPOR  : COMPORTEMENT
 ! IN  INSTAM  : INSTANT DU CALCUL PRECEDENT
 ! IN  INSTAP  : INSTANT DU CALCUL
-! IN  TREF    : TEMPERATURE DE REFERENCE
 ! IN  DF      : INCREMENT DU GRADIENT DE LA TRANSFORMATION
 ! IN  FM      : GRADIENT DE LA TRANSFORMATION A L INSTANT PRECEDENT
 ! IN  SIGM    : CONTRAINTES DE CAUCHY A L INSTANT PTECEDENT
@@ -90,7 +89,8 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
 !
 ! --------------------------------------------------------------------------------------------------
 !
-    integer(kind=8) :: maxval, nbPhases, metaType
+    integer(kind=8), parameter :: vixIndiPlas = 7, vixSigy = 6, vixSimo = 8
+    integer(kind=8) :: maxval, nbPhase, metaType
     integer(kind=8) :: i, j, k, l, mode, iret2
     integer(kind=8) :: ind(3, 3), nbr
     real(kind=8) :: phaseCurr(5), phasePrev(5), zalpha, deltaz(4)
@@ -120,13 +120,9 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
     aster_logical :: l_visc, l_anneal, l_plas_tran, l_hard_isotline, l_hard_isotnlin
     aster_logical :: lMatr, lVari, lSigm
     character(len=16) :: metaRela, metaGlob
-!
     data ind/1, 4, 5, &
         4, 2, 6, &
         5, 6, 3/
-!
-! SIGNIFICATION DES VARIABLES LOCALES
-!
 !  FB(I,J)=(J**(-1/3))*F(I,J)
 !  GPM(I,J) : DEFORMATION PLASTIQUE LAGRANGIENNE A L'INSTANT PRECEDENT
 !  B(I,J)=FB(I,K)*GPM(K,L)*FB(J,L)
@@ -146,7 +142,7 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
     lSigm = L_SIGM(option)
     lMatr = L_MATR(option)
     if (lVari) then
-        vip(1:9) = 0.d0
+        vip(1:8) = 0.d0
     end if
     if (lMatr) then
         dsigdf(1:6, 1:3, 1:3) = 0.d0
@@ -160,23 +156,23 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
     metaGlob = compor(META_GLOB)
 
 ! - Get metallurgy type
-    call metaGetType(metaType, nbPhases)
+    call metaGetType(metaType, nbPhase)
     ASSERT(metaType .eq. META_STEEL)
-    ASSERT(nbPhases .eq. 5)
+    ASSERT(nbPhase .eq. 5)
 
 ! - Get phases
     if (resi) then
         poum = '+'
         call metaGetPhase(fami, '+', kpg, ksp, metaType, &
-                          nbPhases, phaseCurr, zcold_=zalpha)
+                          nbPhase, phaseCurr, zcold_=zalpha)
         call metaGetPhase(fami, '-', kpg, ksp, metaType, &
-                          nbPhases, phasePrev)
+                          nbPhase, phasePrev)
     else
         poum = '-'
         call metaGetPhase(fami, '-', kpg, ksp, metaType, &
-                          nbPhases, phaseCurr, zcold_=zalpha)
+                          nbPhase, phaseCurr, zcold_=zalpha)
     end if
-    do k = 1, nbPhases-1
+    do k = 1, nbPhase-1
         deltaz(k) = phaseCurr(k)-phasePrev(k)
     end do
 !
@@ -201,18 +197,18 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
     call metaGetParaElas(poum, fami, kpg, ksp, imat, &
                          e_=e, mu_=mu, troisk_=troisk, &
                          mum_=mum)
-    plasti = vim(8)
-!
+    plasti = vim(vixIndiPlas)
+
 ! - Mixture law (yield limit)
-!
     call metaGetParaMixture(poum, fami, kpg, ksp, imat, &
-                            l_visc, metaType, nbPhases, zalpha, fmel, &
+                            l_visc, metaType, nbPhase, zalpha, fmel, &
                             sy)
+
     if (resi) then
 ! ----- Parameters for annealing
         if (l_anneal) then
             call metaGetParaAnneal(poum, fami, kpg, ksp, imat, &
-                                   metaType, nbPhases, &
+                                   metaType, nbPhase, &
                                    theta)
         else
             do i = 1, 8
@@ -222,7 +218,7 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
 ! ----- Parameters for viscosity
         if (l_visc) then
             call metaGetParaVisc(poum, fami, kpg, ksp, imat, &
-                                 metaType, nbPhases, eta, n, unsurn, &
+                                 metaType, nbPhase, eta, n, unsurn, &
                                  c, m)
         else
             eta(:) = 0.d0
@@ -234,7 +230,7 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
 !
 ! 2.6 - CALCUL DE VIM+DG-DS
 !
-        do k = 1, nbPhases-1
+        do k = 1, nbPhase-1
             dz(k) = phaseCurr(k)-phasePrev(k)
             if (dz(k) .ge. 0.d0) then
                 dz1(k) = dz(k)
@@ -244,21 +240,21 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
                 dz2(k) = -dz(k)
             end if
         end do
-        if (phaseCurr(nbPhases) .gt. 0.d0) then
+        if (phaseCurr(nbPhase) .gt. 0.d0) then
             dvin = 0.d0
-            do k = 1, nbPhases-1
-                dvin = dvin+dz2(k)*(theta(4+k)*vim(k)-vim(nbPhases))/ &
-                       phaseCurr(nbPhases)
+            do k = 1, nbPhase-1
+                dvin = dvin+dz2(k)*(theta(4+k)*vim(k)-vim(nbPhase))/ &
+                       phaseCurr(nbPhase)
             end do
-            vi(nbPhases) = vim(nbPhases)+dvin
-            vimoy = phaseCurr(nbPhases)*vi(nbPhases)
+            vi(nbPhase) = vim(nbPhase)+dvin
+            vimoy = phaseCurr(nbPhase)*vi(nbPhase)
         else
-            vi(nbPhases) = 0.d0
+            vi(nbPhase) = 0.d0
             vimoy = 0.d0
         end if
-        do k = 1, nbPhases-1
+        do k = 1, nbPhase-1
             if (phaseCurr(k) .gt. 0.d0) then
-                dvin = dz1(k)*(theta(k)*vim(nbPhases)-vim(k))/phaseCurr(k)
+                dvin = dz1(k)*(theta(k)*vim(nbPhase)-vim(k))/phaseCurr(k)
                 vi(k) = vim(k)+dvin
                 vimoy = vimoy+phaseCurr(k)*vi(k)
             else
@@ -270,7 +266,7 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
 !
         cmoy = 0.d0
         mmoy = 0.d0
-        do k = 1, nbPhases
+        do k = 1, nbPhase
             cmoy = cmoy+phaseCurr(k)*c(k)
             mmoy = mmoy+phaseCurr(k)*m(k)
         end do
@@ -280,7 +276,7 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
         else
             ds = dt*(cr**mmoy)
         end if
-        do k = 1, nbPhases
+        do k = 1, nbPhase
             if (phaseCurr(k) .gt. 0.d0) then
                 vi(k) = vi(k)-ds
                 if (vi(k) .le. 0.d0) vi(k) = 0.d0
@@ -290,9 +286,9 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
         trans = 0.d0
         if (l_plas_tran) then
             call metaGetParaPlasTransf('+', fami, 1, 1, imat, &
-                                       metaType, nbPhases, deltaz, zalpha, &
+                                       metaType, nbPhase, deltaz, zalpha, &
                                        kpt, fpt)
-            do k = 1, nbPhases-1
+            do k = 1, nbPhase-1
                 if (deltaz(k) .gt. 0.d0) then
                     trans = trans+kpt(k)*fpt(k)*deltaz(k)
                 end if
@@ -300,7 +296,7 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
         end if
     else
         trans = 0.d0
-        do k = 1, nbPhases
+        do k = 1, nbPhase
             vi(k) = vim(k)
         end do
     end if
@@ -311,18 +307,18 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
 ! ----- Get hardening slope (linear)
         coef_hard = (1.d0)
         call metaGetParaHardLine(poum, fami, kpg, ksp, imat, &
-                                 metaType, nbPhases, &
+                                 metaType, nbPhase, &
                                  e, coef_hard, h)
-        do k = 1, nbPhases
+        do k = 1, nbPhase
             r(k) = h(k)*vi(k)+sy(k)
         end do
     end if
     if (l_hard_isotnlin) then
 ! ----- Get hardening slope (non-linear)
-        call metaGetParaHardTrac(imat, metaType, nbPhases, &
+        call metaGetParaHardTrac(imat, metaType, nbPhase, &
                                  l_temp, temp, &
                                  vi, h, r, maxval)
-        do k = 1, nbPhases
+        do k = 1, nbPhase
             r(k) = r(k)+sy(k)
         end do
     end if
@@ -335,8 +331,8 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
         rmoy = 0.d0
         hmoy = 0.d0
     end if
-    rmoy = (1.d0-fmel)*r(nbPhases)+fmel*rmoy
-    hmoy = (1.d0-fmel)*h(nbPhases)+fmel*hmoy
+    rmoy = (1.d0-fmel)*r(nbPhase)+fmel*rmoy
+    hmoy = (1.d0-fmel)*h(nbPhase)+fmel*hmoy
 !
 ! ********************************
 ! 3 - DEBUT DE L ALGORITHME
@@ -381,7 +377,7 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
 ! 3.3 - DEFORMATIONS ELASTIQUES A L INSTANT PRECEDENT :
 ! BEM=DVTAUM/MUM+KR*TRBEM/3.D0
 !
-    xm = (jm**(-2.d0/3.d0))*(1.d0-2.d0*vim(9)/3.d0)
+    xm = (jm**(-2.d0/3.d0))*(1.d0-2.d0*vim(vixSimo)/3.d0)
     do i = 1, 6
         bem(i) = dvtaum(i)/mum+kr(i)*xm
     end do
@@ -402,7 +398,6 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
 ! 3.5 - TRACE ET PARTIE DEVIATORIQUE DU TENSEUR BEL
 !
     trbel = bel(1)+bel(2)+bel(3)
-!
     do i = 1, 6
         dvbel(i) = bel(i)-kr(i)*trbel/3.d0
     end do
@@ -420,7 +415,7 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
         eqtel = eqtel+pdtsca(i)*dvtel(i)*dvtel(i)
     end do
     eqtel = sqrt(1.5d0*eqtel)
-!
+
 ! 3.8 - TRACE DU TENSEUR DE KIRSHHOFF (CONNUE CAR NE DEPEND QUE DE J)
 !
     trtaup = (troisk*((jp*jp)-1.d0)/6.d0)-(troisk*epsth*(jp+(1.d0/jp))/2.d0)
@@ -436,12 +431,12 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
 !
         seuil = eqtel-(1.d0+mu*trans*trbel)*rmoy
         if (seuil .lt. 0.d0) then
-            vip(8) = 0.d0
+            vip(vixIndiPlas) = 0.d0
             dp = 0.d0
         else
-            vip(8) = 1.d0
+            vip(vixIndiPlas) = 1.d0
             mutild = 2.d0*mu*trbel/3.d0
-            call nzcalc(carcri, nbPhases, phaseCurr, zalpha, &
+            call nzcalc(carcri, nbPhase, phaseCurr, zalpha, &
                         fmel, seuil, dt, trans, &
                         hmoy, mutild, eta, unsurn, &
                         dp, iret)
@@ -455,10 +450,10 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
                     test = 0
                     vip(1:5) = vi(1:5)+dp
                     hplus(1:5) = h(1:5)
-                    call metaGetParaHardTrac(imat, metaType, nbPhases, &
+                    call metaGetParaHardTrac(imat, metaType, nbPhase, &
                                              l_temp, temp, &
                                              vip, h, r)
-                    do k = 1, nbPhases
+                    do k = 1, nbPhase
                         if (phaseCurr(k) .gt. 0.d0) then
                             r(k) = r(k)+sy(k)
                             if (abs(h(k)-hplus(k)) .gt. r8prem()) then
@@ -470,7 +465,7 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
                     hmoy = 0.d0
                     rmoy = 0.d0
                     if (zalpha .gt. 0.d0) then
-                        do k = 1, nbPhases-1
+                        do k = 1, nbPhase-1
                             if (phaseCurr(k) .gt. 0.d0) then
                                 rmoy = rmoy+phaseCurr(k)*(r(k)-h(k)*dp)
                                 hmoy = hmoy+phaseCurr(k)*h(k)
@@ -479,12 +474,12 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
                         rmoy = fmel*rmoy/zalpha
                         hmoy = fmel*hmoy/zalpha
                     end if
-                    if (phaseCurr(nbPhases) .gt. 0.d0) then
-                        rmoy = (1.d0-fmel)*(r(nbPhases)-h(nbPhases)*dp)+rmoy
-                        hmoy = (1.d0-fmel)*h(nbPhases)+hmoy
+                    if (phaseCurr(nbPhase) .gt. 0.d0) then
+                        rmoy = (1.d0-fmel)*(r(nbPhase)-h(nbPhase)*dp)+rmoy
+                        hmoy = (1.d0-fmel)*h(nbPhase)+hmoy
                     end if
                     seuil = eqtel-(1.d0+mu*trans*trbel)*rmoy
-                    call nzcalc(carcri, nbPhases, phaseCurr, zalpha, &
+                    call nzcalc(carcri, nbPhase, phaseCurr, zalpha, &
                                 fmel, seuil, dt, trans, &
                                 hmoy, mutild, eta, unsurn, &
                                 dp, iret)
@@ -497,7 +492,7 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
 !
 ! 4.2.2 - CALCUL DE SIGMA
 !
-        plasti = vip(8)
+        plasti = vip(vixIndiPlas)
         do i = 1, 6
             if (eqtel .gt. 0.d0) then
                 dvtaup(i) = dvtel(i)-mu*dp*trbel*dvtel(i)/eqtel
@@ -512,30 +507,29 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
         end do
 !
 ! 4.2.3 - CALCUL DE VIP ET RMOY
-!
-        do k = 1, nbPhases
+        do k = 1, nbPhase
             if (phaseCurr(k) .gt. 0.d0) then
                 vip(k) = vi(k)+dp
             else
                 vip(k) = 0.d0
             end if
         end do
-        vip(7) = 0.d0
-        if (phaseCurr(nbPhases) .gt. 0.d0) then
+        vip(vixSigy) = 0.d0
+        if (phaseCurr(nbPhase) .gt. 0.d0) then
             if (l_hard_isotline) then
-                vip(7) = vip(7)+(1-fmel)*h(nbPhases)*vip(nbPhases)
+                vip(vixSigy) = vip(vixSigy)+(1-fmel)*h(nbPhase)*vip(nbPhase)
             end if
             if (l_hard_isotnlin) then
-                vip(7) = vip(7)+(1-fmel)*(r(nbPhases)-sy(nbPhases))
+                vip(vixSigy) = vip(vixSigy)+(1-fmel)*(r(nbPhase)-sy(nbPhase))
             end if
         end if
         if (zalpha .gt. 0.d0) then
-            do k = 1, nbPhases-1
+            do k = 1, nbPhase-1
                 if (l_hard_isotline) then
-                    vip(7) = vip(7)+fmel*phaseCurr(k)*h(k)*vip(k)/zalpha
+                    vip(vixSigy) = vip(vixSigy)+fmel*phaseCurr(k)*h(k)*vip(k)/zalpha
                 end if
                 if (l_hard_isotnlin) then
-                    vip(7) = vip(7)+fmel*phaseCurr(k)*(r(k)-sy(k))/zalpha
+                    vip(vixSigy) = vip(vixSigy)+fmel*phaseCurr(k)*(r(k)-sy(k))/zalpha
                 end if
             end do
         end if
@@ -546,7 +540,6 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
 ! *******************************
 !
     if (rigi) then
-!
         if (option(1:14) .eq. 'RIGI_MECA_TANG') then
             do i = 1, 6
                 tau(i) = taum(i)
@@ -556,7 +549,6 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
                 tau(i) = taup(i)
             end do
         end if
-!
         mat0(1, 1) = df(2, 2)*df(3, 3)-df(2, 3)*df(3, 2)
         mat0(2, 2) = df(1, 1)*df(3, 3)-df(1, 3)*df(3, 1)
         mat0(3, 3) = df(1, 1)*df(2, 2)-df(1, 2)*df(2, 1)
@@ -566,7 +558,6 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
         mat0(3, 1) = df(1, 2)*df(2, 3)-df(1, 3)*df(2, 2)
         mat0(2, 3) = df(3, 1)*df(1, 2)-df(1, 1)*df(3, 2)
         mat0(3, 2) = df(2, 1)*df(1, 3)-df(1, 1)*df(2, 3)
-!
         do i = 1, 3
             do j = 1, 3
                 mat1(i, j) = 0.d0
@@ -575,7 +566,6 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
                 end do
             end do
         end do
-!
         do i = 1, 3
             do j = 1, 3
                 do k = 1, 3
@@ -585,7 +575,6 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
                 end do
             end do
         end do
-!
         eqtau = 0.d0
         trtau = (tau(1)+tau(2)+tau(3))/3.d0
         do i = 1, 6
@@ -602,12 +591,10 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
         coeff3 = -2.d0*mu/(3.d0*coeff1*jp*dj)
         coeff4 = (troisk*jp/3.d0)-troisk*epsth*(1.d0-(jp**(-2.d0)))/2.d0
         coeff4 = coeff4/dj
-!
         do i = 1, 6
             do j = 1, 3
                 do k = 1, 3
-                    dsigdf(i, j, k) = mat2(i, j, k)-2.d0*kr(i)*mat1(j, k)/ &
-                                      3.d0
+                    dsigdf(i, j, k) = mat2(i, j, k)-2.d0*kr(i)*mat1(j, k)/3.d0
                     dsigdf(i, j, k) = coeff2*dsigdf(i, j, k)+coeff3* &
                                       dvbel(i)*mat0(j, k)+coeff4*kr(i)*mat0(j, k) &
                                       -tau(i)*mat0(j, k)/(jp*dj)
@@ -631,13 +618,13 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
             if (l_visc) mode = 1
             if (mode .eq. 1) then
                 if (dp .gt. 0.d0) then
-                    do i = 1, nbPhases
+                    do i = 1, nbPhase
                         n0(i) = (1-n(i))/n(i)
                     end do
-                    dv = (1-fmel)*phaseCurr(nbPhases)*(eta(nbPhases)/n(nbPhases)/dt)* &
-                         ((dp/dt)**n0(nbPhases))
+                    dv = (1-fmel)*phaseCurr(nbPhase)*(eta(nbPhase)/n(nbPhase)/dt)* &
+                         ((dp/dt)**n0(nbPhase))
                     if (zalpha .gt. 0.d0) then
-                        do i = 1, nbPhases-1
+                        do i = 1, nbPhase-1
                             if (phaseCurr(i) .gt. 0.d0) then
                                 dv = dv+fmel* &
                                      (phaseCurr(i)/zalpha)*(eta(i)/n(i)/dt)* &
@@ -681,8 +668,10 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
                 do i = 1, 6
                     do j = 1, 3
                         do k = 1, 3
-                            dsigdf(i, j, k) = dsigdf(i, j, k)+coeff6*dvtau(i)*mat3(j, k)+ &
-                                              coeff7*dvtau(i)*mat1(j, k)+coeff9*dvtau(i)*mat0(j, k)
+                            dsigdf(i, j, k) = dsigdf(i, j, k)+ &
+                                              coeff6*dvtau(i)*mat3(j, k)+ &
+                                              coeff7*dvtau(i)*mat1(j, k)+ &
+                                              coeff9*dvtau(i)*mat0(j, k)
                         end do
                     end do
                 end do
@@ -716,7 +705,7 @@ subroutine lcgdpm(fami, kpg, ksp, ndim, imat, &
                 if ((abs(sol(i)-xm)) .lt. (abs(sol(i-1)-xm))) xp = sol(i)
             end do
         end if
-        vip(9) = 3.d0*(1.d0-(jp**(2.d0/3.d0))*xp)/2.d0
+        vip(vixSimo) = 3.d0*(1.d0-(jp**(2.d0/3.d0))*xp)/2.d0
     end if
 !
 999 continue
