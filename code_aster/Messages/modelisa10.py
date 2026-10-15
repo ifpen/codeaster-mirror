@@ -57,6 +57,11 @@ La maille quadrangulaire %(i1)d est dégénérée : les cotés 1-2 et 1-3 sont c
 On ne peut pas évaluer la normale.
 """
     ),
+    6: _(
+        """
+La groupe %(k1)s n'appartient pas au maillage %(k2)s
+"""
+    ),
     7: _(
         """
 Il faut au moins un noeud esclave.

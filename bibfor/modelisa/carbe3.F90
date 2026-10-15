@@ -31,6 +31,7 @@ subroutine carbe3(charge)
 #include "asterfort/getvtx.h"
 #include "asterfort/infniv.h"
 #include "asterfort/jedema.h"
+#include "asterfort/jeexin.h"
 #include "asterfort/jelira.h"
 #include "asterfort/jemarq.h"
 #include "asterfort/jeveuo.h"
@@ -61,7 +62,7 @@ subroutine carbe3(charge)
     character(len=15) :: coordo
     character(len=16) :: motfac, concep, nomcmd
     character(len=19) :: lisrel
-    character(len=24) :: ddlstr, grouno, gromai
+    character(len=24) :: ddlstr, grouno, gromai, liste_erreur(2)
     complex(kind=8) :: betac
     integer(kind=8) :: ifm, niv, iret
     integer(kind=8) :: idxrbe, idxlig, idxcol, idxvec, idxnoe, idxgro, idxter
@@ -152,6 +153,12 @@ subroutine carbe3(charge)
                     nbret=nbgrou)
         if (nbgrou .ne. 0) then
             do idxgro = 1, nbgrou
+                call jeexin(jexnom(grouno, zk24(jlises-1+idxgro)), iret)
+                if (iret .eq. 0) then
+                    liste_erreur(1) = zk24(jlises-1+idxgro)
+                    liste_erreur(2) = noma
+                    call utmess('F', 'MODELISA10_6', nk=2, valk=liste_erreur)
+                end if
                 call jelira(jexnom(grouno, zk24(jlises-1+idxgro)), 'LONUTI', nbnoeu)
                 if (nbnoeu .eq. 0) then
                     call utmess('F', 'MODELISA10_8', sk=zk24(jlises-1+idxgro))

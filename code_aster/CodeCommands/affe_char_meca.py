@@ -136,6 +136,24 @@ class MechanicalLoadDefinition(ExecuteCommand):
             if "LIAISON_PROJ" in list(keywords.keys()):
                 matr_proj = keywords["LIAISON_PROJ"][0]["MATR_PROJECTION"]
                 connectionMesh = matr_proj.getSecondMesh()
+                for key in list(keywords.keys()):
+                    if key in (
+                        "LIAISON_DDL",
+                        "DDL_IMPO",
+                        "LIAISON_OBLIQUE",
+                        "LIAISON_UNIF",
+                        "LIAISON_SOLIDE",
+                        "DDL_POUTRE",
+                        "FACE_IMPO",
+                        "ARETE_IMPO",
+                        "LIAISON_RBE3",
+                        "LIAISON_MAIL",
+                        "LIAISON_MASSIF",
+                        "LIAISON_GROUP",
+                        "LIAISON_COQUE",
+                        "LIAISON_ELEM",
+                    ):
+                        raise NameError("LIAISON_PROJ in HPC must be alone in AFFE_CHAR_MECA")
             else:
                 nodeGroups, cellGroups = _getGroups(self._cata, keywords)
                 connectionMesh = ConnectionMesh(model.getMesh(), nodeGroups, cellGroups)

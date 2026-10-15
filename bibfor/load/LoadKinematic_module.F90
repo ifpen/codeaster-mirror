@@ -1885,11 +1885,6 @@ contains
 !
         valeType = valeTypeZ
         ASSERT(valeType .eq. 'REEL')
-        lcolle = .false.
-        call jeexin(mesh(1:8)//'.NOMNOE', ier)
-        if (ier .ne. 0) then
-            lcolle = .true.
-        end if
 
 ! - List of rotation DOF
         AS_ALLOCATE(vk8=dofRotaName, size=nbDofRota)
@@ -1902,6 +1897,12 @@ contains
         call dismoi('DIM_GEOM', modelZ, 'MODELE', repi=geomDime)
         call dismoi('NOM_LIGREL', modelZ, 'MODELE', repk=modelLigrel)
         call jeveuo(modelLigrel//'.PRNM', 'L', jvPrnm)
+
+        lcolle = .false.
+        call jeexin(mesh(1:8)//'.NOMNOE', ier)
+        if (ier .ne. 0) then
+            lcolle = .true.
+        end if
 
 ! - About mesh
         call jeveuo(mesh//'.TYPMAIL', 'L', vi=cellType)
