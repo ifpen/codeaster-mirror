@@ -299,9 +299,8 @@ class ExecuteCommand:
         elif type(toVisit) in (dict, _F):
             for value in toVisit.values():
                 self._add_deps_keywords(value)
-        elif isinstance(toVisit, DataStructure):
-            if name != toVisit.getName():
-                self._result.addDependency(toVisit)
+        elif isinstance(toVisit, DataStructure) and name != toVisit.getName():
+            self._result.addDependency(toVisit)
 
     def add_dependencies(self, keywords):
         """Register input *DataStructure* objects as dependencies.
@@ -409,7 +408,7 @@ class ExecuteCommand:
         lineno = self._caller["lineno"]
 
         logger.info(
-            "\n.. _stg{0}_{1}".format(
+            "\n.. _stg{}_{}".format(
                 ExecutionParameter().get_option("stage_number"), self._caller["identifier"]
             )
         )
@@ -430,7 +429,7 @@ class ExecuteCommand:
                 if deps:
                     logger.info(MessageLog.GetText("I", "SUPERVIS2_80"))
                 for dep in deps:
-                    logger.info("# - {0} {1}".format(*_get_object_repr(dep)))
+                    logger.info("# - {} {}".format(*_get_object_repr(dep)))
         self._print_stats()
 
     def _print_stats(self):
@@ -503,7 +502,7 @@ class ExecuteCommand:
             self._result = None
         else:
             raise NotImplementedError(
-                "Method 'create_result' must be overridden for {0!r}.".format(self.name)
+                f"Method 'create_result' must be overridden for {self.name!r}."
             )
 
     @property
@@ -603,9 +602,8 @@ class ExecuteCommand:
                 if logger.getEffectiveLevel() == DEBUG:
                     result.debugPrint()
                 logger.error(
-                    "SDVERI ended with exit code {0} for {1!r} ({2!r}, {3!r})".format(
-                        iret, result.getName(), result.getType(), result.sdj.__class__.__name__
-                    )
+                    f"SDVERI ended with exit code {iret} for {result.getName()!r} "
+                    f"({result.getType()!r}, {result.sdj.__class__.__name__!r})"
                 )
         finally:
             timer.Stop(" . sdveri")
@@ -632,9 +630,9 @@ class ExecuteCommand:
             del caller
 
         try:
-            identifier = "cmd{0}".format(keywords.pop("identifier"))
+            identifier = "cmd{}".format(keywords.pop("identifier"))
         except KeyError:
-            identifier = "txt{0}".format(self._caller["lineno"])
+            identifier = "txt{}".format(self._caller["lineno"])
         self._caller["identifier"] = identifier
 
     @classmethod
@@ -693,7 +691,7 @@ class ExecuteMacro(ExecuteCommand):
 
     def __init__(self):
         """Initialization"""
-        super(ExecuteMacro, self).__init__()
+        super().__init__()
         self._op = self.command_op or import_object(self._op)
 
     def create_result(self, keywords):
@@ -742,9 +740,8 @@ class ExecuteMacro(ExecuteCommand):
             ExecuteMacro._check_freq = ExecutionParameter().get_option("max_check") < 5
         if ExecuteMacro._check_freq and time.time() - ExecuteMacro._last_cleanup_date < 1.0:
             return
-        if ExecuteCommand.level > 1:
-            if self._counter < ExecuteMacro._last_cleanup + 250:
-                return
+        if ExecuteCommand.level > 1 and self._counter < ExecuteMacro._last_cleanup + 250:
+            return
         ExecuteMacro._last_cleanup = self._counter
         ExecuteMacro._last_cleanup_date = time.time()
         timer = ExecutionParameter().timer
@@ -777,11 +774,11 @@ class ExecuteMacro(ExecuteCommand):
         if not self._sdprods:
             self._result = output
         else:
-            dres = dict(main=output)
+            dres = {"main": output}
             dres.update([(k, v) for k, v in self._add_results.items() if k in self._result_names])
             missing = set(self._result_names).difference(list(dres.keys()))
             if missing:
-                raise ValueError("Missing results: {0}".format(tuple(missing)))
+                raise ValueError(f"Missing results: {tuple(missing)}")
             self._result = NamedTuple(dres)
 
     def register_result(self, result, target):
@@ -864,8 +861,8 @@ def UserMacro(name, cata, ops):
         command_cata = cata
 
         @staticmethod
-        def command_op(self, **kwargs):
-            return ops(self, **kwargs)
+        def command_op(macro, **kwargs):
+            return ops(macro, **kwargs)
 
     return Macro.run
 
@@ -878,7 +875,7 @@ class CO(PyDataStructure):
     @property
     def value_repr(self):
         """Returns the representation as a keyword value."""
-        return "CO('{0}')".format(self.userName)
+        return f"CO('{self.userName}')"
 
     def is_typco(self):
         """Tell if it is an auxiliary result."""
@@ -890,7 +887,6 @@ class CO(PyDataStructure):
 
     def setType(self, typ):
         """Declare the future type."""
-        pass
 
     # used in AsterStudy as settype
     settype = setType
@@ -936,11 +932,11 @@ def get_user_name(command, filename, lineno, strict=True):
         str: Variable name used by the user, empty if not found.
     """
     re_comment = re.compile(r"^\s*#.*")
-    re_oper = re.compile(r"\b{0}\s*\(".format(command))
+    re_oper = re.compile(rf"\b{command}\s*\(")
     if strict:
-        re_name = re.compile(r"^\s*(?P<name>\w+)\s*" r"=\s*{0}\s*\(".format(command))
+        re_name = re.compile(r"^\s*(?P<name>\w+)\s*" rf"=\s*{command}\s*\(")
     else:
-        re_name = re.compile(r"^\s*(?P<name>.+)\s*" r"=\s*{0}\s*\(".format(command))
+        re_name = re.compile(r"^\s*(?P<name>.+)\s*" rf"=\s*{command}\s*\(")
 
     while lineno > 0:
         line = linecache.getline(filename, lineno)
@@ -985,7 +981,7 @@ def _get_object_repr(obj):
     if hasattr(obj, "getName"):
         nam = decorate_name(obj.getName().strip())
         if obj.userName:
-            nam = "{0} ({1})".format(obj.userName.strip(), nam)
+            nam = f"{obj.userName.strip()} ({nam})"
         typ = MessageLog.GetText("I", "SUPERVIS2_76", valk=type(obj).__name__)
     elif isinstance(obj, str):
         nam = decorate_name(obj)
@@ -1007,7 +1003,7 @@ def command_result(counter, command_name, result):
         str: String representation.
     """
     show_name, show_type = _get_object_repr(result)
-    dict_args = dict(vali=counter, valk=(command_name, show_name, show_type))
+    dict_args = {"vali": counter, "valk": (command_name, show_name, show_type)}
     return MessageLog.GetText("I", "SUPERVIS2_72", **dict_args)
 
 
