@@ -71,6 +71,16 @@ class CheckerError(Exception):
         return "For keyword {0._stack}: {0._msg}".format(self)
 
 
+class UnexpectedTypeError(Exception):
+    """Exception raised if a keyword value does not match expected types."""
+
+    def __init__(self, value, index, types):
+        super().__init__()
+        self.value = value
+        self.index = index
+        self.types = types
+
+
 def fromTypeName(typename):
     """Convert a typename to a list of valid Python types (or an empty list)
     Example: 'I' returns [int, ...]"""
@@ -157,6 +167,7 @@ class SyntaxCheckerVisitor:
     Arguments:
         max_check (int): Limit the number of checked occurrences
             (default: 99999).
+        typefixer_cb (callable|None): Callback that may fix type errors.
 
     Attributes:
         _stack (list): Stack of checked objects for error report.
@@ -164,11 +175,12 @@ class SyntaxCheckerVisitor:
             conditions.
     """
 
-    def __init__(self, max_check=99999):
+    def __init__(self, max_check=99999, typefixer_cb=None):
         """Initialization"""
         self._stack = []
         self._parent_context = []
         self._max_check = max_check
+        self._typefixer_cb = typefixer_cb
 
     @property
     def stack(self):
@@ -203,7 +215,7 @@ class SyntaxCheckerVisitor:
         except Exception as exc:
             self.error(
                 TypeError,
-                ("Cannot type result of the command {0}\n" "Exception raised: {1})").format(
+                ("Cannot type result of the command {0}\nException raised: {1})").format(
                     step.name, repr(exc)
                 ),
             )
@@ -318,9 +330,7 @@ class SyntaxCheckerVisitor:
             # type
             if not isValidType(i, validType):
                 step._context(i)
-                self.error(
-                    TypeError, "Unexpected type: {0}, expecting: {1}".format(type(i), validType)
-                )
+                raise UnexpectedTypeError(i, count - 1, validType)
             # into
             if "into" in step.definition:
                 if i not in step.definition["into"]:
@@ -395,15 +405,17 @@ class SyntaxCheckerVisitor:
         if len(userDict) < step.definition.get("min", 0):
             self.error(
                 ValueError,
-                "Too few factor keyword, at least {0} "
-                "occurrence(s) expected".format(step.definition.get("min", 0)),
+                "Too few factor keyword, at least {0} occurrence(s) expected".format(
+                    step.definition.get("min", 0)
+                ),
             )
         max_occurences = step.definition.get("max", 1)
         if max_occurences != "**" and len(userDict) > max_occurences:
             self.error(
                 ValueError,
-                "Too much factor keyword, at most {0} "
-                "occurrence(s) expected".format(max_occurences),
+                "Too much factor keyword, at most {0} occurrence(s) expected".format(
+                    max_occurences
+                ),
             )
 
         # loop on occurrences filled by the user
@@ -450,14 +462,42 @@ class SyntaxCheckerVisitor:
                             if kwd.definition.get("typ") == "C" and isinstance(value[0], str):
                                 value = [value]
                     self._stack.append(key)
-                    kwd.accept(self, value)
+                    value = self._accept_simple(kwd, value, userOcc, key)
                     self._stack.pop()
                     # exception for complex
                     if value is not None and kwd.definition.get("typ") == "C":
                         userOcc[key] = convert_complex(value)
 
+    def _accept_simple(self, kwd, value, userOcc, key):
+        """Wrapper around 'simple_keyword.accept()'."""
+        try:
+            kwd.accept(self, value)
+        except UnexpectedTypeError as exc:
+            changed = False
+            if self._typefixer_cb:
+                changed, value = self._typefixer_cb(value, exc.index, exc.types)
+                userOcc[key] = value
+            if not changed:
+                self.error(
+                    TypeError,
+                    f"Unexpected type: {type(exc.value)} (at index {exc.index}), "
+                    f"expecting: {exc.types}",
+                )
+            # else ensure that the new value is valid:
+            try:
+                kwd.accept(self, value)
+            except UnexpectedTypeError as exc:
+                self.error(
+                    TypeError,
+                    f"Unexpected type: {type(exc.value)} (at index {exc.index}), "
+                    f"expecting: {exc.types}",
+                )
+        return value
 
-def checkCommandSyntax(command, keywords, add_default=True, max_check=99999):
+
+def checkCommandSyntax(
+    command, keywords: dict, add_default: bool = True, max_check: int = 99999, typefixer_cb=None
+):
     """Check the syntax of a command `keywords` contains the default keywords
     and the user keywords filled by the user.
 
@@ -472,8 +512,9 @@ def checkCommandSyntax(command, keywords, add_default=True, max_check=99999):
             added or not.
         max_check (int): Limit the number of checked occurrences
             (default: 99999).
+        typefixer_cb (callable|None): Callback that may fix type errors.
     """
-    checker = SyntaxCheckerVisitor(max_check)
+    checker = SyntaxCheckerVisitor(max_check, typefixer_cb)
     if not isinstance(keywords, dict):
         checker.error(TypeError, "'dict' object is expected")
 

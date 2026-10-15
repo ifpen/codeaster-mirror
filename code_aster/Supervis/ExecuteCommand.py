@@ -1,4 +1,3 @@
-# coding=utf-8
 # --------------------------------------------------------------------
 # Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
@@ -90,6 +89,7 @@ from ..Utilities import (
 from ..Utilities.outputs import command_text, decorate_name
 from .code_file import Tracking
 from .CommandSyntax import CommandSyntax
+from .Converter import type_fixer
 from .ctopy import check_ds_object
 from .Serializer import FinalizeOptions, saveObjectsFromContext
 
@@ -457,7 +457,13 @@ class ExecuteCommand:
             remove_none(keywords)
             logger.debug("checking syntax of %s...", self.name)
             max_check = ExecutionParameter().get_option("max_check")
-            checkCommandSyntax(self._cata, keywords, add_default=False, max_check=max_check)
+            checkCommandSyntax(
+                self._cata,
+                keywords,
+                add_default=False,
+                max_check=max_check,
+                typefixer_cb=type_fixer,
+            )
         except (
             CheckerError,
             AssertionError,
