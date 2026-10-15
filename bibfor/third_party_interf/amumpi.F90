@@ -61,7 +61,7 @@ subroutine amumpi(option, lquali, ldist, kxmps, type, lmhpc, lbloc)
     type(zmumps_struc), pointer :: zmpsk => null()
     integer(kind=8) :: ifm, niv, i, isymm, isymv, isym, nbproc, i1, i2
     integer(kind=8) :: nprec, nbomp, nbrhs, iret1, iret2, iret3
-    integer(kind=8) :: k370, k371, k401, k268, iaux, redmpi
+    integer(kind=8) :: k371, k268, iaux, redmpi
     mumps_int :: i4, icntl(nicntl)
     real(kind=8) :: cntl(ncntl), rr4max, blreps
     aster_logical :: lverbose
@@ -79,7 +79,6 @@ subroutine amumpi(option, lquali, ldist, kxmps, type, lmhpc, lbloc)
     call asmpi_comm('GET', mpicou)
     call infniv(ifm, niv)
 ! pour forcer le mode VERBOSE de MUMPS
-    lverbose = .true.
     lverbose = .false.
 !
 !       ------------------------------------------------
@@ -266,7 +265,11 @@ subroutine amumpi(option, lquali, ldist, kxmps, type, lmhpc, lbloc)
 ! ------     API MUMPS ACCELERATION
 
         if (lbloc) then
-            icntl(15) = 1
+            if ((kacmum .eq. 'FR') .or. (kacmum .eq. 'LR')) then
+                ! parametrage par defaut de MUMPS
+            else
+                icntl(15) = 1
+            end if
         else
             icntl(15) = 0
         end if
@@ -294,9 +297,7 @@ subroutine amumpi(option, lquali, ldist, kxmps, type, lmhpc, lbloc)
             nbomp = nbomp*icntl(17)
         end if
         k268 = 0
-        k370 = 0
         k371 = 0
-        k401 = 0
         icntl(35) = 0
         icntl(36) = 0
         icntl(37) = 0
@@ -306,15 +307,15 @@ subroutine amumpi(option, lquali, ldist, kxmps, type, lmhpc, lbloc)
 ! FR std
         case ('FR+', 'FR++')
 ! FR +  aggressive optimizations + MUMPS feature in advance if ++ (consortium version)
-            k370 = 1
             k371 = 1
             if (kacmum(3:4) .eq. '++') then
                 k268 = -2
+
 #ifdef ASTER_MUMPS_CONSORTIUM
                 icntl(58) = 2
 #endif
                 if (nbomp > 1) then
-                    k401 = 1
+                    icntl(48) = 1
                 end if
             end if
         case ('LR', 'LR+', 'LR++')
@@ -332,10 +333,9 @@ subroutine amumpi(option, lquali, ldist, kxmps, type, lmhpc, lbloc)
                 icntl(58) = 2
 #endif
                 k268 = -2
-                k370 = 1
                 k371 = 1
                 if (nbomp > 1) then
-                    k401 = 1
+                    icntl(48) = 1
                 end if
                 if (kacmum(4:4) .eq. '+') then
 ! BLR+: priorite RAM (consortium version)
@@ -349,24 +349,16 @@ subroutine amumpi(option, lquali, ldist, kxmps, type, lmhpc, lbloc)
 
         if (type .eq. 'S') then
             smpsk%keep(268) = to_mumps_int(k268)
-            smpsk%keep(370) = to_mumps_int(k370)
             smpsk%keep(371) = to_mumps_int(k371)
-            smpsk%keep(401) = to_mumps_int(k401)
         else if (type .eq. 'C') then
             cmpsk%keep(268) = to_mumps_int(k268)
-            cmpsk%keep(370) = to_mumps_int(k370)
             cmpsk%keep(371) = to_mumps_int(k371)
-            cmpsk%keep(401) = to_mumps_int(k401)
         else if (type .eq. 'D') then
             dmpsk%keep(268) = to_mumps_int(k268)
-            dmpsk%keep(370) = to_mumps_int(k370)
             dmpsk%keep(371) = to_mumps_int(k371)
-            dmpsk%keep(401) = to_mumps_int(k401)
         else if (type .eq. 'Z') then
             zmpsk%keep(268) = to_mumps_int(k268)
-            zmpsk%keep(370) = to_mumps_int(k370)
             zmpsk%keep(371) = to_mumps_int(k371)
-            zmpsk%keep(401) = to_mumps_int(k401)
         end if
 !
 ! ---     MESSAGES/ALERTES MUMPS
@@ -623,14 +615,16 @@ subroutine amumpi(option, lquali, ldist, kxmps, type, lmhpc, lbloc)
             if (lquali) icntl(11) = 2
         case default
             if (lquali) then
-                icntl(11) = 1
                 if (slvk(11) .eq. 'SANS') then
+                    icntl(11) = 2
                 else if (slvk(11) .eq. 'AUTO') then
                     icntl(10) = 4
                     cntl(2) = 1.d-14
+                    icntl(11) = 2
                 else if (slvk(11) .eq. 'FORCE') then
                     icntl(10) = 10
                     cntl(2) = 10.d-50
+                    icntl(11) = 1
                     if (type .eq. 'S' .or. type .eq. 'C') then
                         cntl(2) = 1.d-38
                     end if
