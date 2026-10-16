@@ -128,6 +128,7 @@ subroutine ircmpe(nofimd, ncmpve, numcmp, exicmp, nbvato, &
     character(len=16), pointer :: fpg_name(:) => null()
     character(len=16), pointer :: nofpgma(:) => null()
     character(len=16), pointer :: v_nofpg(:) => null()
+    character(len=16), pointer :: v_nofpg_l(:) => null()
     mpi_int :: mrank, msize, mpicou, taille
     aster_logical :: lficUniq, lnbmal, lnbmaec, cara_ele_used
     real(kind=8) :: start_time, end_time
@@ -497,7 +498,6 @@ subroutine ircmpe(nofimd, ncmpve, numcmp, exicmp, nbvato, &
         end do
         zi(jnbimpr) = 0
         call wkvect('&&IRCMPE.NBIMPR2', 'V V I', 10*nbimprt, vi=v_nbimpr2)
-        call wkvect('&&IRCMPE.NOFPG', 'V V K16', nb_cmp_tot, vk16=v_nofpg)
         do iaux = 1, nbimpr
             do jaux = 0, 9
                 v_nbimpr2(10*(zi(jnbimpr+rang)+iaux-1)+jaux+1) = zi(adcaii+10*(iaux-1)+jaux)
@@ -506,43 +506,68 @@ subroutine ircmpe(nofimd, ncmpve, numcmp, exicmp, nbvato, &
         call jedetr('&&IRCMPE.NBIMPR')
         call wkvect('&&IRCMPE.NBIMPR', 'V V I', nbimprt, jnbimpr)
         call wkvect('&&IRCMPE.NBIMPR3', 'V V I', 10*nbimprt, jnbimpr3)
+        call wkvect('&&IRCMPE.NBIMPR4', 'V V K16', 10*nbimprt, vk16=v_nofpg_l)
         call asmpi_comm_vect('MPI_SUM', 'I', 10*nbimprt, 0, vi=v_nbimpr2)
         taille = to_mpi_int(nbimpr)
-        call asmpi_allgatherv_char16(fpg_name, taille, v_nofpg, v_count, v_displ, mpicou)
+        call wkvect('&&IRCMPE.NOFPG', 'V V K16', nb_cmp_tot, vk16=v_nofpg)
+        if (typech .eq. 'ELGA') then
+            call asmpi_allgatherv_char16(fpg_name, taille, v_nofpg, v_count, v_displ, mpicou)
+        end if
         call jedetr('&&IRCMPE.COUNT')
         call jedetr('&&IRCMPE.DISPL')
         nbimprl(1) = 0
         do iaux = 1, nbimprt
             if (zi(jnbimpr+iaux-1) .eq. -1) cycle
             nomfpg = v_nofpg(iaux)
+            nrefma = v_nbimpr2(10*(iaux-1)+1)
             nbsp = v_nbimpr2(10*(iaux-1)+3)
             do jaux = iaux+1, nbimprt
-                if (nomfpg .eq. v_nofpg(jaux) .and. &
-                    nbsp .eq. v_nbimpr2(10*(jaux-1)+3)) then
-                    zi(jnbimpr+jaux-1) = -1
-                    cycle
+                if (typech .eq. 'ELGA') then
+                    if (nomfpg .eq. v_nofpg(jaux) .and. &
+                        nbsp .eq. v_nbimpr2(10*(jaux-1)+3)) then
+                        zi(jnbimpr+jaux-1) = -1
+                        cycle
+                    end if
+                else
+                    if (nrefma .eq. v_nbimpr2(10*(jaux-1)+1) .and. &
+                        nbsp .eq. v_nbimpr2(10*(jaux-1)+3)) then
+                        zi(jnbimpr+jaux-1) = -1
+                        cycle
+                    end if
                 end if
             end do
             do jaux = 0, 9
                 zi(jnbimpr3+10*nbimprl(1)+jaux) = v_nbimpr2(10*(iaux-1)+jaux+1)
             end do
             zi(jnbimpr3+10*nbimprl(1)+6) = 0
+            v_nofpg_l(nbimprl(1)+1) = nomfpg
             nbimprl(1) = nbimprl(1)+1
         end do
         if (nbimpr .ne. 0) then
             call wkvect('&&IRCMPE.INDIR', 'V V I', nbimpr, vi=v_indir)
         end if
         do iaux = 1, nbimprl(1)
-            nomfpg = v_nofpg(iaux)
+            nomfpg = v_nofpg_l(iaux)
+            nrefma = zi(jnbimpr3+10*(iaux-1))
             nbsp = zi(jnbimpr3+10*(iaux-1)+2)
             nbpg = zi(jnbimpr3+10*(iaux-1)+1)
             do jaux = 1, nbimpr
-                if (nomfpg .eq. fpg_name(jaux) .and. &
-                    nbsp .eq. zi(adcaii+10*(jaux-1)+2)) then
-                    zi(jnbimpr3+10*(iaux-1)+6) = zi(adcaii+10*(jaux-1)+6)
-                    ASSERT(nbimpr .ne. 0)
-                    v_indir(jaux) = iaux
-                    cycle
+                if (typech .eq. 'ELGA') then
+                    if (nomfpg .eq. fpg_name(jaux) .and. &
+                        nbsp .eq. zi(adcaii+10*(jaux-1)+2)) then
+                        zi(jnbimpr3+10*(iaux-1)+6) = zi(adcaii+10*(jaux-1)+6)
+                        ASSERT(nbimpr .ne. 0)
+                        v_indir(jaux) = iaux
+                        cycle
+                    end if
+                else
+                    if (nrefma .eq. zi(adcaii+10*(jaux-1)) .and. &
+                        nbsp .eq. zi(adcaii+10*(jaux-1)+2)) then
+                        zi(jnbimpr3+10*(iaux-1)+6) = zi(adcaii+10*(jaux-1)+6)
+                        ASSERT(nbimpr .ne. 0)
+                        v_indir(jaux) = iaux
+                        cycle
+                    end if
                 end if
             end do
         end do
@@ -555,6 +580,7 @@ subroutine ircmpe(nofimd, ncmpve, numcmp, exicmp, nbvato, &
         call jedetr('&&IRCMPE.NBIMPR')
         call jedetr('&&IRCMPE.NBIMPR2')
         call jedetr('&&IRCMPE.NBIMPR3')
+        call jedetr('&&IRCMPE.NBIMPR4')
         call jedetr('&&IRCMPE.NOFPG')
     else
         nbimprt = nbimpr
