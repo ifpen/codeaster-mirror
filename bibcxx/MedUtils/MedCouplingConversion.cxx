@@ -33,6 +33,7 @@
 const ASTERINTEGER MAX_BUFFER_ELEMENTS = 3000;
 
 struct MedCouplingTypeInfo {
+    int med_type;
     int mc_type;
     int dim;
     int nb_nodes;
@@ -43,27 +44,27 @@ py::object getMedCouplingConversionData( const BaseMeshPtr &mesh ) {
     // Table de correspondance entre les types de mailles MED et leurs propriétés MEDCoupling.
     static const std::array< MedCouplingTypeInfo, 400 > med_to_mc = []() {
         std::array< MedCouplingTypeInfo, 400 > lut;
-        lut.fill( { -1, -1, -1 } ); // Initialisation par défaut (invalide)
-        lut[1] = { 0, 0, 1 };       // POINT1
-        lut[102] = { 1, 1, 2 };     // SEG2
-        lut[103] = { 2, 1, 3 };     // SEG3
-        lut[104] = { 10, 1, 4 };    // SEG4
-        lut[203] = { 3, 2, 3 };     // TRI3
-        lut[206] = { 6, 2, 6 };     // TRI6
-        lut[207] = { 7, 2, 7 };     // TRI7
-        lut[204] = { 4, 2, 4 };     // QUAD4
-        lut[208] = { 8, 2, 8 };     // QUAD8
-        lut[209] = { 9, 2, 9 };     // QUAD9
-        lut[304] = { 14, 3, 4 };    // TETRA4
-        lut[310] = { 20, 3, 10 };   // TETRA10
-        lut[306] = { 16, 3, 6 };    // PENTA6
-        lut[315] = { 25, 3, 15 };   // PENTA15
-        lut[318] = { 28, 3, 18 };   // PENTA18
-        lut[305] = { 15, 3, 5 };    // PYRA5
-        lut[313] = { 23, 3, 13 };   // PYRA13
-        lut[308] = { 18, 3, 8 };    // HEXA8
-        lut[320] = { 30, 3, 20 };   // HEXA20
-        lut[327] = { 27, 3, 27 };   // HEXA27
+        lut.fill( { -1, -1, -1, -1 } ); // Initialisation par défaut (invalide)
+        lut[1] = { 1, 0, 0, 1 };        // POINT1
+        lut[2] = { 102, 1, 1, 2 };      // SEG2
+        lut[4] = { 103, 2, 1, 3 };      // SEG3
+        lut[6] = { 104, 10, 1, 4 };     // SEG4
+        lut[7] = { 203, 3, 2, 3 };      // TRI3
+        lut[9] = { 206, 6, 2, 6 };      // TRI6
+        lut[11] = { 207, 7, 2, 7 };     // TRI7
+        lut[12] = { 204, 4, 2, 4 };     // QUAD4
+        lut[14] = { 208, 8, 2, 8 };     // QUAD8
+        lut[16] = { 209, 9, 2, 9 };     // QUAD9
+        lut[18] = { 304, 14, 3, 4 };    // TETRA4
+        lut[19] = { 310, 20, 3, 10 };   // TETRA10
+        lut[20] = { 306, 16, 3, 6 };    // PENTA6
+        lut[21] = { 315, 25, 3, 15 };   // PENTA15
+        lut[22] = { 318, 28, 3, 18 };   // PENTA18
+        lut[23] = { 305, 15, 3, 5 };    // PYRA5
+        lut[24] = { 313, 23, 3, 13 };   // PYRA13
+        lut[25] = { 308, 18, 3, 8 };    // HEXA8
+        lut[26] = { 320, 30, 3, 20 };   // HEXA20
+        lut[27] = { 327, 27, 3, 27 };   // HEXA27
         return lut;
     }();
 
@@ -71,19 +72,18 @@ py::object getMedCouplingConversionData( const BaseMeshPtr &mesh ) {
     std::array< VectorLong, 4 > connectivity;
     std::array< VectorLong, 4 > connectivity_index;
     std::array< VectorLong, 4 > cells_renum;
-    std::array< std::map< std::string, VectorLong >, 4 > groups_c;
-    std::map< std::string, VectorLong > groups_n;
+    std::array< std::unordered_map< std::string, VectorLong >, 4 > groups_c;
+    std::unordered_map< std::string, VectorLong > groups_n;
 
-    JeveuxVectorLong cells_types = mesh->getMedCellsTypes();
+    JeveuxVectorLong cells_types = mesh->getCellsType();
     cells_types->updateValuePointer();
     const auto num_cells = cells_types->size();
 
-    auto med_connectivity = mesh->getMedConnectivity();
-    if ( !med_connectivity->isContiguous() ) {
+    auto aster_connectivity = mesh->getConnectivity();
+    if ( !aster_connectivity->isContiguous() ) {
         throw std::runtime_error( "MED connectivity collection is not contiguous" );
     }
-    AS_ASSERT( med_connectivity->isContiguous() );
-    med_connectivity->build();
+    aster_connectivity->build();
 
     // Première passe sur les mailles pour collecter des informations globales.
     VectorInt cell_dim( num_cells );
@@ -93,28 +93,27 @@ py::object getMedCouplingConversionData( const BaseMeshPtr &mesh ) {
     ASTERINTEGER expected_total_nodes = 0;
     for ( ASTERINTEGER i = 0; i < num_cells; ++i ) {
 
-        const auto type_med = ( *cells_types )[i];
+        const auto type_aster = ( *cells_types )[i];
+        const auto &type_info = med_to_mc[type_aster];
 
-        if ( type_med <= 0 || type_med >= 328 || med_to_mc[type_med].dim == -1 ) {
-            throw std::runtime_error( "Unsupported or invalid MED cell type: " +
-                                      std::to_string( type_med ) );
+        if ( type_info.med_type == -1 ) {
+            throw std::runtime_error( "Invalid type for MED: " + mesh->getCellTypeName( i ) );
         }
 
-        const auto &type_info = med_to_mc[type_med];
         cell_dim[i] = type_info.dim;
         cells_per_dim_count[type_info.dim]++;
         connectivity_total_size[type_info.dim] += ( 1 + type_info.nb_nodes );
         expected_total_nodes += type_info.nb_nodes;
     }
 
-    const auto total_cells = med_connectivity->capacity();
+    const auto total_cells = aster_connectivity->capacity();
     if ( num_cells != total_cells ) {
         throw std::runtime_error( "MED connectivity number of cells mismatch: expected " +
                                   std::to_string( num_cells ) + ", got " +
                                   std::to_string( total_cells ) );
     }
 
-    const auto total_nodes = med_connectivity->totalSize();
+    const auto total_nodes = aster_connectivity->totalSize();
     if ( expected_total_nodes != total_nodes ) {
         throw std::runtime_error( "MED connectivity size mismatch: expected " +
                                   std::to_string( expected_total_nodes ) + ", got " +
@@ -134,14 +133,14 @@ py::object getMedCouplingConversionData( const BaseMeshPtr &mesh ) {
     std::array< ASTERINTEGER, 4 > current_cell_count_per_dim = { 0, 0, 0, 0 };
 
     ASTERINTEGER offset = 0;
-    const auto med_values = med_connectivity->startPointer();
+    const auto med_values = aster_connectivity->startPointer();
 
     std::array< ASTERINTEGER, 4 > connectivity_offset = { 0, 0, 0, 0 };
 
     // Seconde passe pour remplir les structures de connectivité.
     for ( ASTERINTEGER i = 0; i < num_cells; ++i ) {
-        const auto type_med = ( *cells_types )[i];
-        const auto &type_info = med_to_mc[type_med];
+        const auto type_aster = ( *cells_types )[i];
+        const auto &type_info = med_to_mc[type_aster];
         const int dim = type_info.dim;
         const ASTERINTEGER cell_idx = current_cell_count_per_dim[dim];
 
@@ -206,8 +205,9 @@ py::object getMedCouplingConversionData( const BaseMeshPtr &mesh ) {
         if ( !connectivity[dim].empty() ) {
             // Crée un dictionnaire Python {dimension: (connectivité, index)}.
             cells_dict[py::int_( dim )] =
-                py::make_tuple( py::cast( connectivity[dim] ), py::cast( connectivity_index[dim] ),
-                                py::cast( cells_renum[dim] ) );
+                py::make_tuple( py::cast( std::move( connectivity[dim] ) ),
+                                std::move( py::cast( connectivity_index[dim] ) ),
+                                py::cast( std::move( cells_renum[dim] ) ) );
         }
     }
 
@@ -215,12 +215,12 @@ py::object getMedCouplingConversionData( const BaseMeshPtr &mesh ) {
     for ( int dim = 0; dim < 4; ++dim ) {
         if ( !groups_c[dim].empty() ) {
             // Crée un dictionnaire Python {dimension: {nom_groupe: [indices]}}.
-            groups_c_dict[py::int_( dim )] = py::cast( groups_c[dim] );
+            groups_c_dict[py::int_( dim )] = py::cast( std::move( groups_c[dim] ) );
         }
     }
 
     // Convertit la map des groupes de nœuds en dictionnaire Python.
-    py::dict groups_n_dict = py::cast( groups_n );
+    py::dict groups_n_dict = py::cast( std::move( groups_n ) );
 
     // Retourne un tuple Python contenant les trois dictionnaires.
     return py::make_tuple( cells_dict, groups_c_dict, groups_n_dict );
@@ -249,7 +249,7 @@ CellQuadratureData fillQuadrature( ASTERINTEGER element_type_id, ASTERINTEGER lo
     JeveuxChar8 ref_element_char;
     JeveuxChar8 family_char;
     JeveuxChar8 element_char;
-    ASTERLOGICAL renum = true;
+    ASTERLOGICAL renum = false;
     ASTERINTEGER num_corner_nodes = 0;
     ASTERINTEGER num_total_nodes = 0;
     ASTERINTEGER num_gauss_points = 0;
