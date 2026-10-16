@@ -21,7 +21,7 @@ interface
                       ncmprf, ncmpve, ntlcmp, nbvato, nbenec,&
                       lienec, adsd, adsl, nomaas, ligrel,&
                       typgeo, nomtyp, ntproa, chanom, sdcarm,&
-                      field_type, nosdfu)
+                      field_type, nosdfu, nosdpr)
         character(len=*) :: nofimd
         character(len=8) :: typech
         integer(kind=8) :: nbimpr
@@ -44,5 +44,6 @@ interface
         character(len=8) :: sdcarm
         character(len=16), intent(in) :: field_type
         character(len=8) :: nosdfu
+        character(len=*) :: nosdpr
     end subroutine ircmpr
 end interface

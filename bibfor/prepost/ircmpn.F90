@@ -111,7 +111,7 @@ subroutine ircmpn(nofimd, ncmprf, ncmpve, numcmp, exicmp, &
     integer(kind=8) :: ifm, nivinf
 !
     integer(kind=8) :: iaux, jaux
-    integer(kind=8) :: nrcmp
+    integer(kind=8) :: nrcmp, nbtot, nbloc, start
     integer(kind=8) :: nval, rang, nbproc, jnbno, jno, nbnov, nbnoect(1)
     mpi_int :: mrank, msize
     aster_logical :: lficUniq, lnbnol, lnoec
@@ -289,7 +289,7 @@ subroutine ircmpn(nofimd, ncmprf, ncmpve, numcmp, exicmp, &
     if (lnbnol) then
 !
         call ircmpf(nofimd, nval, profas, noprof, nosdfu, &
-                    0, 0)
+                    0, 0, nbtot, nbloc, start)
 !
         caimpk(2) = noprof
 !

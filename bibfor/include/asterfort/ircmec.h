@@ -22,7 +22,7 @@ interface
     subroutine ircmec(idfimd, nochmd, nomprf, nolopg, numpt,&
                       instan, numord, val, ncmpve, nbenty,&
                       nbrepg, nvalec, typent, typgeo, nosdfu,&
-                      tymast, codret)
+                      tymast, nrimpr, nosdpr, codret)
         med_idt :: idfimd
         character(len=*) :: nochmd
         character(len=*) :: nomprf
@@ -39,6 +39,8 @@ interface
         integer(kind=8) :: typgeo
         character(len=8) :: nosdfu
         integer(kind=8) :: tymast
+        integer(kind=8) :: nrimpr
+        character(len=*) :: nosdpr
         integer(kind=8) :: codret
     end subroutine ircmec
 end interface
