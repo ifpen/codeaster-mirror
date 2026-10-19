@@ -1898,17 +1898,17 @@ contains
         call dismoi('NOM_LIGREL', modelZ, 'MODELE', repk=modelLigrel)
         call jeveuo(modelLigrel//'.PRNM', 'L', jvPrnm)
 
-        lcolle = .false.
-        call jeexin(mesh(1:8)//'.NOMNOE', ier)
-        if (ier .ne. 0) then
-            lcolle = .true.
-        end if
-
 ! - About mesh
         call jeveuo(mesh//'.TYPMAIL', 'L', vi=cellType)
         call jeveuo(mesh//'.COORDO    .VALE', 'L', vr=nodeCoor)
         if (.not. (geomDime .eq. 2 .or. geomDime .eq. 3)) then
             call utmess('F', 'CHARGES7_6')
+        end if
+
+        lcolle = .false.
+        call jeexin(mesh(1:8)//'.NOMNOE', ier)
+        if (ier .ne. 0) then
+            lcolle = .true.
         end if
 
 ! - Name of datastructure for list of linear relations

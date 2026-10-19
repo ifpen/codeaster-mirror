@@ -20,7 +20,7 @@
 import unittest
 from unittest.mock import MagicMock
 
-from code_aster.Commands import DEFI_LIST_ENTI, DEFI_LIST_REEL
+from code_aster.Commands import DEFI_LIST_ENTI, DEFI_LIST_INST, DEFI_LIST_REEL
 from code_aster import CA
 from code_aster.Solvers import (
     ConvergenceManager,
@@ -37,6 +37,7 @@ class TestTimeStepper(unittest.TestCase):
     def setUp(self):
         self.list0 = DEFI_LIST_REEL(VALE=0.0)
         self.listr = DEFI_LIST_REEL(DEBUT=0.0, INTERVALLE=_F(JUSQU_A=10.0, PAS=1.0))
+        self.listi = DEFI_LIST_INST(DEFI_LIST=_F(VALE=(1.0, 2.0)))
 
     def test00_init(self):
         stp = TimeStepper([0.0, 1.0, 2.0, 3.0])
@@ -350,7 +351,20 @@ class TestTimeStepper(unittest.TestCase):
         self.assertAlmostEqual(stp.getInitial(), 0.0)
         self.assertAlmostEqual(stp.getFinal(), 1.0)
 
-    def test09_skip(self):
+    def test09_from_timeslist(self):
+        stp = TimeStepper.from_keywords(LIST_INST=self.listi)
+        self.assertEqual(stp.size(), 1)
+        self.assertAlmostEqual(stp.getInitial(), 1.0)
+        self.assertAlmostEqual(stp.getFinal(), 2.0)
+
+        list2 = self.listi.copy()
+        list2.setValues([-1.0, 0.0, 1.0])
+        stp = TimeStepper.from_keywords(LIST_INST=list2)
+        self.assertEqual(stp.size(), 2)
+        self.assertAlmostEqual(stp.getInitial(), -1.0)
+        self.assertAlmostEqual(stp.getFinal(), 1.0)
+
+    def test10_skip(self):
         stp = TimeStepper([0.0, 1.0, 2.0, 3.0, 4.0, 5.0])
         stp.completed()
         self.assertAlmostEqual(stp.getCurrent(), 2.0)

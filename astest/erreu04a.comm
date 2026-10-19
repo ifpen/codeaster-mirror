@@ -179,7 +179,7 @@ try:
         MATR=MATAS131,
         CHAM_NO=VECTA131,
         RESI_RELA=1.0e-15,
-        POSTTRAITEMENTS="AUTO",
+        POSTTRAITEMENTS="FORCE",
         INFO=2,
     )
 except CA.AsterError as err:

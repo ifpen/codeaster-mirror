@@ -22,9 +22,6 @@
 #                       MEMBRANE DE COOK                               #
 ########################################################################
 
-import os
-
-
 from code_aster.Commands import *
 
 DEBUT(CODE="OUI", DEBUG=_F(SDVERI="OUI"))

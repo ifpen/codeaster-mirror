@@ -28,6 +28,7 @@ subroutine vppara(modes, typcon, knega, lraide, lmasse, &
 #include "asterf_types.h"
 #include "jeveux.h"
 #include "asterc/r8depi.h"
+#include "asterc/r8prem.h"
 #include "asterfort/assert.h"
 #include "asterfort/jedema.h"
 #include "asterfort/jemarq.h"
@@ -84,7 +85,7 @@ subroutine vppara(modes, typcon, knega, lraide, lmasse, &
 !     ------------------------------------------------------------------
 !
     integer(kind=8) :: ineg, iprec, iret, ilgcon, nrscr, ifreq
-    real(kind=8) :: rbid, fr2, fr3
+    real(kind=8) :: rbid, fr2, fr3, rmin, raux
     complex(kind=8) :: zbid, caux
     aster_logical :: lns
 !     ------------------------------------------------------------------
@@ -92,6 +93,7 @@ subroutine vppara(modes, typcon, knega, lraide, lmasse, &
     call jemarq()
     zbid = (0.d0, 0.d0)
     rbid = 0.d0
+    rmin = r8prem()
 !
 !     --- PRISE EN COMPTE DES MODES NEGATIFS ?
     ineg = +1
@@ -190,10 +192,14 @@ subroutine vppara(modes, typcon, knega, lraide, lmasse, &
                 fr3 = resur(2*mxresf+ifreq)
                 caux = dcmplx(fr2, 2*fr2*fr3)
                 caux = sqrt(caux)/r8depi()
+                raux = abs(caux)
+                if (raux .lt. rmin) then
+                    raux = rmin
+                end if
 ! valeur 'FREQUENCE' pour GEP a mode complexe (abs(lambda)): resufr(ifreq, 1)
-                resur(ifreq) = abs(caux)
+                resur(ifreq) = raux
 ! valeur 'AMORTISSEMENT' pour GEP a mode complexe (Im(lambda)/abs(lambda)): resufr(ifreq,3)
-                resur(2*mxresf+ifreq) = dimag(caux)/abs(caux)
+                resur(2*mxresf+ifreq) = dimag(caux)/raux
             end do
         end if
 !        - STOCKAGE DES VECTEURS PROPRES ---

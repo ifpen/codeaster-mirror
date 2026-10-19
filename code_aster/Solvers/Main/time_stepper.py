@@ -409,14 +409,17 @@ class TimeStepper(Observer, EventSource):
             TimeStepper: a new TimeStepper or a copy of the object from INCREMENT.
         """
         assert "LIST_INST" in args, "THER_NON_LINE not yet supported!"
+        initial = None
         try:
             stp = args["LIST_INST"].stepper.copy()
             times = stp._times
+            initial = stp.getInitial()
         except AttributeError:
             # ListOfFloats
             times = args["LIST_INST"].getValues()
             stp = None
-        initial = times[0]
+        if initial is None:
+            initial = times[0]
         eps = args.get("PRECISION", cls.default_increment)
         if "INST_INIT" in args:  # because None has a special meaning
             initial = args["INST_INIT"]
