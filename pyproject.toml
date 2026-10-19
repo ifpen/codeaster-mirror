@@ -67,6 +67,7 @@ line-ending = "auto"
 
 [tool.ruff.lint.per-file-ignores]
 "code_aster/Cata/**/*.py" = ["F403", "F405"]
+"code_aster/**/*.py" = ["N999"]
 
 [tool.pixi.workspace]
 channels = ["conda-forge"]
