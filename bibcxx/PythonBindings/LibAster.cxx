@@ -139,6 +139,7 @@
 #include "PythonBindings/MultipleElasticResultInterface.h"
 #include "PythonBindings/NodeInterface.h"
 #include "PythonBindings/NonLinearResultInterface.h"
+#include "PythonBindings/NumpyInterface.h"
 #include "PythonBindings/ObjectBalancerInterface.h"
 #include "PythonBindings/ParMetisPartitionerInterface.h"
 #include "PythonBindings/ParallelContactFEDescriptorInterface.h"
@@ -214,6 +215,7 @@ PYBIND11_MODULE( libaster, mod ) {
     exportGenericEnumToPython( mod );
     exportDataStructureToPython( mod );
     exportDebugToPython( mod );
+    exportNumpyToPython( mod );
     exportPhysicalQuantityManagerToPython( mod );
     exportNodeToPython( mod );
     exportMeshEntitiesToPython( mod );

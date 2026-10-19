@@ -96,15 +96,3 @@ VectorLong MeshCoordinatesField::_getDOFsToUse( const VectorString &list_cmp ) c
 
     return dofUsed;
 };
-
-/**
- * @brief Get _valuesList as NumPy array
- */
-py::array_t< ASTERDOUBLE > MeshCoordinatesField::toNumpy() {
-    py::object parent = py::cast( shared_from_this() );
-
-    std::vector< ssize_t > shape = { _valuesList->size() / 3, 3 };
-    std::vector< ssize_t > strides = { 3 * sizeof( ASTERDOUBLE ), sizeof( ASTERDOUBLE ) };
-    py::array_t< ASTERDOUBLE > array( shape, strides, _valuesList->getDataPtr(), parent );
-    return array;
-}

@@ -22,6 +22,7 @@
 ***************************************************************
 """
 
+import libaster
 from libaster import MeshCoordinatesField
 
 from ..Utilities import injector
@@ -30,3 +31,11 @@ from ..Utilities import injector
 @injector(MeshCoordinatesField)
 class ExtendedMeshCoordinatesField:
     cata_sdj = "SD.sd_champ.sd_cham_geom_class"
+
+    def toNumpy(self):
+        """Return a numpy array view (no-copy) of the values of the coordinates.
+
+        Returns:
+            np.ndarray: Array view of coordinates with shape=(number of nodes, 3).
+        """
+        return libaster._coordinatesToNumpy(self)
