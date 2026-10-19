@@ -1,6 +1,6 @@
 /**
  * @section LICENCE
- *   Copyright (C) 1991 - 2025  EDF R&D                www.code-aster.org
+ *   Copyright (C) 1991 - 2026  EDF www.code-aster.org
  *
  *   This file is part of Code_Aster.
  *
@@ -238,7 +238,7 @@ class JeveuxCollectionObjectClass : private AllowedJeveuxType< ValueType > {
     inline const ValueType &operator[]( const ASTERINTEGER &i ) const {
 #ifdef ASTER_DEBUG_CXX_OBJECTS
         AS_ASSERT( _valuePtr != nullptr );
-        if ( i < 0 && i >= this->size() ) {
+        if ( i < 0 || i >= this->size() ) {
             std::string error = "Out of range of JeveuxCollectionObjectClass '" + getStringName() +
                                 "', index = " + std::to_string( i ) +
                                 " ( size = " + std::to_string( this->size() ) + " )";
@@ -252,7 +252,7 @@ class JeveuxCollectionObjectClass : private AllowedJeveuxType< ValueType > {
     inline ValueType &operator[]( const ASTERINTEGER &i ) {
 #ifdef ASTER_DEBUG_CXX_OBJECTS
         AS_ASSERT( _valuePtr != nullptr );
-        if ( i < 0 && i >= this->size() ) {
+        if ( i < 0 || i >= this->size() ) {
             std::string error = "Out of range of JeveuxCollectionObjectClass '" + getStringName() +
                                 "', index = " + std::to_string( i ) +
                                 " ( size = " + std::to_string( this->size() ) + " )";
@@ -348,12 +348,12 @@ class JeveuxCollectionObjectClass : private AllowedJeveuxType< ValueType > {
         return toReturn;
     };
 
-    bool operator==( JeveuxCollectionObjectClass< ValueType > &toCompar ) const {
+    bool operator==( const JeveuxCollectionObjectClass< ValueType > &toCompar ) const {
         if ( this->size() != toCompar.size() )
             return false;
 
         auto size = this->size();
-        for ( ASTERINTEGER i = 0; i < size; size++ ) {
+        for ( ASTERINTEGER i = 0; i < size; i++ ) {
             if ( this->operator[]( i ) != toCompar[i] )
                 return false;
         }

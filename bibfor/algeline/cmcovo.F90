@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -27,7 +27,6 @@ subroutine cmcovo(main, maout, nbma, lima, prefno, &
 #include "asterfort/dismoi.h"
 #include "asterfort/getvtx.h"
 #include "asterfort/infniv.h"
-#include "asterfort/jeccta.h"
 #include "asterfort/jecrec.h"
 #include "asterfort/jecreo.h"
 #include "asterfort/jecroc.h"
@@ -544,8 +543,6 @@ subroutine cmcovo(main, maout, nbma, lima, prefno, &
         end do
     end if
 !
-!     -- RETASSAGE  DE CONNEX (QUI A ETE ALLOUEE TROP GRANDE) :
-    call jeccta(connex)
 !
 ! ----------------------------------------------------------------------
 !

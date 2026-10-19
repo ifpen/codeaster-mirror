@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -33,7 +33,6 @@ subroutine jeccta(colle1)
 #include "asterfort/jexnum.h"
 !
     character(len=*) :: colle1
-! person_in_charge: jacques.pellet at edf.fr
 ! ======================================================================
 !     RETASSAGE D'UNE COLLECTION CONTIGUE ALLOUEE TROP GRANDE
 !     ------------------------------------------------------------------
@@ -65,7 +64,10 @@ subroutine jeccta(colle1)
     ASSERT(acces .eq. 'NU')
 !
     call jeveuo(jexatr(colle1, 'LONCUM'), 'L', jloncu)
-    lont2 = zi(jloncu-1+nbobj+1)
+    lont2 = zi(jloncu-1+nbobj+1)-1
+    if (lont1 .eq. 0 .or. (lont1 .le. lont2)) then
+        goto 999
+    end if
 !
 !
 !     -- ALLOCATION ET REMPLISAGE DE COLLE2 :
@@ -107,5 +109,6 @@ subroutine jeccta(colle1)
 !
 !     -- MENAGE :
     call jedetr(colle2)
+999 continue
     call jedema()
 end subroutine
