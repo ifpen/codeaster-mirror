@@ -123,17 +123,6 @@ Returns:
                 SimpleFieldOnNodesReal: field with name physical quantity.
             )",
               py::arg( "physQuantity" ), py::arg( "map_cmps" ) )
-        .def( "toNumpy", &SimpleFieldOnNodesReal::toNumpy, R"(
-Returns two numpy arrays with shape ( number_of_components, space_dimension )
-The first array contains the field values while the second one is a mask
-which is `True` if the corresponding value exists, `False` otherwise.
-
-Where the mask is `False` the corresponding value is set to zero.
-
-Returns:
-    ndarray (float): Field values.
-    ndarray (bool): Mask for the field values.
-        )" )
         .def( "getNumberOfComponents", &SimpleFieldOnNodesReal::getNumberOfComponents )
         .def( "getNumberOfNodes", &SimpleFieldOnNodesReal::getNumberOfNodes )
         .def( "getComponents", &SimpleFieldOnNodesReal::getComponents )
@@ -268,18 +257,6 @@ Returns:
         .def(
             "__setitem__", +[]( SimpleFieldOnNodesComplex &v, const PairLong &i,
                                 ASTERCOMPLEX f ) { return v.operator()( i.first, i.second ) = f; } )
-        .def( "toNumpy", &SimpleFieldOnNodesComplex::toNumpy,
-              R"(
-Returns two numpy arrays with shape ( number_of_components, space_dimension )
-The first array contains the field values while the second one is a mask
-which is `True` if the corresponding value exists, `False` otherwise.
-
-Where the mask is `False` the corresponding value is set to zero.
-
-Returns:
-    ndarray (complex): Field values.
-    ndarray (bool): Mask for the field values.
-        )" )
         .def( "getNumberOfComponents", &SimpleFieldOnNodesComplex::getNumberOfComponents )
         .def( "getNumberOfNodes", &SimpleFieldOnNodesComplex::getNumberOfNodes )
         .def( "getComponents", &SimpleFieldOnNodesComplex::getComponents )
