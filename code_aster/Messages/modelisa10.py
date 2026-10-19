@@ -1,6 +1,6 @@
 # coding=utf-8
 # --------------------------------------------------------------------
-# Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+# Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 # This file is part of code_aster.
 #
 # code_aster is free software: you can redistribute it and/or modify
@@ -55,6 +55,11 @@ Pour obtenir le détail des mailles affectées, utilisez INFO=2.
         """
 La maille quadrangulaire %(i1)d est dégénérée : les cotés 1-2 et 1-3 sont colinéaires.
 On ne peut pas évaluer la normale.
+"""
+    ),
+    6: _(
+        """
+La groupe %(k1)s n'appartient pas au maillage %(k2)s
 """
     ),
     7: _(

@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@ interface
     subroutine ircmec(idfimd, nochmd, nomprf, nolopg, numpt,&
                       instan, numord, val, ncmpve, nbenty,&
                       nbrepg, nvalec, typent, typgeo, nosdfu,&
-                      tymast, codret)
+                      tymast, nrimpr, nosdpr, codret)
         med_idt :: idfimd
         character(len=*) :: nochmd
         character(len=*) :: nomprf
@@ -39,6 +39,8 @@ interface
         integer(kind=8) :: typgeo
         character(len=8) :: nosdfu
         integer(kind=8) :: tymast
+        integer(kind=8) :: nrimpr
+        character(len=*) :: nosdpr
         integer(kind=8) :: codret
     end subroutine ircmec
 end interface

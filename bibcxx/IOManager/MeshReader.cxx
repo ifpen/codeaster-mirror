@@ -182,7 +182,8 @@ void MeshReader::readIncompleteMeshFromMedFile( IncompleteMeshPtr &toReturn,
     }
     const auto globNum = curMesh->getGlobalNodeNumberingAtSequence( -1, -1 );
     if ( globNum.size() != 0 ) {
-        toReturn->setLocalToGlobalNodeIds( globNum );
+        VectorLong arg( globNum.begin(), globNum.end() );
+        toReturn->setLocalToGlobalNodeIds( arg );
     } else {
         VectorLong nodeGlobNum;
         const auto size = toReturn->getNumberOfNodes();

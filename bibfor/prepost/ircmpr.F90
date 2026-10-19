@@ -1,5 +1,5 @@
 ! --------------------------------------------------------------------
-! Copyright (C) 1991 - 2025 - EDF R&D - www.code-aster.org
+! Copyright (C) 1991 - 2026 - EDF - www.code-aster.org
 ! This file is part of code_aster.
 !
 ! code_aster is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@ subroutine ircmpr(nofimd, typech, nbimpr, ncaimi, ncaimk, &
                   ncmprf, ncmpve, ntlcmp, nbvato, nbenec, &
                   lienec, adsd, adsl, nomaas, ligrel, &
                   typgeo, nomtyp, ntproa, chanom, sdcarm, &
-                  field_type, nosdfu)
+                  field_type, nosdfu, nosdpr)
 !_______________________________________________________________________
 !     ECRITURE D'UN CHAMP -  FORMAT MED - CREATION DU PROFIL
 !        -  -       -               -                 --
@@ -91,6 +91,7 @@ subroutine ircmpr(nofimd, typech, nbimpr, ncaimi, ncaimk, &
     integer(kind=8) :: adsd, adsl
     integer(kind=8) :: nbimpr
     integer(kind=8) :: typgeo(*)
+    character(len=*) :: nosdpr
 !
     character(len=*) :: nofimd
     character(len=*) :: ntlcmp, ntproa
@@ -261,7 +262,8 @@ subroutine ircmpr(nofimd, typech, nbimpr, ncaimi, ncaimk, &
                     nbenec, lienec, adsd, adsl, nbimpr, &
                     ncaimi, ncaimk, zi(iaux), zi(adtyp2), typgeo, &
                     nomtyp, typech, zi(adproa), zi(adprom), zi(adpror), &
-                    zi(adauxi), chanom, sdcarm, field_type, nosdfu)
+                    zi(adauxi), chanom, sdcarm, field_type, nosdfu, &
+                    nosdpr)
 !
     end if
 !

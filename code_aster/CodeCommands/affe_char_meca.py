@@ -1,6 +1,6 @@
 # coding: utf-8
 
-# Copyright (C) 1991 - 2025  EDF R&D                www.code-aster.org
+# Copyright (C) 1991 - 2026  EDF www.code-aster.org
 #
 # This file is part of Code_Aster.
 #
@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Code_Aster.  If not, see <http://www.gnu.org/licenses/>.
 
-# person_in_charge: nicolas.sellenet@edf.fr
 
 from ..Cata.Language.SyntaxObjects import FactorKeyword
 from ..Objects import MechanicalLoadReal, ParallelMechanicalLoadReal, ConnectionMesh, Model
@@ -136,6 +135,24 @@ class MechanicalLoadDefinition(ExecuteCommand):
             if "LIAISON_PROJ" in list(keywords.keys()):
                 matr_proj = keywords["LIAISON_PROJ"][0]["MATR_PROJECTION"]
                 connectionMesh = matr_proj.getSecondMesh()
+                for key in list(keywords.keys()):
+                    if key in (
+                        "LIAISON_DDL",
+                        "DDL_IMPO",
+                        "LIAISON_OBLIQUE",
+                        "LIAISON_UNIF",
+                        "LIAISON_SOLIDE",
+                        "DDL_POUTRE",
+                        "FACE_IMPO",
+                        "ARETE_IMPO",
+                        "LIAISON_RBE3",
+                        "LIAISON_MAIL",
+                        "LIAISON_MASSIF",
+                        "LIAISON_GROUP",
+                        "LIAISON_COQUE",
+                        "LIAISON_ELEM",
+                    ):
+                        raise NameError("LIAISON_PROJ in HPC must be alone in AFFE_CHAR_MECA")
             else:
                 nodeGroups, cellGroups = _getGroups(self._cata, keywords)
                 connectionMesh = ConnectionMesh(model.getMesh(), nodeGroups, cellGroups)
