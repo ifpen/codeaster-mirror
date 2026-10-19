@@ -241,7 +241,7 @@ class ExtendedSimpleFieldOnNodesComplex:
     def toNumpy(self):
         """Returns the field values as numpy arrays.
 
-        It returns two numpy arrays with shape ( number_of_nodes, number_of_components )
+        It returns two numpy arrays with shape ``(number_of_nodes, number_of_components)``
         The first array contains the field values while the second one is a mask
         which is `True` if the corresponding value exists, `False` otherwise.
 

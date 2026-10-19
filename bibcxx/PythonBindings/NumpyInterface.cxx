@@ -18,6 +18,7 @@
 
 #include "PythonBindings/NumpyInterface.h"
 
+#include "DataFields/SimpleFieldOnCells.h"
 #include "DataFields/SimpleFieldOnNodes.h"
 
 /**
@@ -57,11 +58,42 @@ py::tuple simpleFieldOnNodesToNumpy( std::shared_ptr< SimpleFieldOnNodes< ValueT
     return ret;
 };
 
+template < typename ValueType >
+py::tuple simpleFieldOnCellsToNumpy( std::shared_ptr< SimpleFieldOnCells< ValueType > > field ) {
+    py::object parent = py::cast( field->shared_from_this() );
+
+    field->updateValuePointers();
+
+    auto values = field->getValues();
+    auto sizes = field->getSizes();
+    auto bools = field->getLogicalValues();
+    auto size = values->size();
+    auto ncol = (ssize_t)field->getNumberOfComponents();
+    auto nrow = size / ncol;
+    std::vector< ssize_t > shape = { nrow, ncol };
+    std::vector< ssize_t > strides = { ncol * (ssize_t)sizeof( ValueType ), sizeof( ValueType ) };
+    std::vector< ssize_t > strides_mask = { ncol * (ssize_t)sizeof( bool ), sizeof( bool ) };
+
+    std::vector< ssize_t > shape_sizes = { sizes->size() };
+    std::vector< ssize_t > strides_sizes = { sizeof( ASTERINTEGER ) };
+
+    py::array_t< ValueType > array_values( shape, strides, values->getDataPtr(), parent );
+    py::array_t< bool > array_mask( shape, strides_mask, bools->getDataPtr(), parent );
+    py::array_t< ASTERINTEGER > array_sizes( shape_sizes, strides_sizes, sizes->getDataPtr(),
+                                             parent );
+
+    py::tuple ret = py::make_tuple( array_values, array_mask, array_sizes );
+    return ret;
+}
+
 template py::tuple simpleFieldOnNodesToNumpy< ASTERDOUBLE >( SimpleFieldOnNodesRealPtr );
 template py::tuple simpleFieldOnNodesToNumpy< ASTERCOMPLEX >( SimpleFieldOnNodesComplexPtr );
+
+template py::tuple simpleFieldOnCellsToNumpy< ASTERDOUBLE >( SimpleFieldOnCellsRealPtr );
 
 void exportNumpyToPython( py::module_ &mod ) {
     mod.def( "_coordinatesToNumpy", &coordinatesToNumpy );
     mod.def( "_simpleFieldOnNodesToNumpyReal", &simpleFieldOnNodesToNumpy< ASTERDOUBLE > );
     mod.def( "_simpleFieldOnNodesToNumpyComplex", &simpleFieldOnNodesToNumpy< ASTERCOMPLEX > );
+    mod.def( "_simpleFieldOnCellsToNumpyReal", &simpleFieldOnCellsToNumpy< ASTERDOUBLE > );
 }

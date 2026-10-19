@@ -42,7 +42,8 @@
  * @author Nicolas Sellenet
  */
 template < class ValueType >
-class SimpleFieldOnCells : public DataField {
+class SimpleFieldOnCells : public DataField,
+                           public std::enable_shared_from_this< SimpleFieldOnCells< ValueType > > {
   private:
     /** @brief Vecteur Jeveux '.CESK' */
     JeveuxVectorChar8 _descriptor;
@@ -384,6 +385,16 @@ class SimpleFieldOnCells : public DataField {
     const JeveuxVector< ValueType > &getValues() const { return _values; }
 
     /**
+     * @brief Return logical value vector
+     */
+    JeveuxVectorLogical getLogicalValues() const { return _allocated; }
+
+    /**
+     * @brief Return vector of sizes
+     */
+    JeveuxVectorLong getSizes() const { return _size; }
+
+    /**
      * @brief Access to the (icmp) component of the (ima) cell
               at the (ipt) point, at the (ispt) sub-point.
     */
@@ -545,38 +556,6 @@ class SimpleFieldOnCells : public DataField {
             }
         }
         return values;
-    }
-
-    /**
-     * @brief Get values on cells holding components, with mask
-     */
-    py::object toNumpy() {
-        this->updateValuePointers();
-
-        PyObject *resu_tuple = PyTuple_New( 3 );
-
-        npy_intp dims[2] = { _values->size() / this->getNumberOfComponents(),
-                             this->getNumberOfComponents() };
-        npy_intp dim1[1] = { _size->size() };
-
-        PyObject *values = PyArray_SimpleNewFromData( 2, dims, npy_type< ValueType >::value,
-                                                      _values->getDataPtr() );
-        PyObject *mask = PyArray_SimpleNewFromData( 2, dims, NPY_BOOL, _allocated->getDataPtr() );
-        PyObject *size = PyArray_SimpleNewFromData( 1, dim1, NPY_LONG, _size->getDataPtr() );
-        AS_ASSERT( values != NULL );
-        AS_ASSERT( mask != NULL );
-        AS_ASSERT( size != NULL );
-
-        PyArray_CLEARFLAGS( (PyArrayObject *)values, NPY_ARRAY_OWNDATA );
-        PyArray_CLEARFLAGS( (PyArrayObject *)mask, NPY_ARRAY_OWNDATA );
-        PyArray_CLEARFLAGS( (PyArrayObject *)size, NPY_ARRAY_OWNDATA );
-        PyTuple_SetItem( resu_tuple, 0, values );
-        PyTuple_SetItem( resu_tuple, 1, mask );
-        PyTuple_SetItem( resu_tuple, 2, size );
-
-        py::object tuple = py::reinterpret_steal< py::object >( resu_tuple );
-        tuple.inc_ref();
-        return tuple;
     }
 
     std::pair< std::vector< ValueType >,
