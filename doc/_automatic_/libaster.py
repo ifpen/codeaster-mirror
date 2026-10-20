@@ -324,6 +324,34 @@ def use_count(*args, **kwargs):
     """
 
 
+# built-in function _coordinatesToNumpy in libaster
+
+
+def _coordinatesToNumpy(arg0):
+    pass
+
+
+# built-in function _simpleFieldOnNodesToNumpyReal in libaster
+
+
+def _simpleFieldOnNodesToNumpyReal(arg0):
+    pass
+
+
+# built-in function _simpleFieldOnNodesToNumpyComplex in libaster
+
+
+def _simpleFieldOnNodesToNumpyComplex(arg0):
+    pass
+
+
+# built-in function _simpleFieldOnCellsToNumpyReal in libaster
+
+
+def _simpleFieldOnCellsToNumpyReal(arg0):
+    pass
+
+
 # class PhysicalQuantityManager in libaster
 
 
@@ -4394,18 +4422,6 @@ class SimpleFieldOnCellsReal(DataField):
             FieldOnNodesReal: field converted
         """
 
-    def toNumpy(self):
-        """Returns two numpy arrays with shape ( number_of_cells_with_components, number_of_components )
-        The first array contains the field values while the second one is a mask
-        which is `True` if the corresponding value exists, `False` otherwise.
-
-        Where the mask is `False` the corresponding value is set to zero.
-
-        Returns:
-            ndarray (float): Field values.
-            ndarray (bool): Mask for the field values.
-        """
-
     def toSimpleFieldOnNodes(self):
         """Convert to SimpleFieldOnNodes
 
@@ -4645,18 +4661,6 @@ class SimpleFieldOnNodesReal(DataField):
             FieldOnNodesReal: field converted
         """
 
-    def toNumpy(self):
-        """Returns two numpy arrays with shape ( number_of_components, space_dimension )
-        The first array contains the field values while the second one is a mask
-        which is `True` if the corresponding value exists, `False` otherwise.
-
-        Where the mask is `False` the corresponding value is set to zero.
-
-        Returns:
-            ndarray (float): Field values.
-            ndarray (bool): Mask for the field values.
-        """
-
     def updateValuePointers(self):
         pass
 
@@ -4720,18 +4724,6 @@ class SimpleFieldOnNodesComplex(DataField):
 
     def hasComponent(self, arg0):
         pass
-
-    def toNumpy(self):
-        """Returns two numpy arrays with shape ( number_of_components, space_dimension )
-        The first array contains the field values while the second one is a mask
-        which is `True` if the corresponding value exists, `False` otherwise.
-
-        Where the mask is `False` the corresponding value is set to zero.
-
-        Returns:
-            ndarray (complex): Field values.
-            ndarray (bool): Mask for the field values.
-        """
 
     def updateValuePointers(self):
         pass
@@ -15794,13 +15786,6 @@ class MeshCoordinatesField(DataStructure):
 
         Returns:
             FieldOnNodesReal: the corresponding field
-        """
-
-    def toNumpy(self):
-        """Return a numpy array view (no-copy) of values of the coordinates with shape (number of nodes, 3).
-
-        Returns:
-            np.ndarray: Array view of coordinates with shape=(number of nodes, 3).
         """
 
     def updateValuePointers(self):
