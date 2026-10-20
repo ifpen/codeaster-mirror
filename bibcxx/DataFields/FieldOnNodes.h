@@ -6,7 +6,7 @@
  * @brief Header of class for FieldOnNodes
  * @author Nicolas Sellenet
  * @section LICENCE
- *   Copyright (C) 1991 - 2025  EDF R&D                www.code-aster.org
+ *   Copyright (C) 1991 - 2026  EDF www.code-aster.org
  *
  *   This file is part of Code_Aster.
  *
@@ -336,7 +336,7 @@ class FieldOnNodes : public DataField, private AllowedFieldType< ValueType > {
         return *this;
     };
 
-    FieldOnNodes< ValueType > operator/=( const FieldOnNodes< ValueType > &rhs ) {
+    FieldOnNodes< ValueType > &operator/=( const FieldOnNodes< ValueType > &rhs ) {
         if ( !this->isSimilarTo( rhs ) )
             raiseAsterError( "Fields have incompatible shapes" );
         ( *_values ) /= ( *rhs._values );
@@ -672,7 +672,8 @@ class FieldOnNodes : public DataField, private AllowedFieldType< ValueType > {
             }
         } else if ( normType == "NORM_2" ) {
             for ( auto &dof : dofUsed ) {
-                norme += std::pow( std::abs( ( *this )[dof] ), 2 );
+                const auto val = std::abs( ( *this )[dof] );
+                norme += val * val;
             }
         } else if ( normType == "NORM_INFINITY" ) {
             for ( auto &dof : dofUsed ) {

@@ -4,7 +4,7 @@
  * @file BaseMesh.h
  * @brief Fichier entete de la classe BaseMesh
  * @section LICENCE
- *   Copyright (C) 1991 - 2025  EDF R&D                www.code-aster.org
+ *   Copyright (C) 1991 - 2026  EDF www.code-aster.org
  *
  *   This file is part of Code_Aster.
  *
@@ -178,7 +178,7 @@ class BaseMesh : public DataStructure, public ListOfTables {
      * @brief Get all the names of group of cells
      * @return NamesMapChar24 _nameOfGrpCells
      */
-    const NamesMapChar24 &getGroupsOfNodesMap() const { return _nameOfGrpCells; };
+    const NamesMapChar24 &getGroupsOfCellsMap() const { return _nameOfGrpCells; };
 
     /**
      * @brief Returns the number of nodes
