@@ -279,33 +279,6 @@ class SimpleFieldOnNodes : public DataField {
     JeveuxVectorLogical getLogicalValues() const { return _allocated; }
 
     /**
-     * @brief Get values with mask
-     */
-    py::object toNumpy() {
-        this->updateValuePointers();
-
-        PyObject *resu_tuple = PyTuple_New( 2 );
-
-        npy_intp dims[2] = { _values->size() / this->getNumberOfComponents(),
-                             this->getNumberOfComponents() };
-
-        PyObject *values = PyArray_SimpleNewFromData( 2, dims, npy_type< ValueType >::value,
-                                                      _values->getDataPtr() );
-        PyObject *mask = PyArray_SimpleNewFromData( 2, dims, NPY_BOOL, _allocated->getDataPtr() );
-        AS_ASSERT( values != NULL );
-        AS_ASSERT( mask != NULL );
-
-        PyArray_CLEARFLAGS( (PyArrayObject *)values, NPY_ARRAY_OWNDATA );
-        PyArray_CLEARFLAGS( (PyArrayObject *)mask, NPY_ARRAY_OWNDATA );
-        PyTuple_SetItem( resu_tuple, 0, values );
-        PyTuple_SetItem( resu_tuple, 1, mask );
-
-        py::object tuple = py::reinterpret_steal< py::object >( resu_tuple );
-        tuple.inc_ref();
-        return tuple;
-    }
-
-    /**
      * @brief Get the name of the i-th component
      */
     std::string getComponent( const ASTERINTEGER &i ) const {

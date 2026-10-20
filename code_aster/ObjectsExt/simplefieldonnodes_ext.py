@@ -22,6 +22,8 @@
 Simple Fields defined on nodes of elements
 ********************************************************************
 """
+
+import libaster
 import numpy as np
 import numpy.ma as ma
 
@@ -79,6 +81,21 @@ class ExtendedSimpleFieldOnNodesReal:
         expanded = cfvalue.expand().values
         self._cache["val"][:, icmp] = expanded.data
         self._cache["msk"][:, icmp] = np.logical_not(expanded.mask)
+
+    def toNumpy(self):
+        """Returns the field values as numpy arrays.
+
+        It returns two numpy arrays with shape ( number_of_nodes, number_of_components )
+        The first array contains the field values while the second one is a mask
+        which is `True` if the corresponding value exists, `False` otherwise.
+
+        Where the mask is `False` the corresponding value is set to zero.
+
+        Returns:
+            ndarray (float): Field values.
+            ndarray (bool): Mask for the field values.
+        """
+        return libaster._simpleFieldOnNodesToNumpyReal(self)
 
     def getValues(self, copy=True):
         """
@@ -220,6 +237,21 @@ class ExtendedSimpleFieldOnNodesReal:
 @injector(SimpleFieldOnNodesComplex)
 class ExtendedSimpleFieldOnNodesComplex:
     cata_sdj = "SD.sd_cham_no_s.sd_cham_no_s"
+
+    def toNumpy(self):
+        """Returns the field values as numpy arrays.
+
+        It returns two numpy arrays with shape ``(number_of_nodes, number_of_components)``
+        The first array contains the field values while the second one is a mask
+        which is `True` if the corresponding value exists, `False` otherwise.
+
+        Where the mask is `False` the corresponding value is set to zero.
+
+        Returns:
+            ndarray (float): Field values.
+            ndarray (bool): Mask for the field values.
+        """
+        return libaster._simpleFieldOnNodesToNumpyComplex(self)
 
     def getValues(self, copy=False):
         """

@@ -28,13 +28,7 @@
 
 #include "DataFields/DataField.h"
 #include "MemoryManager/JeveuxVector.h"
-#include "MemoryManager/NumpyAccess.h"
 #include "Meshes/Node.h"
-
-#include <pybind11/numpy.h>
-#include <pybind11/pybind11.h>
-
-namespace py = pybind11;
 
 template < typename >
 class FieldOnNodes;
@@ -44,8 +38,7 @@ class FieldOnNodes;
  * @brief Cette classe template permet de definir un champ aux noeuds Aster
  * @author Nicolas Sellenet
  */
-class MeshCoordinatesField : public DataField,
-                             public std::enable_shared_from_this< MeshCoordinatesField > {
+class MeshCoordinatesField : public DataField {
   private:
     /** @brief Vecteur Jeveux '.DESC' */
     JeveuxVectorLong _descriptor;
@@ -198,11 +191,6 @@ class MeshCoordinatesField : public DataField,
      * @brief Get _valuesList
      */
     const JeveuxVectorReal getValues() const { return _valuesList; };
-
-    /**
-     * @brief Get _valuesList as NumPy array
-     */
-    py::array_t< ASTERDOUBLE > toNumpy();
 
     /**
      * @brief Surcharge de l'operateur []

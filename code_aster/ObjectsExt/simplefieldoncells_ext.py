@@ -23,6 +23,7 @@ Simple Fields defined on cells of elements
 ********************************************************************
 """
 
+import libaster
 import numpy as np
 import numpy.ma as ma
 
@@ -107,6 +108,23 @@ class ExtendedSimpleFieldOnCellsReal:
         expanded = cfvalue.expand().values
         self._cache["val"][:, icmp] = expanded.data
         self._cache["msk"][:, icmp] = np.logical_not(expanded.mask)
+
+    def toNumpy(self):
+        """Returns the field values as numpy arrays.
+
+        It returns three numpy arrays. The first two have a shape
+        ``(number_of_nodes, number_of_components)``.
+        The first array contains the field values while the second one is a mask
+        which is `True` if the corresponding value exists, `False` otherwise.
+        The third array contains the indexes to move in the values.
+
+        Where the mask is `False` the corresponding value is set to zero.
+
+        Returns:
+            ndarray[float]: Field values.
+            ndarray[bool]: Mask for the field values.
+        """
+        return libaster._simpleFieldOnCellsToNumpyReal(self)
 
     def getValues(self, copy=True):
         """

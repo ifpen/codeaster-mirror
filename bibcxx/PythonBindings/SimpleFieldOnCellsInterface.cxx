@@ -158,18 +158,6 @@ Args:
         )",
               py::arg( "ima" ), py::arg( "icmp" ), py::arg( "ipt" ), py::arg( "val" ) )
 
-        .def( "toNumpy", &SimpleFieldOnCellsReal::toNumpy,
-              R"(
-Returns two numpy arrays with shape ( number_of_cells_with_components, number_of_components )
-The first array contains the field values while the second one is a mask
-which is `True` if the corresponding value exists, `False` otherwise.
-
-Where the mask is `False` the corresponding value is set to zero.
-
-Returns:
-    ndarray (float): Field values.
-    ndarray (bool): Mask for the field values.
-        )" )
         .def( "getValuesWithDescription",
               py::overload_cast< const VectorString &, const VectorLong & >(
                   &SimpleFieldOnCellsReal::getValuesWithDescription, py::const_ ),

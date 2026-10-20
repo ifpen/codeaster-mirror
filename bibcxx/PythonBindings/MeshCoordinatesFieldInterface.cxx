@@ -66,12 +66,6 @@ Return a list of values of the coordinates as (x1, y1, z1, x2, y2, z2...)
 Returns:
     list[float]: List of coordinates (size = 3 * number of nodes).
         )" )
-        .def( "toNumpy", &MeshCoordinatesField::toNumpy, R"(
-Return a numpy array view (no-copy) of values of the coordinates with shape (number of nodes, 3).
-
-Returns:
-    np.ndarray: Array view of coordinates with shape=(number of nodes, 3).
-        )" )
         .def( "copy", &MeshCoordinatesField::copy, R"(
 Return a copy of MeshCoordinatesField object
 
