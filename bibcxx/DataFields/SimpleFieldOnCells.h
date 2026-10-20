@@ -42,8 +42,7 @@
  * @author Nicolas Sellenet
  */
 template < class ValueType >
-class SimpleFieldOnCells : public DataField,
-                           public std::enable_shared_from_this< SimpleFieldOnCells< ValueType > > {
+class SimpleFieldOnCells : public DataField {
   private:
     /** @brief Vecteur Jeveux '.CESK' */
     JeveuxVectorChar8 _descriptor;

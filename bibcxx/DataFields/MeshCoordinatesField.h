@@ -38,8 +38,7 @@ class FieldOnNodes;
  * @brief Cette classe template permet de definir un champ aux noeuds Aster
  * @author Nicolas Sellenet
  */
-class MeshCoordinatesField : public DataField,
-                             public std::enable_shared_from_this< MeshCoordinatesField > {
+class MeshCoordinatesField : public DataField {
   private:
     /** @brief Vecteur Jeveux '.DESC' */
     JeveuxVectorLong _descriptor;

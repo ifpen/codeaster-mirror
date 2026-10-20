@@ -25,7 +25,7 @@
  * @brief Get _valuesList as NumPy array
  */
 py::array_t< ASTERDOUBLE > coordinatesToNumpy( MeshCoordinatesFieldPtr coords ) {
-    py::object parent = py::cast( coords->shared_from_this() );
+    py::object parent = py::cast( coords );
 
     coords->updateValuePointers();
     auto values = coords->getValues();
@@ -39,7 +39,7 @@ py::array_t< ASTERDOUBLE > coordinatesToNumpy( MeshCoordinatesFieldPtr coords ) 
 
 template < typename ValueType >
 py::tuple simpleFieldOnNodesToNumpy( std::shared_ptr< SimpleFieldOnNodes< ValueType > > field ) {
-    py::object parent = py::cast( field->shared_from_this() );
+    py::object parent = py::cast( field );
 
     field->updateValuePointers();
 
@@ -60,7 +60,7 @@ py::tuple simpleFieldOnNodesToNumpy( std::shared_ptr< SimpleFieldOnNodes< ValueT
 
 template < typename ValueType >
 py::tuple simpleFieldOnCellsToNumpy( std::shared_ptr< SimpleFieldOnCells< ValueType > > field ) {
-    py::object parent = py::cast( field->shared_from_this() );
+    py::object parent = py::cast( field );
 
     field->updateValuePointers();
 
