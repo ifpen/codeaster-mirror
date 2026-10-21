@@ -208,6 +208,8 @@ subroutine te0064(option, nomte)
                 infoTemper(2) = zr(jvPhasePrev+nbVariPrev*(iNode-1)-1+THER_CYCL)
                 infoTemper(3) = zr(jvPhasePrev+nbVariPrev*(iNode-1)-1+PRBAINITER)
                 infoTemper(4) = zr(jvPhasePrev+nbVariPrev*(iNode-1)-1+PRMARTENSR)
+                infoTemper(5) = zr(jvPhasePrev+nbVariPrev*(iNode-1)-1+PRBAINITEB)
+                infoTemper(6) = zr(jvPhasePrev+nbVariPrev*(iNode-1)-1+PRMARTENSB)
             else
                 infoTemper(1) = zr(jvPhasePrev+nbVariPrev*(iNode-1)-1+STEEL_TEMP)
             end if

@@ -1,0 +1,10 @@
+P time_limit 280
+P memory_limit 512
+P ncpus 1
+P mpi_nbcpu 1
+P mpi_nbnoeud 1
+P testlist submit verification sequential
+
+F comm mtlp104c.py D 1
+F libr mtlp104a.12 D 12
+F mmed mtlp104c.mgib D 19

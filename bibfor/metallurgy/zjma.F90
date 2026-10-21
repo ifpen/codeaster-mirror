@@ -59,6 +59,7 @@ subroutine zjma(metaSteelPara, &
     real(kind=8) :: tau_0_bain, tau_0_mart
     real(kind=8) :: ZBainBrut, ZMartBrut
     real(kind=8) :: ZBainRevePrev, ZMartRevePrev
+    real(kind=8) :: ZBainBasePrev, ZMartBasePrev
     real(kind=8) :: ZBainBaseCurr, ZMartBaseCurr
     real(kind=8) :: ZBainReveCurr, ZMartReveCurr
     real(kind=8) :: ZBainTotaPrev, ZMartTotaPrev
@@ -83,17 +84,19 @@ subroutine zjma(metaSteelPara, &
     cyclTherPrev = nint(infoTemper(2))
     ZBainRevePrev = infoTemper(3)
     ZMartRevePrev = infoTemper(4)
+    ZBainBasePrev = infoTemper(5)
+    ZMartBasePrev = infoTemper(6)
 
 ! - Compute ratio
-    ZBainTotaPrev = ZBainRevePrev+ZBainBrut
-    ZMartTotaPrev = ZMartRevePrev+ZMartBrut
+    ZBainTotaPrev = ZBainRevePrev+ZBainBasePrev
+    ZMartTotaPrev = ZMartRevePrev+ZMartBasePrev
     ZTildeMartPrev = 0.d0
     if (abs(ZMartTotaPrev) .ge. r8prem()) then
-        ZTildeMartPrev = ZMartRevePrev/ZMartBrut
+        ZTildeMartPrev = ZMartRevePrev/ZMartTotaPrev
     end if
     ZTildeBainPrev = 0.d0
     if (abs(ZBainTotaPrev) .ge. r8prem()) then
-        ZTildeBainPrev = ZBainRevePrev/ZBainBrut
+        ZTildeBainPrev = ZBainRevePrev/ZBainTotaPrev
     end if
 
 ! - Get material parameters
@@ -110,8 +113,8 @@ subroutine zjma(metaSteelPara, &
 ! - Computes
     cyclTherCurr = cyclTherPrev
     if (abs(deltaTime12) .le. r8prem()) then
-        ZBainBaseCurr = ZBainBrut
-        ZMartBaseCurr = ZMartBrut
+        ZBainBaseCurr = ZBainBasePrev
+        ZMartBaseCurr = ZMartBasePrev
         ZBainReveCurr = ZBainRevePrev
         ZMartReveCurr = ZMartRevePrev
         cyclTherCurr = cyclTherPrev
@@ -125,13 +128,13 @@ subroutine zjma(metaSteelPara, &
         else if (tempPgCurr .gt. tempTempering) then
             if (cyclTherPrev .eq. 2) then
 ! ------------- Bainite
-                tau_0_bain = (-1.0*log(1-ZBainRevePrev)/bainCoefB)**(1.0/bainCoefN)
+                tau_0_bain = (-1.0*log(1-ZTildeBainPrev)/bainCoefB)**(1.0/bainCoefN)
                 Pa = 1.0/(1.0/(tempPgCurr+kelvin)-C0*log(deltaTime12))
                 deltaTimeEqui = exp((1.0/C0)*((1.0/(tempHold+kelvin))-(1.0/Pa)))
                 ZTildeBainCurr = &
                     1.0-exp(-1.0*bainCoefB*(tau_0_bain+deltaTimeEqui)**bainCoefN)
 ! ------------- Martensite
-                tau_0_mart = (-1.0*log(1-ZMartRevePrev)/martCoefB)**(1.0/martCoefN)
+                tau_0_mart = (-1.0*log(1-ZTildeMartPrev)/martCoefB)**(1.0/martCoefN)
                 Pa = 1.0/(1.0/(tempPgCurr+kelvin)-C0*log(deltaTime12))
                 deltaTimeEqui = exp((1.0/C0)*((1.0/(tempHold+kelvin))-(1.0/Pa)))
                 ZTildeMartCurr = &
@@ -141,11 +144,11 @@ subroutine zjma(metaSteelPara, &
             if (cyclTherPrev .eq. 2) then
                 ZTildeMartCurr = 0.d0
                 ZTildeBainCurr = 0.d0
-                if (ZMartBrut .ge. r8prem()) then
-                    ZTildeMartCurr = ZMartRevePrev/ZMartBrut
+                if (ZMartTotaPrev .ge. r8prem()) then
+                    ZTildeMartCurr = ZMartRevePrev/ZMartTotaPrev
                 end if
-                if (ZBainBrut .ge. r8prem()) then
-                    ZTildeBainCurr = ZBainRevePrev/ZBainBrut
+                if (ZBainTotaPrev .ge. r8prem()) then
+                    ZTildeBainCurr = ZBainRevePrev/ZBainTotaPrev
                 end if
                 cyclTherCurr = cyclTherPrev
             elseif (cyclTherPrev .eq. 1) then

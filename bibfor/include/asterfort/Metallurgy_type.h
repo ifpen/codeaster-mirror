@@ -125,7 +125,7 @@
 ! Parameters for algorithm
 ! ==================================================================================================
 ! Size of vector for input parameters for tempering steel
-#define NB_PARAIN_TEMPER 4
+#define NB_PARAIN_TEMPER 6
 
 ! Kinetic
 #define COOLING          0
