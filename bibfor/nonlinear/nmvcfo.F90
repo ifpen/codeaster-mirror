@@ -17,26 +17,22 @@
 ! --------------------------------------------------------------------
 !
 subroutine nmvcfo(poum, model, materField, materCode, caraElem, compor, &
-                  varcRefe, hval_incr, vectElem)
+                  varcRefe, hvalIncr, vectElem)
 !
+    use ExternalStateVariableComp_module, only: varcCompElem
     implicit none
 !
 #include "asterf_types.h"
 #include "asterfort/jedetr.h"
 #include "asterfort/jeexin.h"
 #include "asterfort/nmchex.h"
-#include "asterfort/nmvarc_prep.h"
-#include "asterfort/nmvccc.h"
-#include "asterfort/nmvcd2.h"
 #include "asterfort/reajre.h"
 #include "asterfort/vemare.h"
 !
     character(len=1), intent(in) :: poum
-    character(len=24), intent(in) :: model
-    character(len=24), intent(in) :: materField, materCode, caraElem
+    character(len=24), intent(in) :: model, materField, materCode, caraElem, compor
     character(len=24), intent(in) :: varcRefe
-    character(len=24), intent(in) :: compor
-    character(len=19), intent(in) :: hval_incr(*)
+    character(len=19), intent(in) :: hvalIncr(*)
     character(len=19), intent(in) :: vectElem
 !
 ! --------------------------------------------------------------------------------------------------
@@ -47,7 +43,7 @@ subroutine nmvcfo(poum, model, materField, materCode, caraElem, compor, &
 !
 ! --------------------------------------------------------------------------------------------------
 !
-! In  poum      : type of computation
+! In  poum           : type of computation
 !                      '-' - Previous step
 !                      '+' - Current step
 ! In  model          : name of model
@@ -56,43 +52,25 @@ subroutine nmvcfo(poum, model, materField, materCode, caraElem, compor, &
 ! In  caraElem       : name of elementary characteristics (field)
 ! In  varcRefe       : name of reference command variables vector
 ! In  compor         : name of comportment definition (field)
-! In  hval_incr      : hat-variable for incremental values
-! In  vectElem      : name of elementary vectors
+! In  hvalIncr       : hat-variable for incremental values
+! In  vect_elem      : name of elementary vectors
 !
 ! --------------------------------------------------------------------------------------------------
 !
-    integer(kind=8), parameter :: nbFieldInMax = 100, nbFieldOutMax = 2
-    character(len=8) :: lpaout(nbFieldOutMax), lpain(nbFieldInMax)
-    character(len=19) :: lchout(nbFieldOutMax), lchin(nbFieldInMax)
-    integer(kind=8) :: nbFieldIn, nbFieldout
-!
-    aster_logical :: exis_temp, exis_hydr, exis_ptot, exis_sech, exis_epsa
-    aster_logical :: exis_meta_zirc, exis_meta_acier, exis_meta, calc_meta
+    character(len=1), parameter :: jvBase = "V"
+    aster_logical, parameter :: lSuperElem = ASTER_FALSE, lCumul = ASTER_FALSE
+    integer(kind=8), parameter :: numeHarm = 0
     character(len=19) :: sigmPrev, variPrev, varcPrev, varcCurr
     integer(kind=8) :: iret
 !
 ! --------------------------------------------------------------------------------------------------
 !
 
-! - Get fields from hat-variables - Begin of time step
-    call nmchex(hval_incr, 'VALINC', 'SIGMOI', sigmPrev)
-    call nmchex(hval_incr, 'VALINC', 'VARMOI', variPrev)
-    call nmchex(hval_incr, 'VALINC', 'COMMOI', varcPrev)
-    call nmchex(hval_incr, 'VALINC', 'COMPLU', varcCurr)
-
-! - Get state of external state variables
-    call nmvcd2('HYDR', materField, exis_hydr)
-    call nmvcd2('PTOT', materField, exis_ptot)
-    call nmvcd2('SECH', materField, exis_sech)
-    call nmvcd2('EPSA', materField, exis_epsa)
-    call nmvcd2('M_ZIRC', materField, exis_meta_zirc)
-    call nmvcd2('M_ACIER', materField, exis_meta_acier)
-    call nmvcd2('TEMP', materField, exis_temp)
-    exis_meta = exis_temp .and. (exis_meta_zirc .or. exis_meta_acier)
-    calc_meta = ASTER_FALSE
-    if (exis_meta .and. poum .eq. '+') then
-        calc_meta = ASTER_TRUE
-    end if
+! - Get fields from hat-variables
+    call nmchex(hvalIncr, 'VALINC', 'SIGMOI', sigmPrev)
+    call nmchex(hvalIncr, 'VALINC', 'VARMOI', variPrev)
+    call nmchex(hvalIncr, 'VALINC', 'COMMOI', varcPrev)
+    call nmchex(hvalIncr, 'VALINC', 'COMPLU', varcCurr)
 
 ! - Prepare elementary vectors
     call jeexin(vectElem(1:19)//'.RELR', iret)
@@ -102,19 +80,12 @@ subroutine nmvcfo(poum, model, materField, materCode, caraElem, compor, &
     call jedetr(vectElem(1:19)//'.RELR')
     call reajre(vectElem, ' ', 'V')
 
-! - Fields preparation of elementary vectors
-    call nmvarc_prep(poum, model, caraElem, materCode, varcRefe, &
-                     compor, exis_temp, &
-                     nbFieldInMax, nbFieldIn, lpain, lchin, &
-                     nbFieldOutMax, nbFieldout, lpaout, lchout, &
-                     sigmPrev, variPrev, varcPrev, varcCurr)
-
 ! - Computation of elementary vectors
-    call nmvccc(model, &
-                nbFieldInMax, nbFieldIn, lpain, lchin, &
-                nbFieldOutMax, nbFieldout, lpaout, lchout, &
-                exis_temp, exis_hydr, exis_ptot, &
-                exis_sech, exis_epsa, calc_meta, &
-                vectElem)
+    call varcCompElem(lSuperElem, poum, &
+                      numeHarm, model, caraElem, materField, materCode, &
+                      varcRefe, varcPrev, &
+                      jvBase, vectElem, &
+                      lCumul_=lCumul, varcCurrZ_=varcCurr, variZ_=variPrev, sigmZ_=sigmPrev, &
+                      comporZ_=compor)
 !
 end subroutine

@@ -21,10 +21,10 @@
 #define EXTEVARI_DBG_READ 0
 
 ! Maximum number of external state variables available
-#define EXTEVARI_NB_MAXI 13
+#define EXTEVARI_NB_MAXI 14
 
 ! Maximum number of components in external state variable
-#define EXTEVARI_NBCMP_MAXI 9
+#define EXTEVARI_NBCMP_MAXI 12
 
 ! Size of map 2
 #define EXTEVARI_MAP2_SIZE 7

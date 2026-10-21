@@ -15,30 +15,37 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
+! aslint: disable=C1505
 #include "asterfort/Behaviour_type.h"
 !
 interface
-    subroutine nzcizi(fami, kpg, ksp, ndim, imat,&
-                      compor, carcri, instam, instap, epsm,&
-                      deps, sigm, vim, option, sigp,&
-                      vip, dsidep, iret)
+    subroutine nzcizi(option, &
+                      fami, kpg, ksp, ndim, jvMaterCode, &
+                      compor, carcri, &
+                      timePrev, timeCurr, &
+                      neps, epsm, deps, &
+                      nsig, sigm, &
+                      nvi, vim, &
+                      sigp, vip, ndsde, dsidep, &
+                      codret)
+        character(len=16), intent(in) :: option
         character(len=*), intent(in) :: fami
-        integer(kind=8), intent(in) :: kpg
-        integer(kind=8), intent(in) :: ksp
-        integer(kind=8), intent(in) :: ndim
-        integer(kind=8), intent(in) :: imat
+        integer(kind=8), intent(in) :: kpg, ksp, ndim, jvMaterCode
         character(len=16), intent(in) :: compor(COMPOR_SIZE)
         real(kind=8), intent(in) :: carcri(CARCRI_SIZE)
-        real(kind=8), intent(in) :: instam
-        real(kind=8), intent(in) :: instap
-        real(kind=8), intent(in) :: epsm(*)
-        real(kind=8), intent(in) :: deps(*)
-        real(kind=8), intent(in) :: sigm(*)
-        real(kind=8), intent(in) :: vim(25)
-        character(len=16), intent(in) :: option
-        real(kind=8), intent(out) :: sigp(*)
-        real(kind=8), intent(out) :: vip(25)
-        real(kind=8), intent(out) :: dsidep(6, 6)
-        integer(kind=8), intent(out) :: iret
+        real(kind=8), intent(in) :: timePrev, timeCurr
+        integer(kind=8), intent(in) :: neps
+        real(kind=8), intent(in) :: epsm(neps)
+        real(kind=8), intent(in) :: deps(neps)
+        integer(kind=8), intent(in) :: nsig
+        real(kind=8), intent(in) :: sigm(nsig)
+        integer(kind=8), intent(in) :: nvi
+        real(kind=8), intent(in) :: vim(nvi)
+        real(kind=8), intent(out) :: sigp(nsig)
+        real(kind=8), intent(out) :: vip(nvi)
+        integer(kind=8), intent(in) :: ndsde
+        real(kind=8), intent(out) :: dsidep(merge(nsig, 6, nsig*neps .eq. ndsde), &
+                                            merge(neps, 6, nsig*neps .eq. ndsde))
+        integer(kind=8), intent(out) :: codret
     end subroutine nzcizi
 end interface

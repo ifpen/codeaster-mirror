@@ -18,16 +18,16 @@
 #include "asterfort/Behaviour_type.h"
 !
 interface
-    subroutine nzcalc(carcri, nbPhase, phase, zalpha, &
+    subroutine nzcalc(carcri, nbPhase, phase, zSumCold, &
                       fmix, seuil, timeIncr, trans, &
                       rprim, deuxmu, eta, unsurn, &
-                      dp, iret)
+                      dp, codret)
         real(kind=8), intent(in) :: carcri(CARCRI_SIZE)
         integer(kind=8), intent(in) :: nbPhase
-        real(kind=8), intent(in) :: phase(nbPhase), zalpha
+        real(kind=8), intent(in) :: phase(nbPhase), zSumCold
         real(kind=8), intent(in) :: fmix, seuil, timeIncr, trans
         real(kind=8), intent(in) :: rprim, deuxmu, eta(nbPhase), unsurn(nbPhase)
         real(kind=8), intent(out) :: dp
-        integer(kind=8), intent(out) :: iret
+        integer(kind=8), intent(out) :: codret
     end subroutine nzcalc
 end interface

@@ -70,8 +70,8 @@ subroutine getExternalStateVariable(relaComp, relaCompPy, &
                                    'HYDR    ', 'CORR    ', 'IRRA    ', &
                                    'EPSAXX  ', 'EPSAYY  ', 'EPSAZZ  ', &
                                    'EPSAXY  ', 'EPSAXZ  ', 'EPSAYZ  ', &
-                                   'PFERRITE', 'PPERLITE', 'PBAINITE', &
-                                   'PMARTENS', 'ALPHPUR ', 'ALPHBET ', &
+                                   'FERRITE ', 'PERLITE ', 'BAINITE ', &
+                                   'MARTENS ', 'ALPHPUR ', 'ALPHBET ', &
                                    'TIME    ', 'TEMPREFE'/)
     aster_logical, parameter :: l_allow_mfront(nbExteType) = (/.true., .false., &
                                                                .false., .true., .true., &

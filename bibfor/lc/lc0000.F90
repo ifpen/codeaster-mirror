@@ -719,7 +719,7 @@ subroutine lc0000(BEHInteg, &
 ! ----- KIT_META
         call lc1015(fami, kpg, ksp, ndim, jvMaterCode, &
                     compor, carcri, instam, instap, epsm, &
-                    deps, sigm, nvi, vim, option, &
+                    deps, nsig, sigm, nvi, vim, option, &
                     sigp, vip, typmod, &
                     dsidep, codret)
 

@@ -18,6 +18,7 @@
 !
 subroutine te0358(option, nomte)
 !
+    use MetallurgyMeca_module, only: metaGetType
     implicit none
 !
 #include "asterf_types.h"
@@ -31,7 +32,6 @@ subroutine te0358(option, nomte)
 #include "asterfort/jevech.h"
 #include "asterfort/meta_vpta_coef.h"
 #include "asterfort/metaGetPhase.h"
-#include "asterfort/metaGetType.h"
 #include "asterfort/Metallurgy_type.h"
 #include "asterfort/rcvarc.h"
 #include "asterfort/tecach.h"
@@ -67,8 +67,8 @@ subroutine te0358(option, nomte)
     real(kind=8) :: sig(nbSigm), sigdv(nbSigm)
     real(kind=8) :: dfdx(MT_NNOMAX3D), dfdy(MT_NNOMAX3D), dfdz(MT_NNOMAX3D), poids
     real(kind=8) :: coef, trans
-    real(kind=8) :: zcold_curr
-    real(kind=8) :: phasPrev(META_MECA_NBPHASE_MAXI), phasCurr(META_MECA_NBPHASE_MAXI), temp
+    real(kind=8) :: zSumColdCurr
+    real(kind=8) :: phasePrev(META_MECA_NBPHASE_MAXI), phaseCurr(META_MECA_NBPHASE_MAXI), temp
     aster_logical :: l_temp
     character(len=16) :: elasKeyword
     character(len=16) :: metaRela, metaGlob
@@ -105,14 +105,19 @@ subroutine te0358(option, nomte)
 
 ! ----- Check type of phases
         valk(1) = metaPhasName
-        if (metaPhasName .eq. 'ACIER_MECA') then
+        if (metaPhasName .eq. 'ACIERMECA') then
             if (metaType .ne. META_STEEL) then
                 valk(2) = 'ZIRC'
                 call utmess('F', 'COMPOR3_8', nk=2, valk=valk)
             end if
-        elseif (metaPhasName .eq. 'ZIRC_MECA') then
+        elseif (metaPhasName .eq. 'ZIRCMECA') then
             if (metaType .ne. META_ZIRC) then
                 valk(2) = 'ACIER'
+                call utmess('F', 'COMPOR3_8', nk=2, valk=valk)
+            end if
+        elseif (metaPhasName .eq. 'ACIER_REVENUMECA') then
+            if (metaType .ne. META_STEEL_TEMPER) then
+                valk(2) = "ACIER_REVENU"
                 call utmess('F', 'COMPOR3_8', nk=2, valk=valk)
             end if
         else
@@ -148,12 +153,12 @@ subroutine te0358(option, nomte)
             l_temp = iret .eq. 0
 
 ! --------- Get phases
-            phasPrev = 0.d0
-            phasCurr = 0.d0
+            phasePrev = 0.d0
+            phaseCurr = 0.d0
             call metaGetPhase(fami, '-', kpg, ksp, metaType, &
-                              nbPhases, phasPrev)
+                              nbPhases, phasePrev)
             call metaGetPhase(fami, '+', kpg, ksp, metaType, &
-                              nbPhases, phasCurr, zcold_=zcold_curr)
+                              nbPhases, phaseCurr, zSumCold_=zSumColdCurr)
 
 ! --------- Get elastic parameters
             call get_elas_id(jvMaterCode, elasID, elasKeyword)
@@ -166,8 +171,8 @@ subroutine te0358(option, nomte)
 ! --------- Compute coefficients for second member
             call meta_vpta_coef(metaRela, metaGlob, &
                                 lgpg, fami, kpg, jvMaterCode, &
-                                l_temp, temp, metaType, nbPhases, phasPrev, &
-                                phasCurr, zcold_curr, young, deuxmu, coef, &
+                                l_temp, temp, metaType, nbPhases, phasePrev, &
+                                phaseCurr, zSumColdCurr, young, deuxmu, coef, &
                                 trans)
 
 ! --------- Compute stresses

@@ -22,7 +22,6 @@ subroutine nmvcex(index, varcz, chamz)
 !
 #include "asterfort/exisd.h"
 !
-!
     character(len=4), intent(in) :: index
     character(len=*), intent(in) :: varcz
     character(len=*), intent(out) :: chamz

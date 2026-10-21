@@ -16,7 +16,7 @@
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
 
-subroutine nmvcd2(name_varcz, matez, exis_varc)
+subroutine nmvcd2(varcNameZ, materFieldZ, exis_varc)
 !
     implicit none
 !
@@ -27,49 +27,47 @@ subroutine nmvcd2(name_varcz, matez, exis_varc)
 #include "asterfort/jemarq.h"
 #include "asterfort/jeveuo.h"
 !
-!
-    character(len=*), intent(in) :: name_varcz
-    character(len=*), intent(in) :: matez
+    character(len=*), intent(in) :: varcNameZ
+    character(len=*), intent(in) :: materFieldZ
     aster_logical, intent(out) :: exis_varc
 !
 ! --------------------------------------------------------------------------------------------------
 !
-! Command variables
+! External state variables
 !
-! Is command variable exists ?
+! Is external state variable exists in material field ?
 !
 ! --------------------------------------------------------------------------------------------------
 !
-! In  name_varc : name of command variable
-! In  mate      : name of material field
-! Out exis_varc : .true. if this command variable has been affected
+! In  varcName         : name of external state variable
+! In  materField       : name of material characteristics (field)
+! Out exis_varc        : ASTER_TRUE if state variable exists in material field
 !
 ! --------------------------------------------------------------------------------------------------
 !
     integer(kind=8) :: nmax, i, iret
-    character(len=8) :: mate
-    character(len=8) :: name_varc
+    character(len=8) :: materField
+    character(len=8) :: varcName
     character(len=8), pointer :: cvrcvarc(:) => null()
 !
 ! --------------------------------------------------------------------------------------------------
 !
     call jemarq()
 !
-    mate = matez
-    name_varc = name_varcz
-    exis_varc = .false.
+    materField = materFieldZ
+    varcName = varcNameZ
+    exis_varc = ASTER_FALSE
 !
-    call jeexin(mate//'.CVRCVARC', iret)
+    call jeexin(materField//'.CVRCVARC', iret)
     if (iret .ne. 0) then
-        call jelira(mate//'.CVRCVARC', 'LONMAX', ival=nmax)
-        call jeveuo(mate//'.CVRCVARC', 'L', vk8=cvrcvarc)
+        call jelira(materField//'.CVRCVARC', 'LONMAX', ival=nmax)
+        call jeveuo(materField//'.CVRCVARC', 'L', vk8=cvrcvarc)
         do i = 1, nmax
-            if (cvrcvarc(i) .eq. name_varc) then
-                exis_varc = .true.
-                goto 2
+            if (cvrcvarc(i) .eq. varcName) then
+                exis_varc = ASTER_TRUE
+                exit
             end if
         end do
-2       continue
     end if
 !
     call jedema()

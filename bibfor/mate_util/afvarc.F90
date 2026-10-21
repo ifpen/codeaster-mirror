@@ -27,6 +27,7 @@ subroutine afvarc(mateField, mesh, model)
 !
     implicit none
 !
+#include "asterfort/assert.h"
 #include "asterfort/ExternalStateVariable_type.h"
 !
     character(len=8), intent(in) :: mateField, mesh, model

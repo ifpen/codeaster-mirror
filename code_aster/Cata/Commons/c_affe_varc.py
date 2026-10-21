@@ -45,6 +45,7 @@ def C_AFFE_VARC():
                 "NEUT2",
                 "NEUT3",
                 "PTOT",
+                "M_REVENU",
             ),
         ),
         CHAM_GD=SIMP(statut="f", typ=cham_gd_sdaster),
@@ -69,6 +70,7 @@ def C_AFFE_VARC():
                     "PTOT",
                     "HHO_TEMP",
                     "SECH",
+                    "META_ELNO",
                 ),
             ),
             PROL_DROITE=SIMP(

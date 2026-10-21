@@ -15,7 +15,7 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-! aslint: disable=C1505,W1504
+! aslint: disable=C1505,W1504,W1501
 !
 subroutine nzcifw(option, &
                   fami, kpg, ksp, ndim, jvMaterCode, &
@@ -27,22 +27,18 @@ subroutine nzcifw(option, &
                   sigp, vip, ndsde, dsidep, &
                   codret)
 !
+    use MetallurgyMeca_module, only: metaGetType, metaGetParaElas, metaGetMechanism, &
+                                     metaGetParaMixture, metaGetParaAnneal, metaGetParaVisc, &
+                                     metaGetParaPlasTransf, metaGetParaHardLine, metaGetParaHardTrac
     implicit none
 !
 #include "asterf_types.h"
 #include "asterfort/assert.h"
 #include "asterfort/Behaviour_type.h"
-#include "asterfort/metaGetMechanism.h"
-#include "asterfort/metaGetParaAnneal.h"
-#include "asterfort/metaGetParaElas.h"
-#include "asterfort/metaGetParaHardLine.h"
-#include "asterfort/metaGetParaMixture.h"
-#include "asterfort/metaGetParaPlasTransf.h"
-#include "asterfort/metaGetParaVisc.h"
-#include "asterfort/metaGetPhase.h"
-#include "asterfort/metaGetType.h"
 #include "asterfort/Metallurgy_type.h"
+#include "asterfort/metaGetPhase.h"
 #include "asterfort/nzcalc.h"
+#include "asterfort/rcvarc.h"
 #include "asterfort/verift.h"
 !
     character(len=16), intent(in) :: option
@@ -76,7 +72,7 @@ subroutine nzcifw(option, &
 ! IN  NDIM    : DIMENSION DE L'ESPACE
 ! IN  IMAT    : ADRESSE DU MATERIAU CODE
 ! IN  COMPOR  : COMPORTEMENT : RELCOM ET DEFORM
-! IN  CRIT    : CRITERES DE CONVERGENCE LOCAUX
+! IN  carcri  : CRITERES DE CONVERGENCE LOCAUX
 ! IN  INSTAM  : INSTANT DU CALCUL PRECEDENT
 ! IN  INSTAP  : INSTANT DU CALCUL
 ! IN  EPSM    : DEFORMATIONS A L'INSTANT DU CALCUL PRECEDENT
@@ -97,34 +93,45 @@ subroutine nzcifw(option, &
 !
 ! --------------------------------------------------------------------------------------------------
 !
+    integer(kind=8) :: viIndxIPlas
     real(kind=8), parameter :: kron(6) = (/1.d0, 1.d0, 1.d0, 0.d0, 0.d0, 0.d0/)
     real(kind=8), parameter :: rac2 = sqrt(2.d0)
     real(kind=8), parameter :: hardCoef = 2.d0/3.d0
     integer(kind=8) :: metaType
     integer(kind=8) :: nbPhase, nbPhaseCold, iPhaseCold, iPhaseHot, iPhase
-    real(kind=8) :: phaseCurr(PSTEEL_NB), phasePrev(PSTEEL_NB), phaseIncr(PSTEEL_NB), zalpha
-    real(kind=8) :: xcinColdPrev(6*PCSTEEL_NB), xcinColdCurr(6*PCSTEEL_NB)
-    real(kind=8) :: xcinCold(6*PCSTEEL_NB)
-    real(kind=8) :: xcinColdSave(6*PCSTEEL_NB)
+    real(kind=8) :: phaseCurr(META_MECA_NBPHASE_MAXI), phasePrev(META_MECA_NBPHASE_MAXI)
+    real(kind=8) :: phaseIncr(META_MECA_NBPHASE_MAXI), zSumCold
+    real(kind=8) :: dz1(META_MECA_NBPHASE_MAXI-1), dz2(META_MECA_NBPHASE_MAXI-1)
+    real(kind=8) :: xcinColdPrev(6*(META_MECA_NBPHASE_MAXI-1))
+    real(kind=8) :: xcinColdCurr(6*(META_MECA_NBPHASE_MAXI-1))
+    real(kind=8) :: xcinCold(6*(META_MECA_NBPHASE_MAXI-1))
+    real(kind=8) :: xcinColdSave(6*(META_MECA_NBPHASE_MAXI-1))
     real(kind=8) :: xcinHotPrev(6), xcinHot(6), xcinHotSave(6), xcinMoy(6), xcinHotCurr(6)
+    real(kind=8) :: sy(META_MECA_NBPHASE_MAXI)
+    real(kind=8) :: h(META_MECA_NBPHASE_MAXI)
+    real(kind=8) :: annealTheta(2*(META_MECA_NBPHASE_MAXI-1))
+    real(kind=8) :: eta(META_MECA_NBPHASE_MAXI), n(META_MECA_NBPHASE_MAXI)
+    real(kind=8) :: unsurn(META_MECA_NBPHASE_MAXI), c(META_MECA_NBPHASE_MAXI)
+    real(kind=8) :: m(META_MECA_NBPHASE_MAXI)
+    real(kind=8) :: kpt(META_MECA_NBPHASE_MAXI-1), fpt(META_MECA_NBPHASE_MAXI-1)
+    real(kind=8) :: n0(META_MECA_NBPHASE_MAXI)
     integer(kind=8) :: ndimsi, i, j, mode
     real(kind=8) :: timeIncr
     real(kind=8) :: epsth, e, deuxmu, deumum, troisk
-    real(kind=8) :: fmix, sy(5), symoy, h(5), hmoy, rprim
-    real(kind=8) :: annealTheta(8)
-    real(kind=8) :: eta(5), n(5), unsurn(5), c(5), m(5), cmoy, mmoy, cr
-    real(kind=8) :: dz1(4), dz2(4), annealFunc
+    real(kind=8) :: fmix, symoy, hmoy, rprim
+    real(kind=8) :: cmoy, mmoy, cr
+    real(kind=8) :: annealFunc
     real(kind=8) :: xmoy(6), ds(6), xmoyeq
-    real(kind=8) :: trans, kpt(4), fpt(4)
+    real(kind=8) :: trans
     real(kind=8) :: trepsm, trdeps, trsigm, trsigp
     real(kind=8) :: dvdeps(6), dvsigm(6), dvsigp(6)
     real(kind=8) :: sigel(6), sigel2(6), sig0(6), sieleq, sigeps
     real(kind=8) :: dp, seuil
-    real(kind=8) :: coef1, coef2, coef3, dv, n0(5), b
+    real(kind=8) :: coef1, coef2, coef3, dv, b
     character(len=1) :: poum
     real(kind=8) :: indicPlasPrev, indicPlasCurr, indicPlas
     aster_logical :: lMatr, lVari
-    aster_logical :: l_visc, l_plas, l_anneal, l_plas_tran, l_hard_isotline, l_hard_isotnlin
+    aster_logical :: l_visc, l_plas, l_anneal, lPlasTran
     character(len=16) :: metaRela, metaGlob
 !
 ! --------------------------------------------------------------------------------------------------
@@ -141,38 +148,34 @@ subroutine nzcifw(option, &
 
 ! - Get metallurgy type
     call metaGetType(metaType, nbPhase)
-    ASSERT(metaType .eq. META_STEEL)
-    ASSERT(nbPhase .eq. PSTEEL_NB)
+    ASSERT(metaType .eq. META_STEEL .or. metaType .eq. META_STEEL_TEMPER)
+    ASSERT(nbPhase .le. META_MECA_NBPHASE_MAXI)
     nbPhaseCold = nbPhase-1
     iPhaseHot = nbPhase
-    ASSERT(nbPhaseCold .eq. PCSTEEL_NB)
 
 ! - Get phases
     if (lVari) then
         poum = '+'
         call metaGetPhase(fami, '+', kpg, ksp, metaType, &
-                          nbPhase, phaseCurr, zcold_=zalpha)
+                          nbPhase, phaseCurr, zSumCold_=zSumCold)
         call metaGetPhase(fami, '-', kpg, ksp, metaType, &
                           nbPhase, phasePrev)
     else
         poum = '-'
         call metaGetPhase(fami, '-', kpg, ksp, metaType, &
-                          nbPhase, phaseCurr, zcold_=zalpha)
+                          nbPhase, phaseCurr, zSumCold_=zSumCold)
     end if
     phaseIncr(1:nbPhaseCold) = phaseCurr(1:nbPhaseCold)-phasePrev(1:nbPhaseCold)
 
 ! - Compute thermic strain
-    call verift(fami, kpg, ksp, poum, jvMaterCode, &
-                epsth_meta_=epsth)
+    call verift(fami, kpg, ksp, poum, jvMaterCode, epsth_meta_=epsth)
 
 ! - Get active mechanisms in behaviour
     call metaGetMechanism(metaRela, metaGlob, &
-                          l_plas=l_plas, &
-                          l_visc=l_visc, &
-                          l_anneal=l_anneal, &
-                          l_plas_tran=l_plas_tran, &
-                          l_hard_isotline=l_hard_isotline, &
-                          l_hard_isotnlin=l_hard_isotnlin)
+                          lPlas_=l_plas, &
+                          lVisc_=l_visc, &
+                          lAnneal_=l_anneal, &
+                          lPlasTran_=lPlasTran)
 
 ! - Get elastic parameters
     call metaGetParaElas(poum, fami, kpg, ksp, jvMaterCode, &
@@ -180,16 +183,23 @@ subroutine nzcifw(option, &
                          deuxmum_=deumum)
 
 ! - Get internal state variables
+    if (metaType .eq. META_STEEL) then
+        viIndxIPlas = IDX_C_IPLAS
+    elseif (metaType .eq. META_STEEL_TEMPER) then
+        viIndxIPlas = IDX_C_IPLASR
+    else
+        ASSERT(ASTER_FALSE)
+    end if
     xcinColdPrev(1:6*nbPhaseCold) = vim(1:6*nbPhaseCold)
     do i = 1, ndimsi
         xcinHotPrev(i) = vim(6*nbPhaseCold+i)
     end do
-    indicPlasPrev = vim(IDX_C_IPLAS)
+    indicPlasPrev = vim(viIndxIPlas)
 
 ! - Mixture law (yield limit)
     call metaGetParaMixture(poum, fami, kpg, ksp, jvMaterCode, &
-                            l_visc, metaType, nbPhase, zalpha, fmix, &
-                            sy)
+                            l_visc, metaType, nbPhase, zSumCold, &
+                            fmix, sy)
 
 ! - Get hardening slope (linear)
     call metaGetParaHardLine(poum, fami, kpg, ksp, jvMaterCode, &
@@ -213,7 +223,8 @@ subroutine nzcifw(option, &
 ! ----- Parameters for viscosity
         if (l_visc) then
             call metaGetParaVisc(poum, fami, kpg, ksp, jvMaterCode, &
-                                 metaType, nbPhase, eta, n, unsurn, &
+                                 metaType, nbPhase, &
+                                 eta, n, unsurn, &
                                  c, m)
         else
             eta = 0.d0
@@ -221,7 +232,6 @@ subroutine nzcifw(option, &
             unsurn = 1.d0
             c = 0.d0
             m = 20.d0
-
         end if
 
 ! ----- Get positive part of +increment of phases (dz1) and -increment of phases (dz2)
@@ -242,8 +252,9 @@ subroutine nzcifw(option, &
                 do iPhaseCold = 1, nbPhaseCold
                     annealFunc = annealFunc+ &
                                  dz2(iPhaseCold)* &
-                                 (annealTheta(4+iPhaseCold)*xcinColdPrev(6*(iPhaseCold-1)+i)- &
-                                  xcinHotPrev(i))/phaseCurr(iPhaseHot)
+                                 (annealTheta(nbPhaseCold+iPhaseCold)* &
+                                  xcinColdPrev(6*(iPhaseCold-1)+i)-xcinHotPrev(i))/ &
+                                 phaseCurr(iPhaseHot)
                 end do
                 xcinHot(i) = xcinHotPrev(i)+annealFunc
                 if ((xcinHot(i)*xcinHotPrev(i)) .lt. 0.d0) then
@@ -333,9 +344,10 @@ subroutine nzcifw(option, &
 
 ! ----- Parameters for plasticity of tranformation
         trans = 0.d0
-        if (l_plas_tran) then
+        if (lPlasTran) then
             call metaGetParaPlasTransf('+', fami, 1, 1, jvMaterCode, &
-                                       metaType, nbPhase, phaseIncr, zalpha, &
+                                       metaType, nbPhase, nbPhaseCold, &
+                                       phaseIncr, zSumCold, &
                                        kpt, fpt)
             do iPhaseCold = 1, nbPhaseCold
                 if (phaseIncr(iPhaseCold) .gt. 0.d0) then
@@ -370,11 +382,12 @@ subroutine nzcifw(option, &
     end if
 
 ! - Apply mixture law on hardening parameters
-    if (zalpha .gt. 0.d0) then
-        symoy = phaseCurr(1)*sy(1)+phaseCurr(2)*sy(2)+phaseCurr(3)*sy(3)+phaseCurr(4)*sy(4)
-        symoy = symoy/zalpha
-    else
-        symoy = 0.d0
+    symoy = 0.d0
+    if (zSumCold .gt. 0.d0) then
+        do iPhaseCold = 1, nbPhaseCold
+            symoy = symoy+phaseCurr(iPhaseCold)*sy(iPhaseCold)
+        end do
+        symoy = symoy/zSumCold
     end if
     symoy = (1.d0-fmix)*sy(nbPhase)+fmix*symoy
 
@@ -427,7 +440,7 @@ subroutine nzcifw(option, &
             if (l_plas) then
                 dp = seuil/(1.5d0*deuxmu+(1.5d0*deuxmu*trans+1.d0)*rprim)
             else
-                call nzcalc(carcri, nbPhase, phaseCurr, zalpha, &
+                call nzcalc(carcri, nbPhase, phaseCurr, zSumCold, &
                             fmix, seuil, timeIncr, trans, &
                             rprim, deuxmu, eta, unsurn, &
                             dp, codret)
@@ -522,11 +535,11 @@ subroutine nzcifw(option, &
                         end do
                         dv = (1-fmix)*phaseCurr(nbPhase)*(eta(nbPhase)/n(nbPhase)/timeIncr)* &
                              ((dp/timeIncr)**n0(nbPhase))
-                        if (zalpha .gt. 0.d0) then
+                        if (zSumCold .gt. 0.d0) then
                             do iPhaseCold = 1, nbPhaseCold
                                 if (phaseCurr(iPhaseCold) .gt. 0.d0) then
                                     dv = dv+ &
-                                         fmix*(phaseCurr(iPhaseCold)/zalpha)* &
+                                         fmix*(phaseCurr(iPhaseCold)/zSumCold)* &
                                          (eta(iPhaseCold)/n(iPhaseCold)/timeIncr)* &
                                          ((dp/timeIncr)**n0(iPhaseCold))
                                 end if
@@ -569,7 +582,7 @@ subroutine nzcifw(option, &
             vip(6*nbPhaseCold+i) = xcinHotCurr(i)
             vip(6*nbPhaseCold+6+i) = xcinMoy(i)
         end do
-        vip(IDX_C_IPLAS) = indicPlas
+        vip(viIndxIPlas) = indicPlas
     end if
 !
 999 continue

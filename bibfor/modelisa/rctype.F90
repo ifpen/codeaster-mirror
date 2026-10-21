@@ -132,6 +132,8 @@ subroutine rctype(jmat, nb_para_list, para_list_name, para_list_vale, para_vale,
                      (keyw .eq. 'SIGM_F2') .or. &
                      (keyw .eq. 'SIGM_F3') .or. &
                      (keyw .eq. 'SIGM_F4') .or. &
+                     (keyw .eq. 'SIGM_F5') .or. &
+                     (keyw .eq. 'SIGM_F6') .or. &
                      (keyw .eq. 'SIGM_C')) then
                 ipif = ipi+lmat-1+lfct*(ik-1)+lsup*(ik-1)
             else

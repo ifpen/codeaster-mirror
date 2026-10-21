@@ -17,51 +17,47 @@
 ! --------------------------------------------------------------------
 ! aslint: disable=W1501
 !
-subroutine nzgdzi(fami, kpg, ksp, ndim, imat, &
-                  compor, carcri, instam, instap, fm, &
-                  df, sigm, vim, option, sigp, &
-                  vip, dsigdf, iret)
+subroutine nzgdzi(option, &
+                  fami, kpg, ksp, ndim, jvMaterCode, &
+                  compor, carcri, &
+                  timePrev, timeCurr, &
+                  fm, df, &
+                  nsig, sigm, &
+                  nvi, vim, &
+                  sigp, vip, dsigdf, &
+                  codret)
 !
+    use MetallurgyMeca_module, only: metaGetType, metaGetParaElas, metaGetMechanism, &
+                                     metaGetParaMixture, metaGetParaAnneal, metaGetParaVisc, &
+                                     metaGetParaPlasTransf, metaGetParaHardLine, metaGetParaHardTrac
     implicit none
 !
-#include "asterf_types.h"
 #include "asterc/r8prem.h"
+#include "asterf_types.h"
 #include "asterfort/assert.h"
+#include "asterfort/Behaviour_type.h"
+#include "asterfort/metaGetPhase.h"
+#include "asterfort/Metallurgy_type.h"
 #include "asterfort/nzcalc.h"
 #include "asterfort/rcvarc.h"
 #include "asterfort/verift.h"
 #include "asterfort/zerop3.h"
-#include "asterfort/metaGetMechanism.h"
-#include "asterfort/metaGetType.h"
-#include "asterfort/metaGetPhase.h"
-#include "asterfort/metaGetParaVisc.h"
-#include "asterfort/metaGetParaHardLine.h"
-#include "asterfort/metaGetParaHardTrac.h"
-#include "asterfort/metaGetParaMixture.h"
-#include "asterfort/metaGetParaPlasTransf.h"
-#include "asterfort/metaGetParaAnneal.h"
-#include "asterfort/metaGetParaElas.h"
-#include "asterfort/Metallurgy_type.h"
-#include "asterfort/Behaviour_type.h"
 !
+    character(len=16), intent(in) :: option
     character(len=*), intent(in) :: fami
-    integer(kind=8), intent(in) :: kpg
-    integer(kind=8), intent(in) :: ksp
-    integer(kind=8), intent(in) :: ndim
-    integer(kind=8), intent(in) :: imat
+    integer(kind=8), intent(in) :: kpg, ksp, ndim, jvMaterCode
     character(len=16), intent(in) :: compor(COMPOR_SIZE)
     real(kind=8), intent(in) :: carcri(CARCRI_SIZE)
-    real(kind=8), intent(in) :: instam
-    real(kind=8), intent(in) :: instap
-    real(kind=8), intent(in) :: fm(3, 3)
-    real(kind=8), intent(in) :: df(3, 3)
-    real(kind=8), intent(in) :: sigm(*)
-    real(kind=8), intent(in) :: vim(*)
-    character(len=16), intent(in) :: option
-    real(kind=8), intent(out) :: sigp(*)
-    real(kind=8), intent(out) :: vip(*)
+    real(kind=8), intent(in) :: timePrev, timeCurr
+    real(kind=8), intent(in) :: fm(3, 3), df(3, 3)
+    integer(kind=8), intent(in) :: nsig
+    real(kind=8), intent(in) :: sigm(nsig)
+    integer(kind=8), intent(in) :: nvi
+    real(kind=8), intent(in) :: vim(nvi)
+    real(kind=8), intent(out) :: sigp(nsig)
+    real(kind=8), intent(out) :: vip(nvi)
     real(kind=8), intent(out) :: dsigdf(6, 3, 3)
-    integer(kind=8), intent(out) :: iret
+    integer(kind=8), intent(out) :: codret
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -90,40 +86,58 @@ subroutine nzgdzi(fami, kpg, ksp, ndim, imat, &
 !
 ! --------------------------------------------------------------------------------------------------
 !
-    integer(kind=8) :: maxval, nbPhases, metaType
-    integer(kind=8) :: i, j, k, l, mode
-    integer(kind=8) :: ind(3, 3), nbr, iret1
-    real(kind=8) :: phase(5), phasm(5), zalpha, deltaz(5)
-    real(kind=8) :: temp, dt, coef_hard
+    real(kind=8), parameter :: kr(6) = (/1.d0, 1.d0, 1.d0, 0.d0, 0.d0, 0.d0/)
+    real(kind=8), parameter :: pdtsca(6) = (/1.d0, 1.d0, 1.d0, 2.d0, 2.d0, 2.d0/)
+    real(kind=8), parameter :: hardCoef = 1.d0
+    integer(kind=8) :: viIndxSigy, viIndxIPlas, viIndxSimo
+    integer(kind=8) :: metaType
+    integer(kind=8) :: nbPhase, nbPhaseCold, iPhaseCold, iPhaseHot, iPhase
+    real(kind=8) :: phaseCurr(PZIRC_NB), phasePrev(PZIRC_NB)
+    real(kind=8) :: phaseIncr(PZIRC_NB), zSumCold
+    real(kind=8) :: dz1(PZIRC_NB-1), dz2(PZIRC_NB-1)
+    real(kind=8) :: epseq(PZIRC_NB), epseqPrev(PZIRC_NB)
+    real(kind=8) :: epseqCurr(PZIRC_NB)
+    real(kind=8) :: sy(PZIRC_NB)
+    real(kind=8) :: h(PZIRC_NB), hplus(PZIRC_NB)
+    real(kind=8) :: r(PZIRC_NB)
+    real(kind=8) :: annealTheta(2*(PZIRC_NB-1))
+    real(kind=8) :: eta(PZIRC_NB), n(PZIRC_NB)
+    real(kind=8) :: unsurn(PZIRC_NB), c(PZIRC_NB)
+    real(kind=8) :: m(PZIRC_NB)
+    real(kind=8) :: kpt(PZIRC_NB-1), fpt(PZIRC_NB-1)
+    real(kind=8) :: n0(PZIRC_NB)
+    real(kind=8) :: sigyPrev, sigyCurr
+    integer(kind=8) :: iValeMaxi, nbValeMaxi
+    integer(kind=8) :: i, j, k, l, mode, iretTemp
+    integer(kind=8) :: ind(3, 3), nbr
+    real(kind=8) :: temp, timeIncr
     real(kind=8) :: epsth, e, mu, mum, troisk
-    real(kind=8) :: fmel, sy(3), h(3), hmoy, hplus(3), r(3), rmoy
-    real(kind=8) :: theta(4)
-    real(kind=8) :: eta(5), n(3), unsurn(5), c(3), m(3), cmoy, mmoy, cr
-    real(kind=8) :: dz(2), dz1(2), dz2(2), vi(3), dvin, vimoy, ds
-    real(kind=8) :: trans, kpt(2), fpt(2)
+    real(kind=8) :: fmix, hmoy, rmoy
+    real(kind=8) :: cmoy, mmoy, cr
+    real(kind=8) :: annealFunc, vimoy, ds
+    real(kind=8) :: trans
     real(kind=8) :: jm, jp, dj, dfb(3, 3)
     real(kind=8) :: taum(6), dvtaum(6), trtaum, eqtaum
     real(kind=8) :: taup(6), dvtaup(6), trtaup
     real(kind=8) :: tau(6), dvtau(6), trtau, eqtau
     real(kind=8) :: bem(6), bel(6), dvbel(6), trbel
     real(kind=8) :: dvtel(6), eqtel
-    real(kind=8) :: plasti, dp, seuil, mutild
+    real(kind=8) :: dp, seuil, mutild
     real(kind=8) :: je2, je3, xm, xp, sol(3)
     real(kind=8) :: coeff1, coeff2, coeff3, coeff4, coeff5, coeff6, coeff7
-    real(kind=8) :: coeff8, coeff9, dv, rb, n0(3)
+    real(kind=8) :: coeff8, coeff9, dv, rb
     real(kind=8) :: mat0(3, 3), mat1(3, 3), mat2(6, 3, 3), mat3(3, 3)
+    real(kind=8) :: precr
+    real(kind=8) :: trElasPrev, trElasCurr
     character(len=1) :: poum
     integer(kind=8) :: test
-    real(kind=8), parameter :: kr(6) = (/1.d0, 1.d0, 1.d0, 0.d0, 0.d0, 0.d0/)
-    real(kind=8), parameter :: pdtsca(6) = (/1.d0, 1.d0, 1.d0, 2.d0, 2.d0, 2.d0/)
-    aster_logical :: resi, rigi, l_temp
-    aster_logical :: lMatr, lVari, lSigm
-    aster_logical :: l_visc, l_plas, l_anneal, l_plas_tran, l_hard_isotline, l_hard_isotnlin
+    real(kind=8) :: indicPlasPrev, indicPlasCurr, indicPlas
+    aster_logical :: lMatr, lVari, l_temp, lSigm
+    aster_logical :: l_visc, l_anneal, lPlasTran, l_hard_isotline, l_hard_isotnlin
+    character(len=16) :: metaRela, metaGlob
     data ind/1, 4, 5, &
         4, 2, 6, &
         5, 6, 3/
-    character(len=16) :: metaRela, metaGlob
-!
 !  FB(I,J)=(J**(-1/3))*F(I,J)
 !  GPM(I,J) : DEFORMATION PLASTIQUE LAGRANGIENNE A L'INSTANT PRECEDENT
 !  B(I,J)=FB(I,K)*GPM(K,L)*FB(J,L)
@@ -131,19 +145,19 @@ subroutine nzgdzi(fami, kpg, ksp, ndim, imat, &
 !
 ! TENSEUR DE DEFORMATION ELASTIQUE EULERIEN : BE
 ! TENSEUR DE DEFORMATION PLASTIQUE LAGRANGIEN : GP
-! TAU : TENSEUR DE KIRSHHOFF
+! TAU : TENSEUR DE KIRCHHOFF
 !
 ! --------------------------------------------------------------------------------------------------
 !
-    iret = 0
-    resi = option(1:4) .eq. 'RAPH' .or. option(1:4) .eq. 'FULL'
-    rigi = option(1:4) .eq. 'RIGI' .or. option(1:4) .eq. 'FULL'
-    dt = instap-instam
+    codret = 0
+    lMatr = L_MATR(option)
     lVari = L_VARI(option)
     lSigm = L_SIGM(option)
-    lMatr = L_MATR(option)
+    timeIncr = timeCurr-timePrev
+    precr = r8prem()
+
     if (lVari) then
-        vip(1:9) = 0.d0
+        vip(1:nvi) = 0.d0
     end if
     if (lMatr) then
         dsigdf(1:6, 1:3, 1:3) = 0.d0
@@ -157,209 +171,223 @@ subroutine nzgdzi(fami, kpg, ksp, ndim, imat, &
     metaGlob = compor(META_GLOB)
 
 ! - Get metallurgy type
-    call metaGetType(metaType, nbPhases)
+    call metaGetType(metaType, nbPhase)
     ASSERT(metaType .eq. META_ZIRC)
-    ASSERT(nbPhases .eq. 3)
+    ASSERT(nbPhase .eq. PZIRC_NB)
+    nbPhaseCold = nbPhase-1
+    iPhaseHot = nbPhase
 
 ! - Get phases
-    if (resi) then
+    if (lVari) then
         poum = '+'
         call metaGetPhase(fami, '+', kpg, ksp, metaType, &
-                          nbPhases, phase, zcold_=zalpha)
+                          nbPhase, phaseCurr, zSumCold_=zSumCold)
         call metaGetPhase(fami, '-', kpg, ksp, metaType, &
-                          nbPhases, phasm)
+                          nbPhase, phasePrev)
     else
         poum = '-'
         call metaGetPhase(fami, '-', kpg, ksp, metaType, &
-                          nbPhases, phase, zcold_=zalpha)
+                          nbPhase, phaseCurr, zSumCold_=zSumCold)
     end if
-!
+    phaseIncr(1:nbPhaseCold) = phaseCurr(1:nbPhaseCold)-phasePrev(1:nbPhaseCold)
+
 ! - Compute thermic strain
-!
-    call verift(fami, kpg, ksp, poum, imat, &
-                epsth_meta_=epsth)
-    call rcvarc(' ', 'TEMP', poum, fami, kpg, &
-                ksp, temp, iret1)
-    l_temp = iret1 .eq. 0
-!
-! - Mechanisms of comportment law
-!
+    call verift(fami, kpg, ksp, poum, jvMaterCode, epsth_meta_=epsth)
+    call rcvarc(' ', 'TEMP', poum, fami, kpg, ksp, temp, iretTemp)
+    l_temp = iretTemp .eq. 0
+
+! - Get active mechanisms in behaviour
     call metaGetMechanism(metaRela, metaGlob, &
-                          l_plas=l_plas, &
-                          l_visc=l_visc, &
-                          l_anneal=l_anneal, &
-                          l_plas_tran=l_plas_tran, &
-                          l_hard_isotline=l_hard_isotline, &
-                          l_hard_isotnlin=l_hard_isotnlin)
-!
+                          lVisc_=l_visc, &
+                          lAnneal_=l_anneal, &
+                          lPlasTran_=lPlasTran, &
+                          lHardIsotLine_=l_hard_isotline, &
+                          lHardIsotNLin_=l_hard_isotnlin)
+
 ! - Get elastic parameters
-!
-    call metaGetParaElas(poum, fami, kpg, ksp, imat, &
+    call metaGetParaElas(poum, fami, kpg, ksp, jvMaterCode, &
                          e_=e, mu_=mu, troisk_=troisk, &
                          mum_=mum)
-    plasti = vim(5)
-!
+
+! - Get internal state variables
+    viIndxSigy = nbPhase+1
+    viIndxIPlas = nbPhase+2
+    viIndxSimo = nbPhase+3
+    epseqPrev(1:nbPhase) = vim(1:nbPhase)
+    indicPlasPrev = vim(viIndxIPlas)
+    sigyPrev = vim(viIndxSigy)
+    trElasPrev = vim(viIndxSimo)
+
 ! - Mixture law (yield limit)
-!
-    call metaGetParaMixture(poum, fami, kpg, ksp, imat, &
-                            l_visc, metaType, nbPhases, zalpha, fmel, &
-                            sy)
-!
-    if (resi) then
-! ----- Parameters for annealing
+    call metaGetParaMixture(poum, fami, kpg, ksp, jvMaterCode, &
+                            l_visc, metaType, nbPhase, zSumCold, &
+                            fmix, sy)
+
+! - Others parameters
+    trans = 0.d0
+    indicPlas = indicPlasPrev
+
+! - Integration of behaviour
+    if (lVari) then
+! ----- Get parameters for annealing (*_RE)
+        annealTheta = 1.d0
         if (l_anneal) then
-            call metaGetParaAnneal(poum, fami, kpg, ksp, imat, &
-                                   metaType, nbPhases, &
-                                   theta)
-        else
-            do i = 1, 4
-                theta(i) = 1.d0
-            end do
+            call metaGetParaAnneal(poum, fami, kpg, ksp, jvMaterCode, &
+                                   metaType, nbPhaseCold, &
+                                   annealTheta)
         end if
+
 ! ----- Parameters for viscosity
         if (l_visc) then
-            call metaGetParaVisc(poum, fami, kpg, ksp, imat, &
-                                 metaType, nbPhases, eta, n, unsurn, &
+            call metaGetParaVisc(poum, fami, kpg, ksp, jvMaterCode, &
+                                 metaType, nbPhase, &
+                                 eta, n, unsurn, &
                                  c, m)
         else
-            eta(:) = 0.d0
-            n(:) = 20.d0
-            unsurn(:) = 1.d0
-            c(:) = 0.d0
-            m(:) = 20.d0
+            eta = 0.d0
+            n = 20.d0
+            unsurn = 1.d0
+            c = 0.d0
+            m = 20.d0
         end if
-!
-! 2.6 - CALCUL DE VIM+DG-DS
-!
-        do k = 1, nbPhases-1
-            dz(k) = phase(k)-phasm(k)
-            if (dz(k) .ge. 0.d0) then
-                dz1(k) = dz(k)
-                dz2(k) = 0.d0
+
+! ----- Get positive part of +increment of phases (dz1) and -increment of phases (dz2)
+        do iPhaseCold = 1, nbPhaseCold
+            if (phaseIncr(iPhaseCold) .ge. 0.d0) then
+                dz1(iPhaseCold) = phaseIncr(iPhaseCold)
+                dz2(iPhaseCold) = 0.d0
             else
-                dz1(k) = 0.d0
-                dz2(k) = -dz(k)
+                dz1(iPhaseCold) = 0.d0
+                dz2(iPhaseCold) = -phaseIncr(iPhaseCold)
             end if
         end do
-        if (phase(nbPhases) .gt. 0.d0) then
-            dvin = 0.d0
-            do k = 1, nbPhases-1
-                dvin = dvin+dz2(k)*(theta(2+k)*vim(k)-vim(nbPhases))/phase(nbPhases)
+
+! ----- Metallurgical annealing for hot phase
+        if (phaseCurr(iPhaseHot) .gt. 0.d0) then
+            annealFunc = 0.d0
+            do iPhaseCold = 1, nbPhaseCold
+                annealFunc = annealFunc+ &
+                             dz2(iPhaseCold)* &
+                             (annealTheta(nbPhaseCold+iPhaseCold)*epseqPrev(iPhaseCold)- &
+                              epseqPrev(iPhaseHot))/phaseCurr(iPhaseHot)
             end do
-            vi(nbPhases) = vim(nbPhases)+dvin
-            vimoy = phase(nbPhases)*vi(nbPhases)
+            epseq(iPhaseHot) = epseqPrev(iPhaseHot)+annealFunc
+            vimoy = phaseCurr(iPhaseHot)*epseq(iPhaseHot)
         else
-            vi(nbPhases) = 0.d0
+            epseq(iPhaseHot) = 0.d0
             vimoy = 0.d0
         end if
-        do k = 1, nbPhases-1
-            if (phase(k) .gt. 0.d0) then
-                dvin = dz1(k)*(theta(k)*vim(nbPhases)-vim(k))/phase(k)
-                vi(k) = vim(k)+dvin
-                vimoy = vimoy+phase(k)*vi(k)
+
+! ----- Metallurgical annealing for cold phases
+        do iPhaseCold = 1, nbPhaseCold
+            if (phaseCurr(iPhaseCold) .gt. 0.d0) then
+                annealFunc = dz1(iPhaseCold)* &
+                             (annealTheta(iPhaseCold)*epseqPrev(iPhaseHot)- &
+                              epseqPrev(iPhaseCold))/phaseCurr(iPhaseCold)
+                epseq(iPhaseCold) = epseqPrev(iPhaseCold)+annealFunc
+                vimoy = vimoy+phaseCurr(iPhaseCold)*epseq(iPhaseCold)
             else
-                vi(k) = 0.d0
+                epseq(iPhaseCold) = 0.d0
             end if
         end do
-!
-! 2.7 - RESTAURATION D ORIGINE VISQUEUSE
-!
+
+! ----- Viscuous annealing
         cmoy = 0.d0
         mmoy = 0.d0
-        do k = 1, nbPhases
-            cmoy = cmoy+phase(k)*c(k)
-            mmoy = mmoy+phase(k)*m(k)
+        do iPhase = 1, nbPhase
+            cmoy = cmoy+phaseCurr(iPhase)*c(iPhase)
+            mmoy = mmoy+phaseCurr(iPhase)*m(iPhase)
         end do
         cr = cmoy*vimoy
         if (cr .le. 0.d0) then
             ds = 0.d0
         else
-            ds = dt*(cr**mmoy)
+            ds = timeIncr*(cr**mmoy)
         end if
-        do k = 1, nbPhases
-            if (phase(k) .gt. 0.d0) then
-                vi(k) = vi(k)-ds
-                if (vi(k) .le. 0.d0) vi(k) = 0.d0
+
+        do iPhase = 1, nbPhase
+            if (phaseCurr(iPhase) .gt. 0.d0) then
+                epseq(iPhase) = epseq(iPhase)-ds
+                if (epseq(iPhase) .le. 0.d0) then
+                    epseq(iPhase) = 0.d0
+                end if
             end if
         end do
+
 ! ----- Parameters for plasticity of tranformation
         trans = 0.d0
-        if (l_plas_tran) then
-            call metaGetParaPlasTransf('+', fami, 1, 1, imat, &
-                                       metaType, nbPhases, deltaz, zalpha, &
+        if (lPlasTran) then
+            call metaGetParaPlasTransf('+', fami, 1, 1, jvMaterCode, &
+                                       metaType, nbPhase, nbPhaseCold, &
+                                       phaseIncr, zSumCold, &
                                        kpt, fpt)
-            do k = 1, nbPhases-1
-                if (deltaz(k) .gt. 0.d0) then
-                    trans = trans+kpt(k)*fpt(k)*deltaz(k)
+            do iPhaseCold = 1, nbPhaseCold
+                if (phaseIncr(iPhaseCold) .gt. 0.d0) then
+                    trans = trans+kpt(iPhaseCold)*fpt(iPhaseCold)*phaseIncr(iPhaseCold)
                 end if
             end do
         end if
+
     else
-        trans = 0.d0
-        do k = 1, nbPhases
-            vi(k) = vim(k)
-        end do
+        epseq(1:nbPhase) = epseqPrev(1:nbPhase)
+
     end if
-!
-! 2.9 - CALCUL DE HMOY ET RMOY (ON INCLUE LE SIGY)
-!
+
+! - Get current elasticity yield and current hardening slope (linear hardening)
+    nbValeMaxi = 0
     if (l_hard_isotline) then
-! ----- Get hardening slope (linear)
-        coef_hard = (1.d0)
-        call metaGetParaHardLine(poum, fami, kpg, ksp, imat, &
-                                 metaType, nbPhases, &
-                                 e, coef_hard, h)
-        do k = 1, nbPhases
-            r(k) = h(k)*vi(k)+sy(k)
+        call metaGetParaHardLine(poum, fami, kpg, ksp, jvMaterCode, &
+                                 metaType, nbPhase, &
+                                 e, hardCoef, h)
+        do iPhase = 1, nbPhase
+            r(iPhase) = h(iPhase)*epseq(iPhase)+sy(iPhase)
         end do
     end if
+
+! - Get current elasticity yield and current hardening slope (non-linear hardening)
     if (l_hard_isotnlin) then
-! ----- Get hardening slope (non-linear)
-        call metaGetParaHardTrac(imat, metaType, nbPhases, &
+        call metaGetParaHardTrac(jvMaterCode, metaType, nbPhase, &
                                  l_temp, temp, &
-                                 vi, h, r, maxval)
-        do k = 1, nbPhases
-            r(k) = r(k)+sy(k)
+                                 epseq, h, r, nbValeMaxi)
+        do iPhase = 1, nbPhase
+            r(iPhase) = r(iPhase)+sy(iPhase)
         end do
     end if
-    if (zalpha .gt. 0.d0) then
-        rmoy = phase(1)*r(1)+phase(2)*r(2)
-        rmoy = rmoy/zalpha
-        hmoy = phase(1)*h(1)+phase(2)*h(2)
-        hmoy = hmoy/zalpha
-    else
-        rmoy = 0.d0
-        hmoy = 0.d0
+
+! - Apply mixture law on hardening parameters
+    rmoy = 0.d0
+    hmoy = 0.d0
+    if (zSumCold .gt. 0.d0) then
+        do iPhaseCold = 1, nbPhaseCold
+            rmoy = rmoy+phaseCurr(iPhaseCold)*r(iPhaseCold)
+            hmoy = hmoy+phaseCurr(iPhaseCold)*h(iPhaseCold)
+        end do
+        rmoy = rmoy/zSumCold
+        hmoy = hmoy/zSumCold
     end if
-    rmoy = (1.d0-fmel)*r(nbPhases)+fmel*rmoy
-    hmoy = (1.d0-fmel)*h(nbPhases)+fmel*hmoy
-!
-! ********************************
-! 3 - DEBUT DE L ALGORITHME
-! ********************************
-!
-! 3.1 - JM=DET(FM),DJ=DET(DF),J=JM*DJ ET DFB
-!
-    jm = fm(1, 1)*(fm(2, 2)*fm(3, 3)-fm(2, 3)*fm(3, 2)) &
-         -fm(2, 1)*(fm(1, 2)*fm(3, 3)-fm(1, 3)*fm(3, 2)) &
-         +fm(3, 1)*(fm(1, 2)*fm(2, 3)-fm(1, 3)*fm(2, 2))
-    dj = df(1, 1)*(df(2, 2)*df(3, 3)-df(2, 3)*df(3, 2)) &
-         -df(2, 1)*(df(1, 2)*df(3, 3)-df(1, 3)*df(3, 2)) &
-         +df(3, 1)*(df(1, 2)*df(2, 3)-df(1, 3)*df(2, 2))
+    rmoy = (1.d0-fmix)*r(iPhaseHot)+fmix*rmoy
+    hmoy = (1.d0-fmix)*h(iPhaseHot)+fmix*hmoy
+
+! - Determinant
+    jm = fm(1, 1)*(fm(2, 2)*fm(3, 3)-fm(2, 3)*fm(3, 2))- &
+         fm(2, 1)*(fm(1, 2)*fm(3, 3)-fm(1, 3)*fm(3, 2))+ &
+         fm(3, 1)*(fm(1, 2)*fm(2, 3)-fm(1, 3)*fm(2, 2))
+    dj = df(1, 1)*(df(2, 2)*df(3, 3)-df(2, 3)*df(3, 2))- &
+         df(2, 1)*(df(1, 2)*df(3, 3)-df(1, 3)*df(3, 2))+ &
+         df(3, 1)*(df(1, 2)*df(2, 3)-df(1, 3)*df(2, 2))
     jp = jm*dj
     do i = 1, 3
         do j = 1, 3
             if (dj .le. 0.d0) then
-                iret = 1
+                codret = 1
                 goto 999
             else
                 dfb(i, j) = (dj**(-1.d0/3.d0))*df(i, j)
             end if
         end do
     end do
-!
-! 3.2 - CONTRAINTES DE KIRSHHOFF A L INSTANT PRECEDENT
-!
+
+! - CONTRAINTES DE KIRCHHOFF A L INSTANT PRECEDENT
     taum(5) = 0.d0
     taum(6) = 0.d0
     do i = 1, 2*ndim
@@ -373,126 +401,120 @@ subroutine nzgdzi(fami, kpg, ksp, ndim, imat, &
         eqtaum = eqtaum+pdtsca(i)*(dvtaum(i)**2.d0)
     end do
     eqtaum = sqrt(1.5d0*eqtaum)
-!
+
 ! 3.3 - DEFORMATIONS ELASTIQUES A L INSTANT PRECEDENT :
 ! BEM=DVTAUM/MUM+KR*TRBEM/3.D0
-!
-    xm = (jm**(-2.d0/3.d0))*(1.d0-2.d0*vim(6)/3.d0)
+    xm = (jm**(-2.d0/3.d0))*(1.d0-2.d0*trElasPrev/3.d0)
     do i = 1, 6
         bem(i) = dvtaum(i)/mum+kr(i)*xm
     end do
-!
+
 ! 3.4 - BEL(I,J)=DFB(I,K)*BEM(K,L)*DFB(J,L)
-!
     do i = 1, 3
         do j = 1, 3
             bel(ind(i, j)) = 0.d0
             do k = 1, 3
                 do l = 1, 3
-                    bel(ind(i, j)) = bel(ind(i, j))+dfb(i, k)*bem(ind(k, l) &
-                                                                  )*dfb(j, l)
+                    bel(ind(i, j)) = bel(ind(i, j))+dfb(i, k)*bem(ind(k, l))*dfb(j, l)
                 end do
             end do
         end do
     end do
-!
+
 ! 3.5 - TRACE ET PARTIE DEVIATORIQUE DU TENSEUR BEL
-!
     trbel = bel(1)+bel(2)+bel(3)
     do i = 1, 6
         dvbel(i) = bel(i)-kr(i)*trbel/3.d0
     end do
-!
+
 ! 3.6 - CONTRAINTE ELASTIQUE (PARTIE DEVIATORIQUE)
-!
     do i = 1, 6
         dvtel(i) = mu*dvbel(i)
     end do
-!
+
 ! 3.7 - CONTRAINTE EQUIVALENTE ELASTIQUE ET SEUIL
-!
     eqtel = 0.d0
     do i = 1, 6
         eqtel = eqtel+pdtsca(i)*dvtel(i)*dvtel(i)
     end do
     eqtel = sqrt(1.5d0*eqtel)
-!
-! 3.8 - TRACE DU TENSEUR DE KIRSHHOFF (CONNUE CAR NE DEPEND QUE DE J)
-!
+
+! 3.8 - TRACE DU TENSEUR DE KIRCHHOFF (CONNUE CAR NE DEPEND QUE DE J)
     trtaup = (troisk*((jp*jp)-1.d0)/6.d0)-(troisk*epsth*(jp+(1.d0/jp))/2.d0)
+
+! - Integration of behaviour
+    indicPlasCurr = indicPlasPrev
     dp = 0.d0
-!
-! ************************
-! 4 - RESOLUTION
-! ************************
-!
-    if (resi) then
-!
-! 4.2.1 - CALCUL DE DP
-!
+    if (lVari) then
+        indicPlasCurr = 0.d0
         seuil = eqtel-(1.d0+mu*trans*trbel)*rmoy
+
+! ----- Compute DP (plastic multiplier)
         if (seuil .lt. 0.d0) then
-            vip(5) = 0.d0
+            indicPlasCurr = 0.d0
             dp = 0.d0
         else
-            vip(5) = 1.d0
+            indicPlasCurr = 1.d0
             mutild = 2.d0*mu*trbel/3.d0
-            call nzcalc(carcri, nbPhases, phase, zalpha, &
-                        fmel, seuil, dt, trans, &
+            call nzcalc(carcri, nbPhase, phaseCurr, zSumCold, &
+                        fmix, seuil, timeIncr, trans, &
                         hmoy, mutild, eta, unsurn, &
-                        dp, iret)
-            if (iret .eq. 1) goto 999
+                        dp, codret)
+            if (codret .eq. 1) goto 999
 !
 ! DANS LE CAS NON LINEAIRE
 ! VERIFICATION QU ON EST DANS LE BON INTERVALLE
 !
             if (l_hard_isotnlin) then
-                do j = 1, maxval
+
+                do iValeMaxi = 1, nbValeMaxi
                     test = 0
-                    vip(1:3) = vi(1:3)+dp
-                    hplus(1:3) = h(1:3)
-                    call metaGetParaHardTrac(imat, metaType, nbPhases, &
+
+! ----------------- Update cumulated plastic strain and hardening slope
+                    epseqCurr(1:nbPhase) = epseq(1:nbPhase)+dp
+                    hplus(1:nbPhase) = h(1:nbPhase)
+
+! ----------------- Get point on all traction curves
+                    call metaGetParaHardTrac(jvMaterCode, metaType, nbPhase, &
                                              l_temp, temp, &
-                                             vip, h, r)
-                    do k = 1, nbPhases
-                        if (phase(k) .gt. 0.d0) then
-                            r(k) = r(k)+sy(k)
-                            if (abs(h(k)-hplus(k)) .gt. r8prem()) test = 1
+                                             epseqCurr, h, r)
+
+                    do iPhase = 1, nbPhase
+                        if (phaseCurr(iPhase) .gt. 0.d0) then
+                            r(iPhase) = r(iPhase)+sy(iPhase)
+                            if (abs(h(iPhase)-hplus(iPhase)) .gt. precr) then
+                                test = 1
+                            end if
                         end if
                     end do
-                    if (test .eq. 0) goto 600
+                    if (test .eq. 0) exit
                     hmoy = 0.d0
                     rmoy = 0.d0
-                    if (zalpha .gt. 0.d0) then
-                        do k = 1, nbPhases-1
-                            if (phase(k) .gt. 0.d0) then
-                                rmoy = rmoy+phase(k)*(r(k)-h(k)*dp)
-                                hmoy = hmoy+phase(k)*h(k)
+                    if (zSumCold .gt. 0.d0) then
+                        do iPhase = 1, nbPhase-1
+                            if (phaseCurr(iPhase) .gt. 0.d0) then
+                                rmoy = rmoy+phaseCurr(iPhase)*(r(iPhase)-h(iPhase)*dp)
+                                hmoy = hmoy+phaseCurr(iPhase)*h(iPhase)
                             end if
                         end do
-                        rmoy = fmel*rmoy/zalpha
-                        hmoy = fmel*hmoy/zalpha
+                        rmoy = fmix*rmoy/zSumCold
+                        hmoy = fmix*hmoy/zSumCold
                     end if
-                    if (phase(nbPhases) .gt. 0.d0) then
-                        rmoy = (1.d0-fmel)*(r(nbPhases)-h(nbPhases)*dp)+rmoy
-                        hmoy = (1.d0-fmel)*h(nbPhases)+hmoy
+                    if (phaseCurr(iPhaseHot) .gt. 0.d0) then
+                        rmoy = (1.d0-fmix)*(r(iPhaseHot)-h(iPhaseHot)*dp)+rmoy
+                        hmoy = (1.d0-fmix)*h(iPhaseHot)+hmoy
                     end if
                     seuil = eqtel-(1.d0+mu*trans*trbel)*rmoy
-                    call nzcalc(carcri, nbPhases, phase, zalpha, &
-                                fmel, seuil, dt, trans, &
+                    call nzcalc(carcri, nbPhase, phaseCurr, zSumCold, &
+                                fmix, seuil, timeIncr, trans, &
                                 hmoy, mutild, eta, unsurn, &
-                                dp, iret)
-
-                    if (iret .eq. 1) goto 999
+                                dp, codret)
+                    if (codret .eq. 1) goto 999
                 end do
-                ASSERT((test .ne. 1) .or. (j .ne. maxval))
-600             continue
             end if
         end if
-!
-! 4.2.2 - CALCUL DE SIGMA
-!
-        plasti = vip(5)
+
+! ----- Compute stresses
         do i = 1, 6
             if (eqtel .gt. 0.d0) then
                 dvtaup(i) = dvtel(i)-mu*dp*trbel*dvtel(i)/eqtel
@@ -505,42 +527,46 @@ subroutine nzgdzi(fami, kpg, ksp, ndim, imat, &
         do i = 1, 2*ndim
             sigp(i) = taup(i)/jp
         end do
-!
-! 4.2.3 - CALCUL DE VIP ET RMOY
-!
-        do k = 1, nbPhases
-            if (phase(k) .gt. 0.d0) then
-                vip(k) = vi(k)+dp
+
+! ----- Update cumulated plastic strain
+        do iPhase = 1, nbPhase
+            if (phaseCurr(iPhase) .gt. 0.d0) then
+                epseqCurr(iPhase) = epseq(iPhase)+dp
             else
-                vip(k) = 0.d0
+                epseqCurr(iPhase) = 0.d0
             end if
         end do
-        vip(4) = 0.d0
-        if (phase(nbPhases) .gt. 0.d0) then
+
+! ----- Update elasticity yield
+        sigyCurr = 0.d0
+        if (phaseCurr(iPhaseHot) .gt. 0.d0) then
             if (l_hard_isotline) then
-                vip(4) = vip(4)+(1-fmel)*h(nbPhases)*vip(nbPhases)
+                sigyCurr = sigyCurr+(1-fmix)*h(iPhaseHot)*epseqCurr(iPhaseHot)
             end if
             if (l_hard_isotnlin) then
-                vip(4) = vip(4)+(1-fmel)*(r(nbPhases)-sy(nbPhases))
+                sigyCurr = sigyCurr+(1-fmix)*(r(iPhaseHot)-sy(iPhaseHot))
             end if
         end if
-        if (zalpha .gt. 0.d0) then
-            do k = 1, nbPhases-1
+!
+        if (zSumCold .gt. 0.d0) then
+            do iPhaseCold = 1, nbPhaseCold
                 if (l_hard_isotline) then
-                    vip(4) = vip(4)+fmel*phase(k)*h(k)*vip(k)/zalpha
+                    sigyCurr = sigyCurr+ &
+                               fmix*phaseCurr(iPhaseCold)*h(iPhaseCold)*epseqCurr(iPhaseCold)/ &
+                               zSumCold
                 end if
                 if (l_hard_isotnlin) then
-                    vip(4) = vip(4)+fmel*phase(k)*(r(k)-sy(k))/zalpha
+                    sigyCurr = sigyCurr+ &
+                               fmix*phaseCurr(iPhaseCold)*(r(iPhaseCold)-sy(iPhaseCold))/zSumCold
                 end if
             end do
         end if
+
+        indicPlas = indicPlasCurr
     end if
-!
-! *******************************
-! 5 - MATRICE TANGENTE DSIGDF
-! *******************************
-!
-    if (rigi) then
+
+! - Compute tangent matrix
+    if (lMatr) then
         if (option(1:14) .eq. 'RIGI_MECA_TANG') then
             do i = 1, 6
                 tau(i) = taum(i)
@@ -602,7 +628,8 @@ subroutine nzgdzi(fami, kpg, ksp, ndim, imat, &
                 end do
             end do
         end do
-        if (plasti .le. 0.5d0) then
+!
+        if (abs(indicPlas) .lt. 0.5d0) then
             coeff5 = -2.d0*trans*coeff2
             coeff6 = 2.d0*trans*mu*trbel/(3.d0*jp*dj*coeff1)
             do i = 1, 6
@@ -618,15 +645,18 @@ subroutine nzgdzi(fami, kpg, ksp, ndim, imat, &
             if (l_visc) mode = 1
             if (mode .eq. 1) then
                 if (dp .gt. 0.d0) then
-                    do i = 1, nbPhases
-                        n0(i) = (1-n(i))/n(i)
+                    do iPhase = 1, nbPhase
+                        n0(iPhase) = (1-n(iPhase))/n(iPhase)
                     end do
-                    dv = (1-fmel)*phase(nbPhases)*(eta(nbPhases)/n(nbPhases)/dt)* &
-                         ((dp/dt)**n0(nbPhases))
-                    if (zalpha .gt. 0.d0) then
-                        do i = 1, nbPhases-1
-                            if (phase(i) .gt. 0.d0) then
-                                dv = dv+fmel*(phase(i)/zalpha)*(eta(i)/n(i)/dt)*((dp/dt)**n0(i))
+                    dv = (1-fmix)*phaseCurr(iPhaseHot)*(eta(iPhaseHot)/n(iPhaseHot)/timeIncr)* &
+                         ((dp/timeIncr)**n0(iPhaseHot))
+                    if (zSumCold .gt. 0.d0) then
+                        do iPhaseCold = 1, nbPhaseCold
+                            if (phaseCurr(iPhaseCold) .gt. 0.d0) then
+                                dv = dv+fmix* &
+                                     (phaseCurr(iPhaseCold)/zSumCold)* &
+                                     (eta(iPhaseCold)/n(iPhaseCold)/timeIncr)* &
+                                     ((dp/timeIncr)**n0(iPhaseCold))
                             end if
                         end do
                     end if
@@ -676,12 +706,9 @@ subroutine nzgdzi(fami, kpg, ksp, ndim, imat, &
             end if
         end if
     end if
-!
-! *******************************
-! 6 - CORRECTION SUR TRBE
-! *******************************
-!
-    if (resi) then
+
+! - CORRECTION SUR TRBE
+    if (lVari) then
         trtau = taup(1)+taup(2)+taup(3)
         eqtau = 0.d0
         do i = 1, 6
@@ -703,7 +730,15 @@ subroutine nzgdzi(fami, kpg, ksp, ndim, imat, &
                 if ((abs(sol(i)-xm)) .lt. (abs(sol(i-1)-xm))) xp = sol(i)
             end do
         end if
-        vip(6) = 3.d0*(1.d0-(jp**(2.d0/3.d0))*xp)/2.d0
+        trElasCurr = 3.d0*(1.d0-(jp**(2.d0/3.d0))*xp)/2.d0
+    end if
+
+! - Update internal state variables
+    if (lVari) then
+        vip(1:nbPhase) = epseqCurr(1:nbPhase)
+        vip(viIndxIPlas) = indicPlasCurr
+        vip(viIndxSigy) = sigyCurr
+        vip(viIndxSimo) = trElasCurr
     end if
 !
 999 continue

@@ -17,24 +17,24 @@
 ! --------------------------------------------------------------------
 !
 subroutine metaGetPhase(fami, poum, kpg, ksp, &
-                        metaType, nbPhases, &
-                        phase_, zcold_, zhot_, tole_bound_)
+                        metaType, nbPhase, &
+                        phase_, zSumCold_, zHot_, tolePhase_)
 !
     implicit none
 !
 #include "asterc/r8prem.h"
 #include "asterfort/assert.h"
-#include "asterfort/rcvarc.h"
 #include "asterfort/Metallurgy_type.h"
+#include "asterfort/rcvarc.h"
 !
     character(len=*), intent(in) :: fami
     character(len=1), intent(in) :: poum
     integer(kind=8), intent(in) :: kpg, ksp
-    integer(kind=8), intent(in) :: metaType, nbPhases
-    real(kind=8), optional, intent(out) :: phase_(*)
-    real(kind=8), optional, intent(out) :: zcold_
-    real(kind=8), optional, intent(out) :: zhot_
-    real(kind=8), optional, intent(in) :: tole_bound_
+    integer(kind=8), intent(in) :: metaType, nbPhase
+    real(kind=8), optional, intent(out) :: phase_(nbPhase)
+    real(kind=8), optional, intent(out) :: zSumCold_
+    real(kind=8), optional, intent(out) :: zHot_
+    real(kind=8), optional, intent(in) :: tolePhase_
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -49,84 +49,103 @@ subroutine metaGetPhase(fami, poum, kpg, ksp, &
 ! In  kpg          : current point gauss
 ! In  ksp          : current "sous-point" gauss
 ! In  metaType     : type of metallurgy
-! In  nbPhases     : total number of phase (cold and hot)
+! In  nbPhase      : total number of phase (cold and hot)
 ! Out phase        : phases
-! Out zcold        : sum of cold phase
-! Out zhot         : hot phase
-! In  tole_bound   : tolerance to project phase proportion on boundary
+! Out zSumCold     : sum of cold phases
+! Out zHot         : hot phase
+! In  tolePhase    : tolerance to project phase proportion on boundary
 !
 ! --------------------------------------------------------------------------------------------------
 !
-    character(len=8), parameter :: steel(6) = (/'PFERRITE', 'PPERLITE', &
-                                                'PBAINITE', 'PMARTENS', &
-                                                'PAUSTENI', 'PCOLDSUM'/)
+    character(len=8), parameter :: steel(NBPHASESTEEL) = (/'FERRITE', 'PERLITE', &
+                                                           'BAINITE', 'MARTENS', &
+                                                           'AUSTENI', 'COLDSUM'/)
+    character(len=8), parameter :: steelTemper(NBPHASESTEELR) = (/'FERRITE', 'PERLITE', &
+                                                                  'BAINITB', 'BAINITR', &
+                                                                  'MARTENB', 'MARTENR', &
+                                                                  'AUSTENI', 'COLDSUM'/)
     character(len=8), parameter :: zirc(3) = (/'ALPHPUR ', 'ALPHBETA', &
                                                'BETA    '/)
-    integer(kind=8) :: iPhaseCold, iPhase, iret, nbPhasesCold
-    real(kind=8) :: zcold, zhot, phase(5), tole_bound
+    integer(kind=8) :: iPhaseCold, iPhase, iret
+    real(kind=8) :: zSumCold, zHot, phase(META_MECA_NBPHASE_MAXI), tolePhase
 !
 ! --------------------------------------------------------------------------------------------------
 !
-    ASSERT(nbPhases .le. 5)
-    ASSERT(nbPhases .gt. 0)
+    ASSERT(nbPhase .le. META_MECA_NBPHASE_MAXI)
+    ASSERT(nbPhase .gt. 0)
     phase = 0.d0
-    if (present(tole_bound_)) then
-        tole_bound = tole_bound_
+    if (present(tolePhase_)) then
+        tolePhase = tolePhase_
     else
-        tole_bound = r8prem()
+        tolePhase = r8prem()
     end if
-    nbPhasesCold = nbPhases-1
 
-! - Set cold phase
-    do iPhase = 1, nbPhases
+! - Get phases
+    do iPhase = 1, nbPhase
         if (metaType .eq. META_STEEL) then
             call rcvarc('F', steel(iPhase), poum, fami, kpg, &
                         ksp, phase(iPhase), iret)
             if (iret .eq. 1) then
                 phase(iPhase) = 0.d0
             end if
+
         elseif (metaType .eq. META_ZIRC) then
             call rcvarc('F', zirc(iPhase), poum, fami, kpg, &
                         ksp, phase(iPhase), iret)
             if (iret .eq. 1) then
                 phase(iPhase) = 0.d0
             end if
+
+        else if (metaType .eq. META_STEEL_TEMPER) then
+            call rcvarc('F', steelTemper(iPhase), poum, fami, kpg, &
+                        ksp, phase(iPhase), iret)
+            if (iret .eq. 1) then
+                phase(iPhase) = 0.d0
+            end if
+
         else
             ASSERT(ASTER_FALSE)
         end if
     end do
 
-! - Sum of cold phases
-    zcold = 0.d0
+! - Get sum of cold phases
+    zSumCold = 0.d0
     if (metaType .eq. META_STEEL) then
-        call rcvarc('F', steel(6), poum, fami, kpg, &
-                    ksp, zcold, iret)
+        call rcvarc('F', steel(NBPHASESTEEL), poum, fami, kpg, &
+                    ksp, zSumCold, iret)
         if (iret .eq. 1) then
-            zcold = 0.d0
+            zSumCold = 0.d0
         end if
 
     elseif (metaType .eq. META_ZIRC) then
-        do iPhaseCold = 1, nbPhasesCold
-            zcold = zcold+phase(iPhaseCold)
+        do iPhaseCold = 1, nbPhase-1
+            zSumCold = zSumCold+phase(iPhaseCold)
         end do
-        if (zcold .le. tole_bound) then
-            zcold = 0.d0
+        if (zSumCold .le. tolePhase) then
+            zSumCold = 0.d0
         end if
-        if (zcold .ge. 1.d0) then
-            zcold = 1.d0
+        if (zSumCold .ge. 1.d0) then
+            zSumCold = 1.d0
+        end if
+
+    else if (metaType .eq. META_STEEL_TEMPER) then
+        call rcvarc('F', steelTemper(NBPHASESTEELR), poum, fami, kpg, &
+                    ksp, zSumCold, iret)
+        if (iret .eq. 1) then
+            zSumCold = 0.d0
         end if
     end if
 
-! - Set hot phase
-    zhot = phase(nbPhases)
+! - Outputs
+    zHot = phase(nbPhase)
     if (present(phase_)) then
-        phase_(1:nbPhases) = phase(1:nbPhases)
+        phase_(1:nbPhase) = phase(1:nbPhase)
     end if
-    if (present(zcold_)) then
-        zcold_ = zcold
+    if (present(zSumCold_)) then
+        zSumCold_ = zSumCold
     end if
-    if (present(zhot_)) then
-        zhot_ = zhot
+    if (present(zHot_)) then
+        zHot_ = zHot
     end if
 !
 end subroutine

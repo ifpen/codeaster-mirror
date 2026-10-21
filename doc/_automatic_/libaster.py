@@ -17415,9 +17415,11 @@ class externVarEnumInt:
 
     Neutral3 = 10
 
-    NumberOfExternVarTypes = 14
+    NumberOfExternVarTypes = 15
 
     SteelPhases = 6
+
+    SteelTemperPhases = 14
 
     Temperature = 0
 

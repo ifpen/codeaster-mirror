@@ -376,7 +376,11 @@ def C_COMPORTEMENT(command):
                 condition="""value("RELATION").startswith('META_') and not value("RELATION").startswith('META_LEMA_ANI')""",
                 fr=tr("nombre de phases metallurgiques"),
                 RELATION_KIT=SIMP(
-                    statut="o", typ="TXM", max=1, validators=NoRepeat(), into=("ACIER", "ZIRC")
+                    statut="o",
+                    typ="TXM",
+                    max=1,
+                    validators=NoRepeat(),
+                    into=("ACIER", "ZIRC", "ACIER_REVENU"),
                 ),
             ),
             DEFORMATION=SIMP(

@@ -18,16 +18,18 @@
 !
 subroutine mat_proto(BEHInteg, &
                      fami, kpg, ksp, poum, jvMaterCode, relaComp, &
-                     nprops, props)
+                     nbProp, propVale)
 !
     use Behaviour_type
+    use MetallurgyMeca_module, only: metaGetType
     implicit none
 !
 #include "asterc/r8nnem.h"
 #include "asterf_types.h"
 #include "asterfort/assert.h"
+#include "asterfort/BehaviourMGIS_type.h"
 #include "asterfort/metaGetPhase.h"
-#include "asterfort/metaGetType.h"
+#include "asterfort/Metallurgy_type.h"
 #include "asterfort/rcadlv.h"
 #include "jeveux.h"
 !
@@ -37,8 +39,8 @@ subroutine mat_proto(BEHInteg, &
     character(len=1), intent(in) :: poum
     integer(kind=8), intent(in) :: jvMaterCode
     character(len=*), intent(in) :: relaComp
-    integer(kind=8), intent(inout) :: nprops
-    real(kind=8), intent(out) :: props(*)
+    integer(kind=8), intent(inout) :: nbProp
+    real(kind=8), intent(out) :: propVale(MGIS_MAX_PROPS)
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -52,16 +54,16 @@ subroutine mat_proto(BEHInteg, &
 !       in   fami      : famille de point de gauss (rigi,mass,...)
 !       in   kpg,ksp   : numero du (sous)point de gauss
 !       in   poum      : '+' /'-'
-!       in   nprops    : en entree : dimension du tableau props
+!       in   nbProp    : en entree : dimension du tableau propVale
 !       in   relaComp    : nom de l'interface de prototypage
-!       out  nprops    : en sortie : nombre de coefficients recuperes dans props
-!            props(*)  : coeficients du materiau
+!       out  nbProp    : en sortie : nombre de coefficients recuperes dans propVale
+!            propVale  : coeficients du materiau
 !
 ! --------------------------------------------------------------------------------------------------
 !
-    integer(kind=8) :: i, jadr, icodre, ncoef, nbPara
-    real(kind=8) :: phase(5), zalpha
-    integer(kind=8) :: metaType, nbPhases
+    integer(kind=8) :: iPropRead, jadr, propCode, nbPropRead, nbPara
+    real(kind=8) :: phase(META_MECA_NBPHASE_MAXI), zSumCold
+    integer(kind=8) :: metaType, nbPhase
     integer(kind=8), parameter :: nbParaMaxi = 4
     real(kind=8) :: paraVale(nbParaMaxi)
     character(len=16) :: paraName(nbParaMaxi)
@@ -69,22 +71,22 @@ subroutine mat_proto(BEHInteg, &
 ! --------------------------------------------------------------------------------------------------
 !
     ASSERT(relaComp .eq. 'UMAT' .or. relaComp .eq. 'MFRONT')
-    ASSERT(nprops .gt. 0 .and. nprops .le. 197)
-    props(1:nprops) = r8nnem()
+    ASSERT(nbProp .gt. 0 .and. nbProp .le. MGIS_MAX_PROPS)
+    propVale = r8nnem()
 
 ! - Get material properties
-    zalpha = 0.d0
+    zSumCold = 0.d0
     nbPara = 0
     paraName = " "
     paraVale = 0.d0
     if (BEHInteg%materPara%lElasIsMeta) then
-        call metaGetType(metaType, nbPhases)
-        if (nbPhases .ne. 0) then
+        call metaGetType(metaType, nbPhase)
+        if (nbPhase .ne. 0) then
             call metaGetPhase(fami, poum, kpg, ksp, metaType, &
-                              nbPhases, phase, zcold_=zalpha)
+                              nbPhase, phase, zSumCold_=zSumCold)
             nbPara = nbPara+1
             paraName(nbPara) = "META"
-            paraVale(nbPara) = zalpha
+            paraVale(nbPara) = zSumCold
         end if
     end if
 
@@ -102,14 +104,14 @@ subroutine mat_proto(BEHInteg, &
     end if
     ASSERT(nbPara .le. nbParaMaxi)
     call rcadlv(fami, kpg, ksp, poum, jvMaterCode, ' ', relaComp, &
-                'LISTE_COEF', nbPara, paraName, paraVale, jadr, ncoef, icodre, 1)
-    ASSERT(icodre .eq. 0)
+                'LISTE_COEF', nbPara, paraName, paraVale, jadr, nbPropRead, propCode, 1)
+    ASSERT(propCode .eq. 0)
 
 ! - Copy properties
-    ASSERT(ncoef .le. nprops)
-    do i = 1, ncoef
-        props(i) = zr(jadr-1+i)
+    ASSERT(nbPropRead .le. nbProp)
+    do iPropRead = 1, nbPropRead
+        propVale(iPropRead) = zr(jadr-1+iPropRead)
     end do
-    nprops = ncoef
+    nbProp = nbPropRead
 !
 end subroutine

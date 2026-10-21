@@ -17,10 +17,14 @@
 ! --------------------------------------------------------------------
 !
 subroutine meta_vpta_coef(metaRela, metaGlob, &
-                          lgpg, fami, kpg, j_mater, &
-                          l_temp, temp, meta_type, nb_phasis, phas_prev, &
-                          phas_curr, zcold_curr, young, deuxmu, coef, &
+                          lgpg, fami, kpg, jvMaterCode, &
+                          l_temp, temp, metaType, nbPhase, phasPrev, &
+                          phasCurr, zColdCurr, young, deuxmu, coef, &
                           trans)
+!
+    use MetallurgyMeca_module, only: metaGetType, metaGetParaElas, metaGetMechanism, &
+                                     metaGetParaMixture, metaGetParaAnneal, metaGetParaVisc, &
+                                     metaGetParaPlasTransf, metaGetParaHardLine, metaGetParaHardTrac
 !
     implicit none
 !
@@ -28,12 +32,7 @@ subroutine meta_vpta_coef(metaRela, metaGlob, &
 #include "asterf_types.h"
 #include "asterfort/assert.h"
 #include "asterfort/jevech.h"
-#include "asterfort/metaGetMechanism.h"
-#include "asterfort/metaGetParaPlasTransf.h"
-#include "asterfort/metaGetParaVisc.h"
-#include "asterfort/metaGetParaMixture.h"
-#include "asterfort/metaGetParaHardTrac.h"
-#include "asterfort/metaGetParaHardLine.h"
+#include "asterfort/metaGetPhase.h"
 #include "asterfort/Metallurgy_type.h"
 #include "asterfort/Behaviour_type.h"
 !
@@ -41,16 +40,14 @@ subroutine meta_vpta_coef(metaRela, metaGlob, &
     integer(kind=8), intent(in) :: lgpg
     character(len=4), intent(in) :: fami
     integer(kind=8), intent(in) :: kpg
-    integer(kind=8), intent(in) :: j_mater
+    integer(kind=8), intent(in) :: jvMaterCode
     aster_logical, intent(in) :: l_temp
     real(kind=8), intent(in) :: temp
-    integer(kind=8), intent(in) :: meta_type
-    integer(kind=8), intent(in) :: nb_phasis
-    real(kind=8), intent(in) :: phas_prev(*)
-    real(kind=8), intent(in) :: phas_curr(*)
-    real(kind=8), intent(in) :: zcold_curr
-    real(kind=8), intent(in) :: young
-    real(kind=8), intent(in) :: deuxmu
+    integer(kind=8), intent(in) :: metaType
+    integer(kind=8), intent(in) :: nbPhase
+    real(kind=8), intent(in) :: phasPrev(META_MECA_NBPHASE_MAXI), phasCurr(META_MECA_NBPHASE_MAXI)
+    real(kind=8), intent(in) :: zColdCurr
+    real(kind=8), intent(in) :: young, deuxmu
     real(kind=8), intent(out) :: coef
     real(kind=8), intent(out) :: trans
 !
@@ -59,7 +56,7 @@ subroutine meta_vpta_coef(metaRela, metaGlob, &
 ! Metallurgy - Comportment
 !
 ! Compute coefficient for second member
-! Effect of command variables phasis variation on transformation plasticity
+! Effect of command variables phases variation on transformation plasticity
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -68,14 +65,14 @@ subroutine meta_vpta_coef(metaRela, metaGlob, &
 ! In  lgpg          : length of integration point
 ! In  fami          : integration point type
 ! In  kpg           : integration point number
-! In  j_mater       : coded material address
+! In  jvMaterCode   : coded material address
 ! In  l_temp        : .true. if temperature command variable is affected
 ! In  temp          : temperature
-! In  meta_type     : type of metallurgy
-! In  nb_phasis     : total number of phasis (cold and hot)
-! In  phas_prev     : previous phasis
-! In  phas_curr     : current phasis
-! In  zcold_curr    : sum of cold phasis
+! In  metaType      : type of metallurgy
+! In  nbPhase       : total number of phases (cold and hot)
+! In  phasPrev      : previous phaszs
+! In  phasCurr      : current phases
+! In  zColdCurr     : sum of cold phases
 ! In  young         : Young modulus
 ! In  deuxmu        : e/(1.d0+nu)
 ! Out coef          : coefficient for command variable second member
@@ -83,116 +80,113 @@ subroutine meta_vpta_coef(metaRela, metaGlob, &
 !
 ! --------------------------------------------------------------------------------------------------
 !
-    integer(kind=8) :: j_vari
-    integer(kind=8) :: i_phasis, i_phasis_c, ksp, nb_phasis_c
-    real(kind=8) :: epsp(5), h0(5)
-    real(kind=8) :: kpt(4), fpt(4)
-    real(kind=8) :: eta(5), n(5), unsurn(5), c(5), m(5)
-    real(kind=8) :: rprim, deltaz(8), fmel, coef_hard
+    integer(kind=8), parameter :: ksp = 1
+    integer(kind=8) :: jvVari
+    integer(kind=8) :: iPhase, iPhasesCold, nbPhaseCold
+    real(kind=8) :: epseq(META_MECA_NBPHASE_MAXI), h0(META_MECA_NBPHASE_MAXI)
+    real(kind=8) :: kpt(META_MECA_NBPHASE_MAXI-1), fpt(META_MECA_NBPHASE_MAXI-1)
+    real(kind=8) :: eta(META_MECA_NBPHASE_MAXI)
+    real(kind=8) :: n(META_MECA_NBPHASE_MAXI)
+    real(kind=8) :: unsurn(META_MECA_NBPHASE_MAXI)
+    real(kind=8) :: c(META_MECA_NBPHASE_MAXI)
+    real(kind=8) :: m(META_MECA_NBPHASE_MAXI)
+    real(kind=8) :: rprim, phaseIncr(META_MECA_NBPHASE_MAXI), fmix, coefHard
     aster_logical :: l_visc, l_elas, l_plas_tran, l_hard_line
 !
 ! --------------------------------------------------------------------------------------------------
 !
-    ASSERT(nb_phasis .le. 5)
-    nb_phasis_c = nb_phasis-1
+    ASSERT(nbPhase .le. META_MECA_NBPHASE_MAXI)
+    nbPhaseCold = nbPhase-1
     trans = 0.d0
     coef = 1.d0
-    ksp = 1
-    fpt(:) = 0.d0
-    kpt(:) = 0.d0
-    eta(:) = 0.d0
-    n(:) = 0.d0
-    unsurn(:) = 0.d0
-    c(:) = 0.d0
-    m(:) = 0.d0
-    epsp(:) = 0.d0
-    h0(:) = 0.d0
-!
-! - Cumulated plastic strain
-!
-    call jevech('PVARIPR', 'L', j_vari)
-    do i_phasis = 1, nb_phasis
-        epsp(i_phasis) = zr(j_vari+lgpg*(kpg-1)-1+i_phasis)
-        deltaz(i_phasis) = (phas_curr(i_phasis)-phas_prev(i_phasis))
+    fpt = 0.d0
+    kpt = 0.d0
+    eta = 0.d0
+    n = 0.d0
+    unsurn = 0.d0
+    c = 0.d0
+    m = 0.d0
+    h0 = 0.d0
+    phaseIncr = 0.d0
+    phaseIncr = (phasCurr-phasPrev)
+
+! - Cumulated cumulative plastic strain
+    call jevech('PVARIPR', 'L', jvVari)
+    epseq = 0.d0
+    do iPhase = 1, nbPhase
+        epseq(iPhase) = zr(jvVari+lgpg*(kpg-1)-1+iPhase)
     end do
-!
+
 ! - Is elastic ?
-!
-    if (meta_type .eq. META_STEEL) then
-        l_elas = zr(j_vari+lgpg*(kpg-1)+(nb_phasis+1)) .lt. 0.5d0
-    elseif (meta_type .eq. META_ZIRC) then
-        l_elas = zr(j_vari+lgpg*(kpg-1)+nb_phasis) .lt. 0.5d0
+    if (metaType .eq. META_STEEL .or. metaType .eq. META_STEEL_TEMPER) then
+        l_elas = zr(jvVari+lgpg*(kpg-1)+(nbPhase+1)) .lt. 0.5d0
+    elseif (metaType .eq. META_ZIRC) then
+        l_elas = zr(jvVari+lgpg*(kpg-1)+nbPhase) .lt. 0.5d0
     else
         ASSERT(ASTER_FALSE)
     end if
-!
-! - Mechanisms of comportment law
-!
+
+! - Get active mechanisms in behaviour
     call metaGetMechanism(metaRela, metaGlob, &
-                          l_visc=l_visc, &
-                          l_hard_line=l_hard_line, l_plas_tran=l_plas_tran)
-!
+                          lVisc_=l_visc, &
+                          lHardIsotLine_=l_hard_line, lPlasTran_=l_plas_tran)
+
 ! - Transformation plasticity parameters
-!
     if (l_plas_tran) then
-        call metaGetParaPlasTransf('+', fami, kpg, ksp, j_mater, &
-                                   meta_type, nb_phasis, deltaz, zcold_curr, &
+        call metaGetParaPlasTransf('+', fami, kpg, ksp, jvMaterCode, &
+                                   metaType, nbPhase, nbPhaseCold, &
+                                   phaseIncr, zColdCurr, &
                                    kpt, fpt)
     end if
-!
+
 ! - Visco-plasticity parameters
-!
     if (l_visc) then
-        call metaGetParaVisc('+', fami, kpg, ksp, j_mater, &
-                             meta_type, nb_phasis, eta, n, unsurn, &
+        call metaGetParaVisc('+', fami, kpg, ksp, jvMaterCode, &
+                             metaType, nbPhase, &
+                             eta, n, unsurn, &
                              c, m)
     end if
-!
-! - Compute Sum(iphase) [kpt * fpt] on cold phasis
-!
+
+! - Compute Sum(iphase) [kpt * fpt] on cold phases
     trans = 0.d0
-    do i_phasis_c = 1, nb_phasis_c
-        if (deltaz(i_phasis_c) .gt. 0) then
-            trans = trans+kpt(i_phasis_c)*fpt(i_phasis_c)*deltaz(i_phasis_c)
+    do iPhasesCold = 1, nbPhaseCold
+        if (phaseIncr(iPhasesCold) .gt. 0) then
+            trans = trans+kpt(iPhasesCold)*fpt(iPhasesCold)*phaseIncr(iPhasesCold)
         end if
     end do
-!
+
 ! - Compute coefficient
-!
     if (l_elas .or. l_visc) then
         coef = 1.d0
     else
-!
 ! ----- Mixing law: yield
-!
-        call metaGetParaMixture('+', fami, kpg, ksp, j_mater, &
-                                l_visc, meta_type, nb_phasis, zcold_curr, fmel)
-!
+        call metaGetParaMixture('+', fami, kpg, ksp, jvMaterCode, &
+                                l_visc, metaType, nbPhase, zColdCurr, &
+                                fmix)
+
 ! ----- Get point on hardening curve
-!
         if (l_hard_line) then
-            coef_hard = 1.d0
-            call metaGetParaHardLine('+', fami, kpg, ksp, j_mater, &
-                                     meta_type, nb_phasis, &
-                                     young, coef_hard, h0)
+            coefHard = 1.d0
+            call metaGetParaHardLine('+', fami, kpg, ksp, jvMaterCode, &
+                                     metaType, nbPhase, &
+                                     young, coefHard, h0)
         else
-            call metaGetParaHardTrac(j_mater, meta_type, nb_phasis, &
+            call metaGetParaHardTrac(jvMaterCode, metaType, nbPhase, &
                                      l_temp, temp, &
-                                     epsp, h0)
+                                     epseq, h0)
         end if
-!
+
 ! ----- Compute coefficient
-!
         rprim = 0.d0
-        if (zcold_curr .gt. 0.d0) then
-            do i_phasis_c = 1, nb_phasis_c
-                rprim = rprim+phas_curr(i_phasis_c)*h0(i_phasis_c)
+        if (zColdCurr .gt. 0.d0) then
+            do iPhasesCold = 1, nbPhaseCold
+                rprim = rprim+phasCurr(iPhasesCold)*h0(iPhasesCold)
             end do
-            rprim = rprim/zcold_curr
+            rprim = rprim/zColdCurr
         else
             rprim = 0.d0
         end if
-        rprim = (1.d0-fmel)*h0(nb_phasis)+fmel*rprim
+        rprim = (1.d0-fmix)*h0(nbPhase)+fmix*rprim
         coef = 1.d0-(1.5d0*deuxmu)/(1.5d0*deuxmu+rprim)
     end if
 !

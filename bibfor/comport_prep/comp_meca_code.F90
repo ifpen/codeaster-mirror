@@ -16,7 +16,7 @@
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
 !
-subroutine comp_meca_code(relaComp, defoComp, typeCpla, kitComp, &
+subroutine comp_meca_code(relaComp, defoCompIn, typeCpla, kitComp, &
                           postIter, reguVisc, postIncr, &
                           compCodePY)
 !
@@ -27,7 +27,7 @@ subroutine comp_meca_code(relaComp, defoComp, typeCpla, kitComp, &
 #include "asterf_types.h"
 #include "asterfort/assert.h"
 !
-    character(len=16), intent(in) :: relaComp, defoComp, typeCpla, kitComp(4)
+    character(len=16), intent(in) :: relaComp, defoCompIn, typeCpla, kitComp(4)
     character(len=16), intent(in) :: postIter, reguVisc, postIncr
     character(len=16), intent(out) :: compCodePY
 !
@@ -54,11 +54,20 @@ subroutine comp_meca_code(relaComp, defoComp, typeCpla, kitComp, &
     integer(kind=8) :: nbCompElem, iKit
     character(len=16) :: compElem(20), postIncrCode
     aster_logical :: lHardIsot, lHardKine, lHardMixed
+    character(len=16) :: defoComp
 !
 ! --------------------------------------------------------------------------------------------------
 !
     nbCompElem = 0
     compElem = 'VIDE'
+
+! - Select strain model
+    defoComp = defoCompIn
+    if (relaComp .eq. 'KIT_META') then
+        if (defoCompIn .eq. "SIMO_MIEHE") then
+            defoComp = "SIMO_MIEHE_META"
+        end if
+    end if
 
 ! - Create composite behaviour
     nbCompElem = nbCompElem+1

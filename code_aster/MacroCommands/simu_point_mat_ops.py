@@ -210,27 +210,27 @@ def simu_point_mat_ops(
                         dico["VALE_FONC"] = lvarc[ivarc]["V3"]
                         lmotcle.append(dico)
                     elif str(lvarc[ivarc]["NOM_VARC"]) == "M_ACIER":
-                        dico["NOM_VARC"] = "PFERRITE"
+                        dico["NOM_VARC"] = "FERRITE"
                         dico["VALE_FONC"] = lvarc[ivarc]["V1"]
                         lmotcle.append(dico)
                         dico = {}
-                        dico["NOM_VARC"] = "PPERLITE"
+                        dico["NOM_VARC"] = "PERLITE"
                         dico["VALE_FONC"] = lvarc[ivarc]["V2"]
                         lmotcle.append(dico)
                         dico = {}
-                        dico["NOM_VARC"] = "PBAINITE"
+                        dico["NOM_VARC"] = "BAINITE"
                         dico["VALE_FONC"] = lvarc[ivarc]["V3"]
                         lmotcle.append(dico)
                         dico = {}
-                        dico["NOM_VARC"] = "PMARTENS"
+                        dico["NOM_VARC"] = "MARTENS"
                         dico["VALE_FONC"] = lvarc[ivarc]["V4"]
                         lmotcle.append(dico)
                         dico = {}
-                        dico["NOM_VARC"] = "PAUSTENI"
+                        dico["NOM_VARC"] = "AUSTENI"
                         dico["VALE_FONC"] = lvarc[ivarc]["V5"]
                         lmotcle.append(dico)
                         dico = {}
-                        dico["NOM_VARC"] = "PCOLDSUM"
+                        dico["NOM_VARC"] = "COLDSUM"
                         dico["VALE_FONC"] = lvarc[ivarc]["V6"]
                         lmotcle.append(dico)
                     else:

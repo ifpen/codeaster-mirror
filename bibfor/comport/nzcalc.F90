@@ -15,11 +15,12 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
+! aslint: disable=W0413
 !
-subroutine nzcalc(carcri, nbPhase, phase, zalpha, &
+subroutine nzcalc(carcri, nbPhase, phase, zSumCold, &
                   fmix, seuil, timeIncr, trans, &
                   rprim, deuxmu, eta, unsurn, &
-                  dp, iret)
+                  dp, codret)
 !
     implicit none
 !
@@ -29,11 +30,11 @@ subroutine nzcalc(carcri, nbPhase, phase, zalpha, &
 !
     real(kind=8), intent(in) :: carcri(CARCRI_SIZE)
     integer(kind=8), intent(in) :: nbPhase
-    real(kind=8), intent(in) :: phase(nbPhase), zalpha
+    real(kind=8), intent(in) :: phase(nbPhase), zSumCold
     real(kind=8), intent(in) :: fmix, seuil, timeIncr, trans
     real(kind=8), intent(in) :: rprim, deuxmu, eta(nbPhase), unsurn(nbPhase)
     real(kind=8), intent(out) :: dp
-    integer(kind=8), intent(out) :: iret
+    integer(kind=8), intent(out) :: codret
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -48,7 +49,7 @@ subroutine nzcalc(carcri, nbPhase, phase, zalpha, &
 !
 ! In  nbPhase          : total number of phase (cold and hot)
 ! In  phase            : phases
-! In  zalpha           : sum of cold phases
+! In  zSumCold           : sum of cold phases
 ! In  fmix             : mixing function
 ! IN CRIT : CRITERES DE CONVERGENCE LOCAUX
 ! IN FPRIM   : FONCTION SEUIL
@@ -75,7 +76,7 @@ subroutine nzcalc(carcri, nbPhase, phase, zalpha, &
     dpplas = seuil/r0
     dp = dpplas
     call nzfpri(deuxmu, trans, rprim, seuil, &
-                nbPhase, phase, zalpha, &
+                nbPhase, phase, zSumCold, &
                 fmix, eta, unsurn, &
                 timeIncr, dp, &
                 fplas, fp, fd, &
@@ -92,7 +93,7 @@ subroutine nzcalc(carcri, nbPhase, phase, zalpha, &
         if (phase(i_phase) .gt. eps) then
             dp = dpplas
             call nzfpri(deuxmu, trans, rprim, seuil, &
-                        nbPhase, phase, zalpha, &
+                        nbPhase, phase, zSumCold, &
                         fmix, eta, unsurn, &
                         timeIncr, dp, &
                         fplas, fp, fd, &
@@ -107,7 +108,7 @@ subroutine nzcalc(carcri, nbPhase, phase, zalpha, &
             coefa(i_phase) = (eta(i_phase)*spetra)/timeIncr**unsurn(i_phase)
             do iter = 1, nint(carcri(1))
                 call nzfpri(deuxmu, trans, rprim, seuil, &
-                            nbPhase, phase, zalpha, &
+                            nbPhase, phase, zSumCold, &
                             fmix, eta, unsurn, &
                             timeIncr, dp, &
                             fplas, fp, fd, &
@@ -123,7 +124,7 @@ subroutine nzcalc(carcri, nbPhase, phase, zalpha, &
                     dp = dpplas
                 end if
                 call nzfpri(deuxmu, trans, rprim, seuil, &
-                            nbPhase, phase, zalpha, &
+                            nbPhase, phase, zSumCold, &
                             fmix, eta, unsurn, &
                             timeIncr, dp, &
                             fplas, fp, fd, &
@@ -136,7 +137,7 @@ subroutine nzcalc(carcri, nbPhase, phase, zalpha, &
                 end if
                 dp = dp-fp(i_phase)/fd(i_phase)
             end do
-            iret = 1
+            codret = 1
             goto 999
 99          continue
             dpu(i_phase) = dp
@@ -156,14 +157,14 @@ subroutine nzcalc(carcri, nbPhase, phase, zalpha, &
 !------EXAMEN DE LA SOLUTION DP=DPMIN
     dp = dpmin
     call nzfpri(deuxmu, trans, rprim, seuil, &
-                nbPhase, phase, zalpha, &
+                nbPhase, phase, zSumCold, &
                 fmix, eta, unsurn, &
                 timeIncr, dp, &
                 fplas, fp, fd, &
                 fprim, fdevi)
 
     if (fprim .lt. 0.d0) then
-        iret = 1
+        codret = 1
         goto 999
     end if
     x(2) = dp
@@ -173,7 +174,7 @@ subroutine nzcalc(carcri, nbPhase, phase, zalpha, &
 !
     dp = dpmax
     call nzfpri(deuxmu, trans, rprim, seuil, &
-                nbPhase, phase, zalpha, &
+                nbPhase, phase, zSumCold, &
                 fmix, eta, unsurn, &
                 timeIncr, dp, &
                 fplas, fp, fd, &
@@ -191,7 +192,7 @@ subroutine nzcalc(carcri, nbPhase, phase, zalpha, &
         call zeroco(x, y)
         dp = x(4)
         call nzfpri(deuxmu, trans, rprim, seuil, &
-                    nbPhase, phase, zalpha, &
+                    nbPhase, phase, zSumCold, &
                     fmix, eta, unsurn, &
                     timeIncr, dp, &
                     fplas, fp, fd, &
@@ -202,7 +203,7 @@ subroutine nzcalc(carcri, nbPhase, phase, zalpha, &
         dpnew = dp-fprim/fdevi
         if ((dpnew .ge. dpmin) .and. (dpnew .le. dpmax)) then
             call nzfpri(deuxmu, trans, rprim, seuil, &
-                        nbPhase, phase, zalpha, &
+                        nbPhase, phase, zSumCold, &
                         fmix, eta, unsurn, &
                         timeIncr, dpnew, &
                         fplas, fp, fd, &
@@ -219,7 +220,7 @@ subroutine nzcalc(carcri, nbPhase, phase, zalpha, &
         y(4) = fprim
         x(4) = dp
     end do
-    iret = 1
+    codret = 1
 !
 999 continue
 end subroutine

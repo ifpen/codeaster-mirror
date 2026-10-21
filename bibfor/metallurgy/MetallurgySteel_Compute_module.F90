@@ -435,48 +435,45 @@ contains
 ! Get parameters for hardness un metallurgy
 !
 ! --------------------------------------------------------------------------------------------------
-    subroutine metaHardnessGetParameters(jvMaterCode, metaName, metaHardnessPara)
+    subroutine metaHardnessGetParameters(jvMaterCode, metaType, nbPhase, metaHardnessPara)
 !   ------------------------------------------------------------------------------------------------
 ! ----- Parameters
         integer(kind=8), intent(in) :: jvMaterCode
-        character(len=16), intent(in) :: metaName
+        integer(kind=8), intent(in) :: metaType, nbPhase
         type(META_HardnessParameters), intent(inout) :: metaHardnessPara
 ! ----- Local
         integer(kind=8), parameter :: kpg = 1, spt = 1
         character(len=8), parameter :: fami = 'FPG1', poum = '+'
-        integer(kind=8), parameter :: nbParaHard = PSTEEL_NB
-        real(kind=8) :: paraHardVale(nbParaHard)
-        integer(kind=8) :: codretHard(nbParaHard)
-        character(len=16), parameter :: paraHardName(nbParaHard) = (/'F1_DURT', &
-                                                                     'F2_DURT', &
-                                                                     'F3_DURT', &
-                                                                     'F4_DURT', &
-                                                                     'C_DURT '/)
-        integer(kind=8), parameter :: nbParaHardTemp = PRSTEEL_NB
-        real(kind=8) :: paraHardTempVale(nbParaHardTemp)
-        integer(kind=8) :: codretHardTemp(nbParaHardTemp)
-        character(len=16), parameter :: paraHardTempName(nbParaHardTemp) = (/'F1_DURT       ', &
-                                                                             'F2_DURT       ', &
-                                                                             'F3_DURT       ', &
-                                                                             'F3_REVENU_DURT', &
-                                                                             'F4_DURT       ', &
-                                                                             'F4_REVENU_DURT', &
-                                                                             'C_DURT        '/)
+        integer(kind=8), parameter :: nbPropMaxi = META_MECA_NBPHASE_MAXI
+        real(kind=8) :: propVale(nbPropMaxi)
+        integer(kind=8) :: propCode(nbPropMaxi), nbProp
+        character(len=16) :: propName(nbPropMaxi)
 !   ------------------------------------------------------------------------------------------------
 !
-        if (metaName .eq. "ACIER") then
-            call rcvalb(fami, kpg, spt, poum, jvMaterCode, &
-                        ' ', 'DURT_META', 1, 'TEMP', [0.d0], &
-                        nbParaHard, paraHardName, paraHardVale, codretHard, 2)
-            metaHardnessPara%hardSteel(1:PSTEEL_NB) = paraHardVale
-        else if (metaName .eq. "ACIER_REVENU") then
-            call rcvalb(fami, kpg, spt, poum, jvMaterCode, &
-                        ' ', 'DURT_META', 1, 'TEMP', [0.d0], &
-                        nbParaHardTemp, paraHardTempName, paraHardTempVale, codretHardTemp, 2)
-            metaHardnessPara%hardSteel(1:PRSTEEL_NB) = paraHardTempVale
+        nbProp = nbPhase
+        propName = " "
+        ASSERT(nbProp .le. nbPropMaxi)
+        if (metaType .eq. META_STEEL) then
+            propName(1) = 'F1_DURT'
+            propName(2) = 'F2_DURT'
+            propName(3) = 'F3_DURT'
+            propName(4) = 'F4_DURT'
+            propName(5) = 'C_DURT'
+        elseif (metaType .eq. META_STEEL_TEMPER) then
+            propName(1) = 'F1_DURT'
+            propName(2) = 'F2_DURT'
+            propName(3) = 'F3_DURT'
+            propName(4) = 'F4_DURT'
+            propName(5) = 'F5_DURT'
+            propName(6) = 'F6_DURT'
+            propName(7) = 'C_DURT'
         else
             ASSERT(ASTER_FALSE)
         end if
+        call rcvalb(fami, kpg, spt, poum, jvMaterCode, &
+                    ' ', 'DURT_META', 1, 'TEMP', [0.d0], &
+                    nbProp, propName, propVale, propCode, 2)
+        metaHardnessPara%hardSteel(1:nbProp) = propVale(1:nbProp)
 !
 !   ------------------------------------------------------------------------------------------------
     end subroutine

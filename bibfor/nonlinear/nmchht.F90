@@ -16,7 +16,7 @@
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
 !
-subroutine nmchht(model, ds_material, cara_elem, ds_constitutive, &
+subroutine nmchht(model, ds_material, caraElem, ds_constitutive, &
                   list_load, nume_dof, list_func_acti, ds_measure, &
                   sddyna, sddisc, sdnume, &
                   hval_incr, hval_algo, hval_measse, ds_inout)
@@ -29,6 +29,7 @@ subroutine nmchht(model, ds_material, cara_elem, ds_constitutive, &
 #include "asterfort/assert.h"
 #include "asterfort/copisd.h"
 #include "asterfort/diinst.h"
+#include "asterfort/dismoi.h"
 #include "asterfort/isfonc.h"
 #include "asterfort/mecact.h"
 #include "asterfort/nd_mstp_time.h"
@@ -48,7 +49,7 @@ subroutine nmchht(model, ds_material, cara_elem, ds_constitutive, &
 !
     character(len=24), intent(in) :: model
     type(NL_DS_Material), intent(in) :: ds_material
-    character(len=24), intent(in) :: cara_elem
+    character(len=24), intent(in) :: caraElem
     type(NL_DS_Constitutive), intent(in) :: ds_constitutive
     character(len=24), intent(in) :: nume_dof
     character(len=19), intent(in) :: list_load
@@ -68,7 +69,7 @@ subroutine nmchht(model, ds_material, cara_elem, ds_constitutive, &
 !
 ! In  model            : name of the model
 ! In  ds_material      : datastructure for material parameters
-! In  cara_elem        : name of elementary characteristics (field)
+! In  caraElem         : name of elementary characteristics (field)
 ! In  ds_constitutive  : datastructure for constitutive laws management
 ! In  nume_dof         : name of numbering (NUME_DDL)
 ! In  list_load        : name of datastructure for list of loads
@@ -94,8 +95,8 @@ subroutine nmchht(model, ds_material, cara_elem, ds_constitutive, &
     character(len=19) :: cnfedo, cndidi, cnfint
     character(len=19) :: cndido, cncine, cnviss, cnhyst
     character(len=19) :: cnondp, cnsstf, cnsstr
-    character(len=19) :: disp_prev
-    character(len=19) :: varc_prev, varc_curr, time_prev, time_curr
+    character(len=19) :: disp_prev, modelLigrel
+    character(len=19) :: varcPrev, varcCurr
     real(kind=8) :: time_init, time_prev_step
     integer(kind=8) :: iter_newt, ldccvg, nmax
     character(len=4) :: mode
@@ -108,6 +109,7 @@ subroutine nmchht(model, ds_material, cara_elem, ds_constitutive, &
     ASSERT(nmax .eq. zveelm)
     call nmchai('VEASSE', 'LONMAX', nmax)
     ASSERT(nmax .eq. zveass)
+    call dismoi('NOM_LIGREL', model, 'MODELE', repk=modelLigrel)
 
 ! - Active functionnalities
     l_didi = isfonc(list_func_acti, 'DIDI')
@@ -132,21 +134,15 @@ subroutine nmchht(model, ds_material, cara_elem, ds_constitutive, &
             call utmess('A', 'DYNAMIQUE1_6')
         end if
 
-! ----- Create <CARTE> for time
-        call nmchex(hval_incr, 'VALINC', 'COMMOI', varc_prev)
-        call nmchex(hval_incr, 'VALINC', 'COMPLU', varc_curr)
-        call nmvcex('INST', varc_prev, time_prev)
-        call copisd('CHAMP_GD', 'V', time_prev, varc_curr(1:14)//'.INST')
-        call nmvcex('INST', varc_curr, time_curr)
-        call mecact('V', time_prev, 'MODELE', model(1:8)//'.MODELE', 'INST_R', &
-                    ncmp=1, nomcmp='INST', sr=time_prev_step)
-        call mecact('V', time_curr, 'MODELE', model(1:8)//'.MODELE', 'INST_R', &
-                    ncmp=1, nomcmp='INST', sr=time_init)
-! ----- Create external state variables
-        call nmvcle(model, ds_material%mater, cara_elem, time_prev_step, varc_prev)
-        call nmvcle(model, ds_material%mater, cara_elem, time_init, varc_curr)
+! ----- Get name of fields for external state variables
+        call nmchex(hval_incr, 'VALINC', 'COMMOI', varcPrev)
+        call nmchex(hval_incr, 'VALINC', 'COMPLU', varcCurr)
 
-! ----- Get fields from hat-variables -
+! ----- Create external state variables
+        call nmvcle(model, ds_material%mater, caraElem, time_prev_step, varcPrev)
+        call nmvcle(model, ds_material%mater, caraElem, time_init, varcCurr)
+
+! ----- Get fields from hat-variables
         call ndynkk(sddyna, 'OLDP_VEFEDO', vefedo)
         call ndynkk(sddyna, 'OLDP_VEDIDO', vedido)
         call ndynkk(sddyna, 'OLDP_VEDIDI', vedidi)
@@ -193,7 +189,7 @@ subroutine nmchht(model, ds_material, cara_elem, ds_constitutive, &
         end if
 ! ----- Compute internal forces
         call nonlinIntForce(phaseType, &
-                            model, cara_elem, &
+                            model, caraElem, &
                             list_func_acti, iter_newt, sdnume, &
                             ds_material, ds_constitutive, &
                             ds_system, ds_measure, &
@@ -202,7 +198,7 @@ subroutine nmchht(model, ds_material, cara_elem, ds_constitutive, &
 ! ----- Compute forces
         mode = 'FIXE'
         call nonlinLoadCompute(mode, list_load, &
-                               model, cara_elem, nume_dof, list_func_acti, &
+                               model, caraElem, nume_dof, list_func_acti, &
                                ds_material, ds_constitutive, ds_measure, &
                                time_prev_step, time_init, &
                                hval_incr, hval_algo, &

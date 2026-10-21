@@ -29,8 +29,6 @@ subroutine te0013(option, nomte)
 #include "asterfort/bsigmc.h"
 #include "asterfort/elrefe_info.h"
 #include "asterfort/jevech.h"
-#include "asterfort/metau1.h"
-#include "asterfort/metau2.h"
 #include "asterfort/nbsigm.h"
 #include "asterfort/sigtmc.h"
 #include "asterfort/tecach.h"
@@ -45,7 +43,7 @@ subroutine te0013(option, nomte)
 !
 ! Elements: 2D et 3D
 !
-! Option: CHAR_MECA_TEMP_R
+! Option: CHAR_MECA_* for external state variables
 !
 ! --------------------------------------------------------------------------------------------------
 !
@@ -54,7 +52,6 @@ subroutine te0013(option, nomte)
     real(kind=8) :: forcVarc(3*MT_NNOMAX), sigmVarc(162)
     real(kind=8) :: time
     integer(kind=8) :: jvTime, jvVect, iret
-    aster_logical :: l_meta
     integer(kind=8) :: ndim, nno, npg, nbsig, i, indxVarcStrain
     integer(kind=8) :: jvGaussWeight, jvBaseFunc, jvDBaseFunc
     integer(kind=8) :: jvGeom, jvMaterc
@@ -85,48 +82,48 @@ subroutine te0013(option, nomte)
     end if
 
 ! - Compute CHAR_MECA_TEMP_R for metallurgy
-    if (ndim .eq. 3) then
-        call metau2(l_meta)
-    else
-        call metau1(l_meta)
-    end if
+    ! if (ndim .eq. 3) then
+    !     call metau2(l_meta)
+    ! else
+    !     call metau1(l_meta)
+    ! end if
 
-    if (.not. l_meta) then
-! ----- Geometry
-        call jevech('PGEOMER', 'L', jvGeom)
+    ! if (.not. l_meta) then
+! - Geometry
+    call jevech('PGEOMER', 'L', jvGeom)
 
 ! ----- Material parameters
-        call jevech('PMATERC', 'L', jvMaterc)
+    call jevech('PMATERC', 'L', jvMaterc)
 
 ! ----- Initializations of material parameters on current cell
-        call initParaCell(fami, zi(jvMaterc), materPara)
+    call initParaCell(fami, zi(jvMaterc), materPara)
 
 ! ----- Set local coordinate system from user
-        call getUserLCS(ndim, nno, jvGeom, materPara%lcsPara)
+    call getUserLCS(ndim, nno, jvGeom, materPara%lcsPara)
 
-! ----- Get time
-        time = r8vide()
-        call tecach('ONO', 'PINSTR', 'L', iret, iad=jvTime)
-        if (jvTime .ne. 0) then
-            time = zr(jvTime)
-        end if
+! - Get time
+    time = r8vide()
+    call tecach('ONO', 'PINSTR', 'L', iret, iad=jvTime)
+    if (jvTime .ne. 0) then
+        time = zr(jvTime)
+    end if
 
 ! ----- Calcul des contraintes anélastiques
-        call sigtmc(materPara, time, &
-                    nbsig, npg, ndim, &
-                    indxVarcStrain, sigmVarc)
+    call sigtmc(materPara, time, &
+                nbsig, npg, ndim, &
+                indxVarcStrain, sigmVarc)
 
-! ----- Compute [B]Tx{SIGMVARC}
-        call bsigmc(nno, ndim, nbsig, npg, &
-                    jvGaussWeight, jvBaseFunc, jvDBaseFunc, &
-                    zr(jvGeom), nharm, sigmVarc, &
-                    forcVarc)
+! - Compute [B]Tx{SIGMVARC}
+    call bsigmc(nno, ndim, nbsig, npg, &
+                jvGaussWeight, jvBaseFunc, jvDBaseFunc, &
+                zr(jvGeom), nharm, sigmVarc, &
+                forcVarc)
 
-! ----- Set output vector
-        call jevech('PVECTUR', 'E', jvVect)
-        do i = 1, ndim*nno
-            zr(jvVect+i-1) = forcVarc(i)
-        end do
+! - Set output vector
+    call jevech('PVECTUR', 'E', jvVect)
+    do i = 1, ndim*nno
+        zr(jvVect+i-1) = forcVarc(i)
+    end do
 !
-    end if
+    ! end if
 end subroutine

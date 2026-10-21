@@ -334,7 +334,6 @@ contains
 !
 !   ------------------------------------------------------------------------------------------------
     end subroutine
-
 ! --------------------------------------------------------------------------------------------------
 !
 ! checkAffe
@@ -377,7 +376,7 @@ contains
                 call utmess('F', 'VARC1_6', &
                             nk=3, valk=[exteVariName, physQuantity, physQuantityUser])
             end if
-            if (exteVariName .eq. "M_ACIER") then
+            if (exteVariName .eq. "M_ACIER" .or. exteVariName .eq. "M_REVENU") then
                 call dismoi('TYPE_CHAMP', fieldUser, 'CHAMP', repk=fieldDisc)
                 call dismoi('NOM_GD', fieldUser, 'CHAMP', repk=physQuantityUser)
                 nbVari = 0
@@ -387,13 +386,22 @@ contains
                 else
                     call utmess('F', 'VARC1_7', nk=2, valk=[exteVariName, fieldDisc])
                 end if
-                if (nbVari .ne. NBVARISTEEL) then
-                    call utmess('F', 'VARC1_8', sk=exteVariName, &
-                                ni=2, vali=[nbVari, NBVARISTEEL])
+                if (exteVariName .eq. "M_ACIER") then
+                    if (nbVari .ne. NBVARISTEEL) then
+                        call utmess('F', 'VARC1_8', sk=exteVariName, &
+                                    ni=2, vali=[nbVari, NBVARISTEEL])
+                    end if
+                else if (exteVariName .eq. "M_REVENU") then
+                    if (nbVari .ne. NBVARISTEELR) then
+                        call utmess('F', 'VARC1_8', sk=exteVariName, &
+                                    ni=2, vali=[nbVari, NBVARISTEELR])
+                    end if
+                else
+                    ASSERT(ASTER_FALSE)
                 end if
             end if
         elseif (affeType .eq. 'EVOL') then
-            if (exteVariName .eq. "M_ACIER") then
+            if (exteVariName .eq. "M_ACIER" .or. exteVariName .eq. "M_REVENU") then
                 call rs_get_liststore(dsUser, nbStore)
                 if (nbStore .ne. 0) then
                     AS_ALLOCATE(vi=listStore, size=nbStore)
@@ -411,9 +419,18 @@ contains
                             else
                                 call utmess('F', 'VARC1_7', nk=2, valk=[exteVariName, fieldDisc])
                             end if
-                            if (nbVari .ne. NBVARISTEEL) then
-                                call utmess('F', 'VARC1_8', sk=exteVariName, &
-                                            ni=2, vali=[nbVari, NBVARISTEEL])
+                            if (exteVariName .eq. "M_ACIER") then
+                                if (nbVari .ne. NBVARISTEEL) then
+                                    call utmess('F', 'VARC1_8', sk=exteVariName, &
+                                                ni=2, vali=[nbVari, NBVARISTEEL])
+                                end if
+                            elseif (exteVariName .eq. "M_REVENU") then
+                                if (nbVari .ne. NBVARISTEELR) then
+                                    call utmess('F', 'VARC1_8', sk=exteVariName, &
+                                                ni=2, vali=[nbVari, NBVARISTEELR])
+                                end if
+                            else
+                                ASSERT(ASTER_FALSE)
                             end if
                         end if
                     end do

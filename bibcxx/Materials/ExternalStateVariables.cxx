@@ -32,24 +32,6 @@ EvolutionParameter::EvolutionParameter( const TransientResultPtr &result,
       _timeFunction( nullptr ),
       _timeFormula( nullptr ) {};
 
-// EvolutionParameter::EvolutionParameter( const py::tuple &tup )
-//     : EvolutionParameter( tup[0].cast< TransientResultPtr >(), tup[1].cast< std::string >() ) {
-//     if ( tup.size() != 6 ) {
-//         throw std::runtime_error( "Invalid state!" );
-//     }
-//     _leftExtension = tup[2].cast< std::string >();
-//     _rightExtension = tup[3].cast< std::string >();
-//     // if ( tup[4] )
-//     _timeFunction = tup[4].cast< FunctionPtr >();
-//     // if ( tup[5] )
-//     _timeFormula = tup[5].cast< FormulaPtr >();
-// };
-
-// py::tuple EvolutionParameter::_getState() const {
-//     return py::make_tuple( _transientResult, _fieldName, _leftExtension, _rightExtension,
-//                            _timeFunction, _timeFormula );
-// }
-
 ExternalStateVariable::ExternalStateVariable( const py::tuple &tup )
     : ExternalStateVariable( tup[0].cast< externVarEnumInt >(), tup[1].cast< BaseMeshPtr >() ) {
     if ( tup.size() != 6 ) {

@@ -43,21 +43,21 @@ module ExternalStateVariable_type
                                                                           "EPSA    ", "M_ACIER ", &
                                                                           "M_ZIRC  ", "NEUT1   ", &
                                                                           "NEUT2   ", "NEUT3   ", &
-                                                                          "PTOT    "/)
+                                                                          "PTOT    ", "M_REVENU"/)
     character(len=8), parameter :: listPhysQuantity(EXTEVARI_NB_MAXI) = (/"TEMP_R  ", "GEOM_R  ", &
                                                                           "CORR_R  ", "IRRA_R  ", &
                                                                           "HYDR_R  ", "TEMP_R  ", &
                                                                           "EPSI_R  ", "VARI_R  ", &
                                                                           "VARI_R  ", "NEUT_R  ", &
                                                                           "NEUT_R  ", "NEUT_R  ", &
-                                                                          "DEPL_R  "/)
+                                                                          "DEPL_R  ", "VARI_R  "/)
     integer(kind=8), parameter :: listNbCmp(EXTEVARI_NB_MAXI) = (/7, 3, &
                                                                   1, 1, &
                                                                   1, 1, &
                                                                   6, 9, &
                                                                   5, 1, &
                                                                   1, 1, &
-                                                                  1/)
+                                                                  1, 12/)
 ! ==================================================================================================
 !
 ! Derivated types

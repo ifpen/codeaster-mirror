@@ -32,6 +32,7 @@ subroutine lc0050(BEHInteg, &
 !
 #include "asterc/umatwp.h"
 #include "asterfort/Behaviour_type.h"
+#include "asterfort/BehaviourMGIS_type.h"
 #include "asterfort/lcicma.h"
 #include "asterfort/mat_proto.h"
 #include "asterfort/matrot.h"
@@ -110,9 +111,8 @@ subroutine lc0050(BEHInteg, &
 !
 ! --------------------------------------------------------------------------------------------------
 !
-    integer(kind=8), parameter :: npropmax = 197
-    real(kind=8) :: props(npropmax)
-    integer(kind=8) :: nprops, pfumat
+    real(kind=8) :: propVale(MGIS_MAX_PROPS)
+    integer(kind=8) :: nbProp, pfumat
     integer(kind=8) :: nshr, i, nstatv, npt, noel, layer
     integer(kind=8) :: kspt, kstep, kinc, j
     integer(kind=8) :: iadzi, iazk24
@@ -140,7 +140,7 @@ subroutine lc0050(BEHInteg, &
     ndi = 3
     nshr = ntens-ndi
     codret = 0
-    nprops = npropmax
+    nbProp = MGIS_MAX_PROPS
     relaComp = compor(RELA_NAME)
 
 ! - Pointer to UMAT function
@@ -172,7 +172,7 @@ subroutine lc0050(BEHInteg, &
 
 ! - Get material properties
     call mat_proto(BEHInteg, fami, kpg, ksp, '+', &
-                   jvMaterCode, relaComp, nprops, props)
+                   jvMaterCode, relaComp, nbProp, propVale)
 
 ! - Prepare strains
     call umatPrepareStrain(neps, epsm, deps, stran, dstran, &
@@ -235,7 +235,7 @@ subroutine lc0050(BEHInteg, &
                     BEHInteg%behavESVA%behavESVAExte%scalESVAPrev, &
                     BEHInteg%behavESVA%behavESVAExte%scalESVAIncr, &
                     cmname, ndi, nshr, ntens, nstatv, &
-                    props, nprops, coords, drot, pnewdt, &
+                    propVale, nbProp, coords, drot, pnewdt, &
                     celent, dfgrd0, dfgrd1, noel, npt, &
                     layer, kspt, kstep, kinc)
     else if (option(1:9) .eq. 'RIGI_MECA') then
@@ -248,7 +248,7 @@ subroutine lc0050(BEHInteg, &
                     BEHInteg%behavESVA%behavESVAExte%scalESVAPrev, &
                     BEHInteg%behavESVA%behavESVAExte%scalESVAIncr, &
                     cmname, ndi, nshr, ntens, nstatv, &
-                    props, nprops, coords, drot, pnewdt, &
+                    propVale, nbProp, coords, drot, pnewdt, &
                     celent, dfgrd0, dfgrd1, noel, npt, &
                     layer, kspt, kstep, kinc)
     end if

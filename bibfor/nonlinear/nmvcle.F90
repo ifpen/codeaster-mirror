@@ -15,69 +15,62 @@
 ! You should have received a copy of the GNU General Public License
 ! along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 ! --------------------------------------------------------------------
-
-subroutine nmvcle(modelz, matez, cara_elemz, time, varcz)
+!
+subroutine nmvcle(modelZ, materFieldZ, caraElemZ, time, varcZ)
 !
     implicit none
 !
 #include "asterf_types.h"
 #include "asterfort/detrsd.h"
+#include "asterfort/dismoi.h"
 #include "asterfort/mecact.h"
 #include "asterfort/vrcins.h"
 !
-!
-    character(len=*), intent(in) :: modelz
-    character(len=*), intent(in) :: matez
-    character(len=*), intent(in) :: cara_elemz
+    character(len=*), intent(in) :: modelZ, materFieldZ, caraElemZ
     real(kind=8), intent(in) :: time
-    character(len=*), intent(in) :: varcz
+    character(len=*), intent(in) :: varcZ
 !
 ! --------------------------------------------------------------------------------------------------
 !
-! Nonlinear mechanics (algorithm)
+! External state variables
 !
-! Command variables - Read
+! Create fields
 !
 ! --------------------------------------------------------------------------------------------------
 !
-! In  model          : name of model
-! In  mate           : name of material characteristics (field)
-! In  cara_elem      : name of elementary characteristics (field)
-! In  time           : time
-! In  varc           : command variable field
+! In  model            : name of model
+! In  materField       : name of material characteristics (field)
+! In  caraElem         : name of elementary characteristics (field)
+! In  time             : time
+! In  varc             : name of external state variable field
 !
 ! --------------------------------------------------------------------------------------------------
 !
     character(len=2) :: codret
-    character(len=8) :: model, mate, cara_elem
+    character(len=8) :: model, materField, caraElem
     character(len=14) :: varc
-    character(len=24) :: varc_list
-    character(len=24) :: varc_time
+    character(len=24) :: varcAll, varcTime, modelLigrel
 !
 ! --------------------------------------------------------------------------------------------------
 !
-    varc = varcz
-    model = modelz
-    cara_elem = cara_elemz
-    mate = matez
-!
+    varc = varcZ
+    model = modelZ
+    caraElem = caraElemZ
+    materField = materFieldZ
+    call dismoi('NOM_LIGREL', modelZ, 'MODELE', repk=modelLigrel)
+
 ! - Old object deleted
-!
     call detrsd('VARI_COM', varc)
-!
-! - List of command variables
-!
-    varc_list = varc//'.TOUT'
-!
-! - Construct command variables fields
-!
-    call vrcins(model, mate, cara_elem, time, varc_list, &
-                codret)
-!
-! - Construct current time <CARTE>
-!
-    varc_time = varc//'.INST'
-    call mecact('V', varc_time, 'MODELE', model(1:8)//'.MODELE', 'INST_R', &
+
+! - Name of field for all external state variables
+    varcAll = varc//'.TOUT'
+
+! - Construct field for all external state variables
+    call vrcins(model, materField, caraElem, time, varcAll, codret)
+
+! - Construct field for time
+    varcTime = varc//'.INST'
+    call mecact('V', varcTime, 'MODELE', modelLigrel, 'INST_R', &
                 ncmp=1, nomcmp='INST', sr=time)
 !
 end subroutine
