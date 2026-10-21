@@ -17,6 +17,7 @@
 # along with code_aster.  If not, see <http://www.gnu.org/licenses/>.
 # --------------------------------------------------------------------
 
+import libaster
 from enum import Enum, auto
 
 from ..Objects import (
@@ -33,11 +34,6 @@ from ..Objects import (
     SimpleFieldOnCellsReal,
     SimpleFieldOnNodesReal,
 )
-from .medtoasterconnectivity import ASTER_TYPES, MED_TYPES, MYMED2ASTER_CONNECT, toAsterGeoType
-
-toMedGeoType = None
-if ASTER_TYPES is not None and MED_TYPES is not None:
-    toMedGeoType = dict(zip(ASTER_TYPES, MED_TYPES))
 
 
 class MedSequenceToOrder(Enum):
@@ -71,7 +67,8 @@ def convertMedFieldToAster(
     """
     fieldValues = medField.getValues()
     compName = medField.getComponentName()
-
+    toMedGeoType = libaster.getAsterToMedTypes()
+    med2aster_connect = libaster.getMedToAsterConnectivity()
     fieldComp = componentToFill if componentToFill is not None else compName
 
     if len(compName) != len(fieldComp):
@@ -125,7 +122,7 @@ def convertMedFieldToAster(
                 cellType = mesh.getCellType(iCell)
                 medType = toMedGeoType[cellType]
                 for iPt in range(gPNb):
-                    newPos = MYMED2ASTER_CONNECT[medType][iPt]
+                    newPos = med2aster_connect[medType][iPt]
                     for iCmp in range(cmpNb):
                         sFOC.setValue(iCell, iCmp, newPos, 0, fieldValues[posInNew + j])
                         j += 1
@@ -256,7 +253,8 @@ def _splitMeshAndFieldsFromMedFile(
     nBalancer = returnTuple[3]
 
     cellTypes = outMesh.getAllMedCellsTypes()
-    asterTypes = [toAsterGeoType(item) for item in cellTypes]
+    toAsterGeoType = libaster.getMedToAsterTypes()
+    asterTypes = [toAsterGeoType[item] for item in cellTypes]
     cellTypes = [x for _, x in sorted(zip(asterTypes, cellTypes))]
 
     nbField = fr.getFieldNumber()

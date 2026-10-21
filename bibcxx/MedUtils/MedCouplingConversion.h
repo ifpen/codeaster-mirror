@@ -25,6 +25,7 @@
 
 #include "astercxx.h"
 
+#include "DataFields/SimpleFieldOnCells.h"
 #include "Meshes/BaseMesh.h"
 
 /**
@@ -34,5 +35,15 @@
  */
 
 py::object getMedCouplingConversionData( const BaseMeshPtr &aster_mesh );
+
+py::dict getQuadratureDict( const SimpleFieldOnCellsRealPtr &aster_field );
+
+MapLong getMedToAsterTypesMap();
+
+MapLong getAsterToMedTypesMap();
+
+MapVectorLong getMedToAsterRenumberingMap();
+
+MapVectorLong getAsterToMedRenumberingMap();
 
 #endif /* MEDCOUPLINGCONVERSION_H_ */

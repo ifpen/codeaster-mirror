@@ -47,5 +47,56 @@ Arguments:
 Returns:
     tuple (cells, groups_c, groups_n) : The data to create the equivalent MedCoupling mesh.
         )",
-             py::arg( "mesh" ) );
+             py::arg( "mesh" ) ),
+
+        mod.def( "getQuadratureDict", &getQuadratureDict, R"(
+Extracts quadrature integration data from a field.
+
+Iterates through cells to retrieve detailed information about their
+integration rules, including element type, node counts, Gauss point
+coordinates, and weights.
+
+Arguments:
+    aster_field (SimpleFieldOnCellsRealPtr): field object containing cell information.
+
+ Returns:
+    dict[dict]: A dictionary where each key represents a unique cell's ID and maps to
+    its quadrature data. Each quadrature data dictionary includes:
+        - 'QUADRATURE_FAMILY' (str): Integration family (e.g., 'FPG27').
+        - 'REF_ELEMENT' (str): Reference element identifier.
+        - 'REF_DIM' (int): Reference element dimension.
+        - 'CELL' (str): Cell identifier.
+        - 'NB_CORNER_NODES' (int): Number of corner nodes.
+        - 'NB_TOTAL_NODES' (int): Total number of nodes.
+        - 'NB_GAUSS_POINTS' (int): Number of Gauss integration points.
+        - 'DIM' (int): Element dimension.
+        - 'REF_COOR' (list of float): Gauss point coordinates in reference space.
+        - 'GAUSS_COOR' (list of float): Gauss point coordinates in global space.
+        - 'GAUSS_WEIGHTS' (list of float): Gauss point weights.
+        )",
+                 py::arg( "field" ) ),
+        mod.def( "getMedToAsterTypes", &getMedToAsterTypesMap, R"(
+Retrieves the mapping between MED and Code_Aster element types.
+
+Returns:
+    dict[int, int]: TypeA -> TypeB.
+        )" ),
+        mod.def( "getAsterToMedTypes", &getAsterToMedTypesMap, R"(
+Retrieves the mapping between Code_Aster and MED element types.
+
+Returns:
+    dict[int, int]: TypeA -> TypeB.
+        )" ),
+        mod.def( "getMedToAsterConnectivity", &getMedToAsterRenumberingMap, R"(
+Retrieves the node renumbering map from MED to Code_Aster.
+
+Returns:
+    dict[int, list[int]]: TypeMED -> [nodes].
+        )" ),
+        mod.def( "getAsterToMedConnectivity", &getAsterToMedRenumberingMap, R"(
+Retrieves the node renumbering map from MED to Code_Aster.
+
+Returns:
+    dict[int, list[int]]: TypeMED -> [nodes].
+        )" );
 }

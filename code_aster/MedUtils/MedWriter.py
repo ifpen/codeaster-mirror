@@ -20,11 +20,6 @@
 from enum import Enum, auto
 
 from ..Objects import AsterToMedWriter
-from .medtoasterconnectivity import ASTER_TYPES, MED_TYPES, MYMED2ASTER_CONNECT, toAsterGeoType
-
-toMedGeoType = None
-if ASTER_TYPES is not None and MED_TYPES is not None:
-    toMedGeoType = dict(zip(ASTER_TYPES, MED_TYPES))
 
 
 def printMeshToMedFile(mesh, filename, local=True):

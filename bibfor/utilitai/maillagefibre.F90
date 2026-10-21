@@ -153,6 +153,7 @@ subroutine maillagefibre(nogfma, ulnbnoeuds, maxmailgrp, nbgf, vcoord, nbnoeuds,
 !   Type de mailles
     call jecreo(objtypmai, 'G V I')
     call jeecra(objtypmai, 'LONMAX', ulnbmailles)
+    call jeecra(objtypmai, 'LONUTI', ulnbmailles)
     call jeveuo(objtypmai, 'E', itype)
 !
 !   Connectivité

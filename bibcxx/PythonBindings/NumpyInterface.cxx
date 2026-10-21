@@ -68,21 +68,28 @@ py::tuple simpleFieldOnCellsToNumpy( std::shared_ptr< SimpleFieldOnCells< ValueT
     auto sizes = field->getSizes();
     auto bools = field->getLogicalValues();
     auto size = values->size();
+    auto modes = field->getTypeAndLocatedComponentIds();
     auto ncol = (ssize_t)field->getNumberOfComponents();
     auto nrow = size / ncol;
+    auto nbma = (ssize_t)( modes->size() / 2 );
     std::vector< ssize_t > shape = { nrow, ncol };
     std::vector< ssize_t > strides = { ncol * (ssize_t)sizeof( ValueType ), sizeof( ValueType ) };
     std::vector< ssize_t > strides_mask = { ncol * (ssize_t)sizeof( bool ), sizeof( bool ) };
 
     std::vector< ssize_t > shape_sizes = { sizes->size() };
+    std::vector< ssize_t > shape_modes = { nbma, 2 };
     std::vector< ssize_t > strides_sizes = { sizeof( ASTERINTEGER ) };
+    std::vector< ssize_t > strides_modes = { 2 * (ssize_t)sizeof( ASTERINTEGER ),
+                                             sizeof( ASTERINTEGER ) };
 
     py::array_t< ValueType > array_values( shape, strides, values->getDataPtr(), parent );
     py::array_t< bool > array_mask( shape, strides_mask, bools->getDataPtr(), parent );
     py::array_t< ASTERINTEGER > array_sizes( shape_sizes, strides_sizes, sizes->getDataPtr(),
                                              parent );
+    py::array_t< ASTERINTEGER > array_modes( shape_modes, strides_modes, modes->getDataPtr(),
+                                             parent );
 
-    py::tuple ret = py::make_tuple( array_values, array_mask, array_sizes );
+    py::tuple ret = py::make_tuple( array_values, array_mask, array_sizes, array_modes );
     return ret;
 }
 

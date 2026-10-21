@@ -133,6 +133,7 @@ subroutine detrsd(typesd, nomsd)
         call jedetr(k19//'.CESC')
         call jedetr(k19//'.CESL')
         call jedetr(k19//'.CESV')
+        call jedetr(k19//'.CESM')
 !
 !     ------------------------------------------------------------------
     else if (typ2sd .eq. 'LISTE_RELA') then

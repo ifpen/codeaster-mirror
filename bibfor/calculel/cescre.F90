@@ -106,7 +106,7 @@ subroutine cescre(basez, cesz, typcez, maz, nomgdz, &
     character(len=24) :: valk(2)
     integer(kind=8) :: gd, ncmpmx, nbma, jcmpgd, icmp, jcmp, jcesk, jcesd
     integer(kind=8) :: jcesc, k, jcesl, jcesv, ncmpg, ima, jlconx, decal
-    integer(kind=8) :: nptma, nsptma, ncmpma, ncmp2, jlicmp, iret
+    integer(kind=8) :: nptma, nsptma, ncmpma, ncmp2, jlicmp, jcesm, iret
     aster_logical :: undf0
 !
 !     FONCTION FORMULE:
@@ -290,6 +290,12 @@ subroutine cescre(basez, cesz, typcez, maz, nomgdz, &
 !     ------------------------
     call wkvect(ces//'.CESV', base//' V '//tsca, decal, jcesv)
     call jeundf(ces//'.CESV', undf0)
+!
+!------------------------------------------------------------------
+!     7- CREATION DE CES.CESM:
+!     ------------------------
+    call wkvect(ces//'.CESM', base//' V I', 2*nbma, jcesm)
+    call jeundf(ces//'.CESM', ASTER_TRUE)
 !
 !
 !------------------------------------------------------------------

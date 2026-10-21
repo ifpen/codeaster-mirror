@@ -75,9 +75,9 @@ subroutine celces(celz, basez, cesz, l_copy_nan_, undf0_, rect_)
     integer(kind=8) :: nec, gd, nb_cmp_mx, nb_cell, mval
     integer(kind=8) :: iadg, nume_cmp, nb_cmp
     integer(kind=8) :: jv_celv, jv_molo
-    integer(kind=8) :: jv_cesl, jv_cesv, jv_cesd
+    integer(kind=8) :: jv_cesl, jv_cesv, jv_cesd, jv_cesm
     integer(kind=8) :: ieq, i_cmp_cata, i_grel, i_elem, ierr
-    integer(kind=8) :: nb_pt, nb_grel, imolo, nb_grel_ligr
+    integer(kind=8) :: nb_pt, nb_grel, imolo, jliel, nb1, itype, nb_grel_ligr
     integer(kind=8) :: i_cmp, i_pt, i_spt, elem_nume, iad, vali(2)
     integer(kind=8) :: nb_pt_max, nb_elem, nb_cmp_max, nb_spt, nb_dyn, nb_dyn_max, lgcata
     integer(kind=8) :: ico, adiel, nb_cmp_cumu, kpt
@@ -275,6 +275,7 @@ subroutine celces(celz, basez, cesz, l_copy_nan_, undf0_, rect_)
     call jeveuo(ces//'.CESD', 'E', jv_cesd)
     call jeveuo(ces//'.CESL', 'E', jv_cesl)
     call jeveuo(ces//'.CESV', 'E', jv_cesv)
+    call jeveuo(ces//'.CESM', 'E', jv_cesm)
 !
 ! - Transfer
 !
@@ -282,6 +283,9 @@ subroutine celces(celz, basez, cesz, l_copy_nan_, undf0_, rect_)
         call wkvect('&&CELCES.LONG_PT', 'V V I', nb_pt_max, vi=v_long_pt)
         AS_ALLOCATE(vi=long_pt_cumu, size=nb_pt_max)
         do i_grel = 1, nb_grel
+            call jeveuo(jexnum(ligrel//'.LIEL', i_grel), 'L', jliel)
+            call jelira(jexnum(ligrel//'.LIEL', i_grel), 'LONMAX', nb1)
+            itype = zi(jliel-1+nb1)
             imolo = v_celd(v_celd(4+i_grel)+2)
 
             if (imolo .ne. 0) then
@@ -315,6 +319,10 @@ subroutine celces(celz, basez, cesz, l_copy_nan_, undf0_, rect_)
                     if (elem_nume .ge. 0) then
                         nb_spt = v_celd(v_celd(4+i_grel)+4+4*(i_elem-1)+1)
                         adiel = v_celd(v_celd(4+i_grel)+4+4*(i_elem-1)+4)
+                        ! Stockage du mode local et du type d'element
+                        zi(jv_cesm-1+2*(elem_nume-1)+1) = itype
+                        zi(jv_cesm-1+2*(elem_nume-1)+2) = imolo
+                        !
 ! --------------------- Loop on Gauss points
                         do i_pt = 1, nb_pt
                             kpt = 1
@@ -368,6 +376,9 @@ subroutine celces(celz, basez, cesz, l_copy_nan_, undf0_, rect_)
 !       -- CAS DE VARI_* :
 !       -------------------
         do i_grel = 1, nb_grel
+            call jeveuo(jexnum(ligrel//'.LIEL', i_grel), 'L', jliel)
+            call jelira(jexnum(ligrel//'.LIEL', i_grel), 'LONMAX', nb1)
+            itype = zi(jliel-1+nb1)
             imolo = v_celd(v_celd(4+i_grel)+2)
             if (imolo .ne. 0) then
                 lgcata = v_celd(v_celd(4+i_grel)+3)
@@ -380,6 +391,10 @@ subroutine celces(celz, basez, cesz, l_copy_nan_, undf0_, rect_)
                 do i_elem = 1, nb_elem
                     elem_nume = numail(i_grel, i_elem)
                     if (elem_nume .ge. 0) then
+                        ! Stockage du mode local et du type d'element
+                        zi(jv_cesm-1+2*(elem_nume-1)+1) = itype
+                        zi(jv_cesm-1+2*(elem_nume-1)+2) = imolo
+                        !
                         nb_spt = v_celd(v_celd(4+i_grel)+4+4*(i_elem-1)+1)
                         nb_dyn = max(v_celd(v_celd(4+i_grel)+4+4*(i_elem-1)+2), 1)
                         adiel = v_celd(v_celd(4+i_grel)+4+4*(i_elem-1)+4)

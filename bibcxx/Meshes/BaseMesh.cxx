@@ -149,10 +149,10 @@ bool BaseMesh::readMeshFile( const std::filesystem::path &fileName, const std::s
     return build();
 }
 
-const JeveuxCollectionLong BaseMesh::getMedConnectivity() const {
+const JeveuxContiguousCollectionLong BaseMesh::getMedConnectivity() const {
     JeveuxChar24 objv( " " );
     CALLO_GET_MED_CONNECTIVITY( getName(), objv );
-    JeveuxCollectionLong result( objv.toString() );
+    JeveuxContiguousCollectionLong result( objv.toString() );
     return result;
 }
 
@@ -281,7 +281,6 @@ bool BaseMesh::isSkin( const std::string groupName ) const {
 
     if ( isParallel() ) {
         auto meshDime = getDimension();
-        std::cout << "PARALLEL Mesh dime: " << meshDime << std::endl;
         return true;
     } else {
         auto meshDime = getDimension();
@@ -291,8 +290,7 @@ bool BaseMesh::isSkin( const std::string groupName ) const {
             const auto cellsType = getCellsType();
             for ( auto &cellId : cells ) {
                 auto cellType = ( *cellsType )[cellId];
-                auto cellDime = getCellDime( cellType );
-                std::cout << "Cell dime: " << cellDime << std::endl;
+                auto cellDime = getCellDime( cellId );
                 if ( cellDime != ( meshDime - 1 ) ) {
                     return false;
                 }

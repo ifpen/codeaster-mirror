@@ -450,7 +450,7 @@ class ConstantFieldOnCells : public DataField {
             return ConstantFieldOnZone( _FEDesc );
         else if ( code == 2 ) {
             const auto numGrp = ( *_descriptor )[4 + 2 * position];
-            const auto &map = _mesh->getGroupsOfNodesMap();
+            const auto &map = _mesh->getGroupsOfCellsMap();
             const auto name = map->getStringFromIndex( numGrp );
             return ConstantFieldOnZone( _mesh, GroupOfCellsPtr( new GroupOfCells( name ) ) );
         } else if ( code == 3 ) {

@@ -151,7 +151,7 @@ class BaseMesh : public DataStructure, public ListOfTables {
     /**
      * @brief Return the connectivity with MED numberings
      */
-    const JeveuxCollectionLong getMedConnectivity() const;
+    const JeveuxContiguousCollectionLong getMedConnectivity() const;
 
     /**
      * @brief Return the connectivity with MED numberings, node zero based
@@ -178,7 +178,7 @@ class BaseMesh : public DataStructure, public ListOfTables {
      * @brief Get all the names of group of cells
      * @return NamesMapChar24 _nameOfGrpCells
      */
-    const NamesMapChar24 &getGroupsOfNodesMap() const { return _nameOfGrpCells; };
+    const NamesMapChar24 &getGroupsOfCellsMap() const { return _nameOfGrpCells; };
 
     /**
      * @brief Returns the number of nodes

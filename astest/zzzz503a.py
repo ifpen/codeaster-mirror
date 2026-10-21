@@ -202,7 +202,7 @@ test.assertAlmostEqual(
 )
 
 fcells0 = CA.SimpleFieldOnCellsReal(monMaillage, "ELEM", "DEPL_R", ["DX", "DY", "DZ"], 1, 1, True)
-cval, cma, _ = fcells0.toNumpy()
+cval, cma, _, _ = fcells0.toNumpy()
 cma[:, :] = True
 cval[:, 1] = 2.5
 full_nodes1 = fcells0.toFieldOnNodes()

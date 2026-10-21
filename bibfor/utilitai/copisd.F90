@@ -215,6 +215,7 @@ subroutine copisd(typesd, base, sd1, sd2)
         call jedup1(k191//'.CESC', bas2, k192//'.CESC')
         call jedup1(k191//'.CESL', bas2, k192//'.CESL')
         call jedup1(k191//'.CESV', bas2, k192//'.CESV')
+        call jedup1(k191//'.CESM', bas2, k192//'.CESM')
 !
 ! ----------------------------------------------------------------------
     else if (typesd .eq. 'NUME_EQUA') then

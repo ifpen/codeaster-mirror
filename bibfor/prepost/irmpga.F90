@@ -92,9 +92,9 @@ subroutine irmpga(nofimd, chanom, nochmd, typech, nomtyp, &
 !
     character(len=6), parameter :: nompro = 'IRMPGA'
     integer(kind=8) :: ifm, niv, nbcouc, nbsect, nummai
-    integer(kind=8) :: iaux, jaux, kaux, laux
+    integer(kind=8) :: iaux, jaux, kaux
     integer(kind=8) :: nbrepg, nbnoso, nbnoto, ndim
-    integer(kind=8) :: ntypef, tygeom, tymast, ityma
+    integer(kind=8) :: ntypef, tygeom, tymast
     integer(kind=8) :: nbpg, nbsp
     integer(kind=8) :: nrimpr, iret
     integer(kind=8), parameter :: lgmax = 1000
@@ -192,24 +192,6 @@ subroutine irmpga(nofimd, chanom, nochmd, typech, nomtyp, &
                 if (codret .eq. 1) then
                     codret = 0
                     goto 20
-                end if
-!
-! 2.1.1.2.      SI CE TYPE DE MAILLE EST RENUMEROTEE ENTRE ASTER ET MED,
-!               IL FAUT MODIFIER LA REPARTITION DES NOEUDS
-                if (modnum(tymast) .eq. 1) then
-                    call jeveuo(jexnum('&CATA.TM.NBNO', tymast), 'L', ityma)
-                    nbnoto = zi(ityma)
-                    kaux = ndim*nbnoto
-                    do iaux = 1, kaux
-                        raux1(iaux) = refcoo(iaux)
-                    end do
-                    do iaux = 1, nbnoto
-                        kaux = ndim*(iaux-1)
-                        laux = ndim*(nuanom(tymast, iaux)-1)
-                        do jaux = 1, ndim
-                            refcoo(kaux+jaux) = raux1(laux+jaux)
-                        end do
-                    end do
                 end if
 !
                 nbcouc = caimpi(4, nrimpr)

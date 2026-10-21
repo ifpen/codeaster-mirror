@@ -33,6 +33,39 @@ def convertMesh2MedCoupling(asmesh, spacedim_3d=False):
         *MEDCouplingMesh*: MEDCoupling object.
     """
 
+    def renumberNodalConnectivityToMatchMEDConvention(
+        coarseMesh: medc.MEDCouplingUMesh,
+    ) -> medc.MEDCouplingUMesh:
+        """
+        renumber nodes cells by cells for all cells where ASTER node order convention is not those of MED convention.
+        """
+        aster2med_types = libaster.getAsterToMedConnectivity()
+        dico = {
+            medc.MEDFileUMesh.ConvertFromMEDFileGeoType(i): j for i, j in aster2med_types.items()
+        }
+
+        mpts = [medc.MEDCoupling1SGTUMesh(elt) for elt in coarseMesh.splitByType()]
+        needsRenum = False
+        for mpt in mpts:
+            gt = mpt.getCellModelEnum()
+            assert gt in dico, "Programming Error"
+            renumConnCurGt = dico[gt]
+            if renumConnCurGt != sorted(renumConnCurGt):
+                conn = mpt.getNodalConnectivity()
+                nbPtsPerCell = medc.MEDCouplingUMesh.GetNumberOfNodesOfGeometricType(gt)
+                conn.rearrange(nbPtsPerCell)
+                conn = conn[:, renumConnCurGt]
+                conn.rearrange(1)
+                mpt.setNodalConnectivity(conn)
+                needsRenum = True
+        if needsRenum:
+            ret = medc.MEDCouplingUMesh.MergeUMeshesOnSameCoords(
+                [mpt.buildUnstructured() for mpt in mpts]
+            )
+            ret.setName(coarseMesh.getName())
+            return ret
+        return coarseMesh
+
     cells, groups_c, groups_n = libaster.getMedCouplingConversionData(asmesh)
 
     if spacedim_3d:
@@ -61,6 +94,9 @@ def convertMesh2MedCoupling(asmesh, spacedim_3d=False):
         aster_ids_cur_dim = medc.DataArrayInt(ids)
 
         o2n = mesh_at_current_level.sortCellsInMEDFileFrmt()
+        #
+        mesh_at_current_level = renumberNodalConnectivityToMatchMEDConvention(mesh_at_current_level)
+        #
         aster_ids_cur_dim.renumberInPlace(o2n)
         mesh_at_current_level.checkConsistencyLight()
         mcmesh.setMeshAtLevel(levels[dim], mesh_at_current_level)

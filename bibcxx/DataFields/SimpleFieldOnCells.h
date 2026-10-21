@@ -54,6 +54,8 @@ class SimpleFieldOnCells : public DataField {
     JeveuxVector< ValueType > _values;
     /** @brief Vecteur Jeveux '.CESL' */
     JeveuxVectorLogical _allocated;
+    /** @brief Vecteur Jeveux '.CESM' */
+    JeveuxVectorLong _locatedcmpids;
     /** @brief Mesh */
     BaseMeshPtr _mesh;
     /** @brief Nombre de éléments */
@@ -222,6 +224,7 @@ class SimpleFieldOnCells : public DataField {
           _component( JeveuxVectorChar8( getName() + ".CESC" ) ),
           _values( JeveuxVector< ValueType >( getName() + ".CESV" ) ),
           _allocated( JeveuxVectorLogical( getName() + ".CESL" ) ),
+          _locatedcmpids( JeveuxVectorLong( getName() + ".CESM" ) ),
           _nbCells( 0 ),
           _nbComp( 0 ),
           _nbPt( 0 ),
@@ -557,6 +560,25 @@ class SimpleFieldOnCells : public DataField {
         return values;
     }
 
+    /**
+     * @brief Get finite element type ID of cell i
+     */
+    const ASTERINTEGER getTypeId( const ASTERINTEGER icell ) const {
+        return ( *_locatedcmpids )[2 * icell];
+    }
+
+    /**
+     * @brief Get local mode ID of cell i
+     */
+    const ASTERINTEGER getLocatedComponentId( const ASTERINTEGER icell ) const {
+        return ( *_locatedcmpids )[2 * icell + 1];
+    }
+
+    /**
+     * @brief Get CESM vector
+     */
+    const JeveuxVectorLong &getTypeAndLocatedComponentIds() const { return _locatedcmpids; }
+
     std::pair< std::vector< ValueType >,
                std::tuple< VectorLong, VectorString, VectorLong, VectorLong > >
     getValuesWithDescription( const VectorString &cmps, const VectorString &groupsOfCells ) const {
@@ -642,6 +664,7 @@ class SimpleFieldOnCells : public DataField {
         _component->updateValuePointer();
         _values->updateValuePointer();
         _allocated->updateValuePointer();
+        _locatedcmpids->updateValuePointer();
     }
 
     bool build() {

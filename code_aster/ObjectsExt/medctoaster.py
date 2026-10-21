@@ -18,16 +18,9 @@
 # --------------------------------------------------------------------
 
 import os
-
+import libaster
 import numpy as np
 
-from ..MedUtils.medtoasterconnectivity import (
-    ASTER_TYPES,
-    MED2ASTER_CONNECT,
-    MED_TYPES,
-    MYMED2ASTER_CONNECT,
-    toAsterGeoType,
-)
 from ..Messages import UTMESS
 from ..Objects import MedFileAccessType, MedFileReader
 from ..Utilities import MPI, Timer, config, no_new_attributes
@@ -44,13 +37,13 @@ def sorted_as_aster(fmt, types):
     Returns:
         list: list of types sorted following aster order.
     """
-
+    med2aster_types = libaster.getMedToAsterTypes()
     if not hasattr(sorted_as_aster, "cache_dict"):
         sorted_as_aster.cache_dict = dict()
-        sorted_as_aster.cache_dict["medcoupling"] = dict(
-            zip(ASTER_TYPES, map(medc.MEDFileUMesh.ConvertFromMEDFileGeoType, MED_TYPES))
-        )
-        sorted_as_aster.cache_dict["med"] = dict(zip(ASTER_TYPES, MED_TYPES))
+        sorted_as_aster.cache_dict["medcoupling"] = {
+            j: medc.MEDFileUMesh.ConvertFromMEDFileGeoType(i) for i, j in med2aster_types.items()
+        }
+        sorted_as_aster.cache_dict["med"] = {j: i for i, j in med2aster_types.items()}
 
     assert fmt in ("medcoupling", "med")
     if fmt in ("medcoupling",):
@@ -60,7 +53,9 @@ def sorted_as_aster(fmt, types):
     else:
         assert False, "Invalid format"
 
-    sorted_types = [cache[astype] for astype in ASTER_TYPES if cache[astype] in types]
+    sorted_types = [
+        cache[astype] for astype in sorted(med2aster_types.values()) if cache[astype] in types
+    ]
     assert len(sorted_types) == len(types), "Invalid conversion"
     return sorted_types
 
@@ -333,6 +328,7 @@ class MEDCouplingMeshHelper:
         if not config.get("ASTER_HAVE_MED"):
             raise NotImplementedError("MED is required for this feature!")
         filename = self._file_name
+        med2aster_connect = libaster.getMedToAsterConnectivity()
 
         def splitElem(nodeNb, size, rank):
             nbNodesProc = int(nodeNb / size)
@@ -377,7 +373,7 @@ class MEDCouplingMeshHelper:
             nbNodesForGeoT = curMesh.getNodeNumberForGeometricType(i)
             nbElem = int(len(curConn) / nbNodesForGeoT)
             curConn.shape = (nbElem, nbNodesForGeoT)
-            curConn = curConn[:, MYMED2ASTER_CONNECT[i]]
+            curConn = curConn[:, med2aster_connect[i]]
             self._connectivity_aster.extend(curConn)
             self._cell_types.extend([i] * nbElem)
             curFam = curMesh.getCellFamilyForGeometricTypeAtSequence(seq[0], seq[1], i)
@@ -492,7 +488,8 @@ class MEDCouplingMeshHelper:
     @property
     def types(self):
         """list[int]: List of code_aster type for each cell."""
-        return [toAsterGeoType(i) for i in self._cell_types]
+        toAsterGeoType = libaster.getMedToAsterTypes()
+        return [toAsterGeoType[i] for i in self._cell_types]
 
     @property
     def groupsOfCells(self):
@@ -525,8 +522,10 @@ class MEDCouplingMeshHelper:
             list[int]: List of nodes.
         """
         if not cls._medc2aster_connect:
+            med2aster_connect = libaster.getMedToAsterConnectivity()
             cls._medc2aster_connect = {
-                getattr(medc, "NORM_%s" % elem): nodes for elem, nodes in MED2ASTER_CONNECT.items()
+                medc.MEDFileUMesh.ConvertFromMEDFileGeoType(elem): nodes
+                for elem, nodes in med2aster_connect.items()
             }
         return cls._medc2aster_connect[medcoupling_type]
 
