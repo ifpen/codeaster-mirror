@@ -1,8 +1,9 @@
+
 name: Mirror Code_Aster
 
 on:
   schedule:
-    - cron: "0 2 * * 0"
+    - cron: "17 2 * * 0"
 
   workflow_dispatch:
 
@@ -17,15 +18,32 @@ jobs:
       - name: Checkout workflow branch
         uses: actions/checkout@v4
 
-      - name: Mirror branches
+      - name: Configure Git
         run: |
-          git clone --no-checkout https://gitlab.com/codeaster/src.git repo
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch Code_Aster branches
+        run: |
+          git init repo
           cd repo
 
-          git remote add github https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git remote add upstream https://gitlab.com/codeaster/src.git
 
-          git fetch origin main
-          git fetch origin v17
+          git fetch --no-tags upstream \
+            refs/heads/main:refs/remotes/upstream/main \
+            refs/heads/v17:refs/remotes/upstream/v17
 
-          git push github origin/main:refs/heads/main --force
-          git push github origin/v17:refs/heads/v17 --force
+      - name: Push branches to GitHub
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPOSITORY: ${{ github.repository }}
+        run: |
+          cd repo
+
+          git remote add github \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPOSITORY}.git"
+
+          git push github refs/remotes/upstream/main:refs/heads/main --force
+          git push github refs/remotes/upstream/v17:refs/heads/v17 --force
+
