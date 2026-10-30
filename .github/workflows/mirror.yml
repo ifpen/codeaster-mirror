@@ -23,18 +23,20 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Fetch Code_Aster branches
+      - name: Fetch Code_Aster branches and tags
         run: |
           git init repo
           cd repo
 
           git remote add upstream https://gitlab.com/codeaster/src.git
 
-          git fetch --no-tags upstream \
-            refs/heads/main:refs/remotes/upstream/main \
-            refs/heads/v17:refs/remotes/upstream/v17
+          git fetch upstream \
+            '+refs/heads/main:refs/remotes/upstream/main' \
+            '+refs/heads/v17:refs/remotes/upstream/v17'
 
-      - name: Push branches to GitHub
+          git fetch upstream --tags
+
+      - name: Push branches and tags to GitHub
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPOSITORY: ${{ github.repository }}
@@ -46,3 +48,4 @@ jobs:
 
           git push github refs/remotes/upstream/main:refs/heads/main --force
           git push github refs/remotes/upstream/v17:refs/heads/v17 --force
+          git push github --tags --force
