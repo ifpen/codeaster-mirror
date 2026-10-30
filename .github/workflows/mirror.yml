@@ -36,7 +36,7 @@ jobs:
 
           git fetch upstream --tags
 
-      - name: Push branches and tags to GitHub
+      - name: Push branches to GitHub
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPOSITORY: ${{ github.repository }}
@@ -48,4 +48,30 @@ jobs:
 
           git push github refs/remotes/upstream/main:refs/heads/main --force
           git push github refs/remotes/upstream/v17:refs/heads/v17 --force
-          git push github --tags --force
+
+      - name: Push tags to GitHub in batches
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPOSITORY: ${{ github.repository }}
+        run: |
+          cd repo
+
+          git remote add github \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPOSITORY}.git" 2>/dev/null || true
+
+          mapfile -t tags < <(git for-each-ref --format='%(refname)' refs/tags)
+
+          total=${#tags[@]}
+          batch_size=50
+
+          echo "Nombre total de tags : $total"
+
+          for ((i=0; i<total; i+=batch_size)); do
+            batch=("${tags[@]:i:batch_size}")
+
+            echo "Push des tags $((i+1)) à $((i+${#batch[@]})) sur $total"
+
+            git push github --force "${batch[@]}"
+          done
+
+          echo "Synchronisation des tags terminée."
