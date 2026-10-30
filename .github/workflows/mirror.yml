@@ -48,4 +48,4 @@ jobs:
 
           git push github refs/remotes/upstream/main:refs/heads/main --force
           git push github refs/remotes/upstream/v17:refs/heads/v17 --force
-          git push github refs/tags/10.0.1:refs/tags/10.0.1
+          git push github --tags --force
